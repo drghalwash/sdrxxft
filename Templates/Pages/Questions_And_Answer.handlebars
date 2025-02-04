@@ -211,7 +211,136 @@ font-family: Verdana, sans-serif;
 
   background: #f1f1f1;
 }
+
+	/* Search container styles */
+.search-container {
+    width: 80%;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+    background: #fff;
+    border-radius: 25px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 15px 50px 15px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 3px 8px rgba(0,123,255,0.2);
+}
+
+.search-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+/* Categories container styles */
+.categories-container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 20px;
+}
+
+/* Custom scrollbar */
+.categories-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.categories-container::-webkit-scrollbar-thumb {
+    background: #007bff;
+    border-radius: 10px;
+}
+
+.categories-container::-webkit-scrollbar-thumb:hover {
+    background: #0056b3;
+}
+
+.categories-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Category items */
+.categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-item {
+    flex: 1 1 calc(50% - 10px);
+    text-align: left;
+    color: #333;
+    font-size: 1em;
+}
+
+.category-item a {
+    text-decoration: none;
+    color: #333;
+    font-family: Verdana, sans-serif;
+    transition: color 0.3s ease;
+}
+
+.category-item a:hover {
+    color: #007bff;
+}
+
+/* Accordion styles */
+.accordion-body {
+    padding: 0;
+    text-align: justify;
+}
+
+.accordion-flush {
+    padding: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .category-item {
+        flex: 1 1 100%;
+    }
+    
+    .search-container {
+        width: 95%;
+    }
+    
+    .categories-container {
+        width: 95%;
+    }
+}
+
 </style>
+
+	
 	<title> Q & A trial </title>
 </head>
 <body>
@@ -353,6 +482,27 @@ font-family: Verdana, sans-serif;
   </div>
 </div> --}}
 
+
+
+
+
+<div class="search-container">
+    <div class="search-wrapper">
+        <div class="search-box">
+            <input type="text" id="categorySearch" placeholder="Search categories & questions...">
+            <div class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+	
 <div style="width: 85%; ">
 <div class="categories-container">
   <h2>Categories</h2>
@@ -959,5 +1109,97 @@ font-family: Verdana, sans-serif;
   window.addEventListener("scroll", handleScroll);
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('categorySearch');
+    
+    // Search functionality
+    searchInput.addEventListener('input', debounce(function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        // Search in categories
+        document.querySelectorAll('.categories-container .category-item').forEach(category => {
+            const categoryText = category.textContent.toLowerCase();
+            const categoryLink = category.querySelector('a');
+            const isVisible = categoryText.includes(searchTerm);
+            
+            category.style.display = isVisible ? '' : 'none';
+            if (categoryLink) {
+                categoryLink.style.color = isVisible ? '' : 'inherit';
+            }
+        });
+        
+        // Search in accordion content
+        document.querySelectorAll('.accordion-item').forEach(item => {
+            const questionButton = item.querySelector('.btn-link');
+            const answerBody = item.querySelector('.accordion-body');
+            const questionText = questionButton?.textContent.toLowerCase() || '';
+            const answerText = answerBody?.textContent.toLowerCase() || '';
+            
+            const isMatch = questionText.includes(searchTerm) || 
+                           answerText.includes(searchTerm);
+            
+            // Show/hide the entire accordion section
+            const accordionSection = item.closest('.mb-8');
+            if (accordionSection) {
+                accordionSection.style.display = isMatch ? '' : 'none';
+            }
+            
+            // If there's a match, expand the accordion
+            if (isMatch && searchTerm.length > 0) {
+                const collapseElement = item.querySelector('.collapse');
+                if (collapseElement) {
+                    const bsCollapse = new bootstrap.Collapse(collapseElement, {
+                        show: true
+                    });
+                }
+            }
+        });
+        
+        // Update URL with search parameter
+        const newUrl = new URL(window.location);
+        if (searchTerm) {
+            newUrl.searchParams.set('search', searchTerm);
+        } else {
+            newUrl.searchParams.delete('search');
+        }
+        history.replaceState({}, '', newUrl);
+    }, 300));
+    
+    // Debounce function to improve performance
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func.apply(this, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Initialize search from URL parameter if exists
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialSearch = urlParams.get('search');
+    if (initialSearch) {
+        searchInput.value = initialSearch;
+        searchInput.dispatchEvent(new Event('input'));
+    }
+    
+    // Scroll into view functionality
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const visibleAccordions = document.querySelectorAll('.accordion-item:not([style*="display: none"])');
+            if (visibleAccordions.length > 0) {
+                visibleAccordions[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+    });
+});
+	</script>
 	</body>
 	</html>
