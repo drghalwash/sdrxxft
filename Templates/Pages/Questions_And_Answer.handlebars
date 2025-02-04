@@ -1025,34 +1025,56 @@ font-family: Verdana, sans-serif;
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('categorySearch');
-        const categories = document.querySelectorAll('.category-item');
-        const questions = document.querySelectorAll('.accordion-item');
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('categorySearch');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim()
+            .replace(/[\/\-\(\)]/g, ' '); // Handle special characters
         
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
+        // Search in categories
+        document.querySelectorAll('.category-item').forEach(category => {
+            const categoryText = category.textContent.toLowerCase()
+                .replace(/[\/\-\(\)]/g, ' ');
+            const categoryLink = category.querySelector('a');
+            const isVisible = categoryText.includes(searchTerm);
             
-            categories.forEach(category => {
-                const categoryText = category.textContent.toLowerCase();
-                const categoryLink = category.querySelector('a');
-                const isVisible = categoryText.includes(searchTerm);
-                category.style.display = isVisible ? '' : 'none';
-                if(categoryLink) {
-                    categoryLink.style.color = isVisible ? '' : 'inherit';
-                }
-            });
+            category.style.display = isVisible ? '' : 'none';
+            if (categoryLink) {
+                categoryLink.style.color = isVisible ? '' : 'inherit';
+            }
+        });
+        
+        // Search in accordion content
+        document.querySelectorAll('.accordion-item').forEach(item => {
+            const questionButton = item.querySelector('.btn-link');
+            const answerBody = item.querySelector('.accordion-body');
+            const questionText = (questionButton?.textContent || '').toLowerCase()
+                .replace(/[\/\-\(\)]/g, ' ');
+            const answerText = (answerBody?.textContent || '').toLowerCase()
+                .replace(/[\/\-\(\)]/g, ' ');
             
-            questions.forEach(question => {
-                const questionText = question.textContent.toLowerCase();
-                const isVisible = questionText.includes(searchTerm);
-                question.style.display = isVisible ? '' : 'none';
-                if(question.parentElement) {
-                    question.parentElement.style.display = isVisible ? '' : 'none';
+            const isMatch = questionText.includes(searchTerm) || 
+                           answerText.includes(searchTerm);
+            
+            // Show/hide the entire accordion section
+            const accordionSection = item.closest('.mb-8');
+            if (accordionSection) {
+                accordionSection.style.display = isMatch ? '' : 'none';
+            }
+            
+            // If there's a match, expand the accordion
+            if (isMatch && searchTerm.length > 0) {
+                const collapseElement = item.querySelector('.collapse');
+                if (collapseElement) {
+                    const bsCollapse = new bootstrap.Collapse(collapseElement, {
+                        show: true
+                    });
                 }
-            });
+            }
         });
     });
+});
 </script>
 
 	
