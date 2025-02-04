@@ -113,7 +113,51 @@
 }
 
 </style> --}}
-<style>
+
+.search-container {
+    width: 80%;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+    background: #fff;
+    border-radius: 25px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 15px 50px 15px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 3px 8px rgba(0,123,255,0.2);
+}
+
+.search-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+	
+	<style>
 	section h3, h2{
 font-family: Verdana, sans-serif;
 	}
@@ -353,6 +397,21 @@ font-family: Verdana, sans-serif;
   </div>
 </div> --}}
 
+<div class="search-container">
+    <div class="search-wrapper">
+        <div class="search-box">
+            <input type="text" id="categorySearch" placeholder="Search categories & questions...">
+            <div class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
 <div style="width: 85%; ">
 <div class="categories-container">
   <h2>Categories</h2>
@@ -403,9 +462,7 @@ font-family: Verdana, sans-serif;
           <div class="custom-accordion" id="accordion_lollipop_technique">
             <div class="accordion-item">
               <h2 class="mb-0">
-                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                  What defines the lollipop incision pattern?
-                </button>
+                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">What defines the lollipop incision pattern?</button>
               </h2>
               <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#accordion_lollipop_technique">
                 <div class="accordion-body">
@@ -415,9 +472,7 @@ font-family: Verdana, sans-serif;
             </div>
             <div class="accordion-item">
               <h2 class="mb-0">
-                <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                  Key advantages over traditional reduction methods
-                </button>
+                <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">Key advantages over traditional reduction methods</button>
               </h2>
               <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-bs-parent="#accordion_lollipop_technique">
                 <div class="accordion-body">
@@ -431,9 +486,7 @@ font-family: Verdana, sans-serif;
             </div>
             <div class="accordion-item">
               <h2 class="mb-0">
-                <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                  Ideal candidate profile
-                </button>
+                <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">Ideal candidate profile</button>
               </h2>
               <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-bs-parent="#accordion_lollipop_technique">
                 <div class="accordion-body">
@@ -443,9 +496,7 @@ font-family: Verdana, sans-serif;
             </div>
 		  <div class="accordion-item">
   <h2 class="mb-0">
-    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-      What is the recovery timeline for the lollipop technique?
-    </button>
+    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">What is the recovery timeline for the lollipop technique?</button>
   </h2>
   <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-bs-parent="#accordion_lollipop_technique">
     <div class="accordion-body">
@@ -456,9 +507,7 @@ font-family: Verdana, sans-serif;
 
 <div class="accordion-item">
   <h2 class="mb-0">
-    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-      Are there any risks associated with the lollipop technique?
-    </button>
+    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">Are there any risks associated with the lollipop technique?</button>
   </h2>
   <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-bs-parent="#accordion_lollipop_technique">
     <div class="accordion-body">
@@ -469,9 +518,7 @@ font-family: Verdana, sans-serif;
 
 <div class="accordion-item">
   <h2 class="mb-0">
-    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
-      How does the lollipop technique compare to other breast reduction methods?
-    </button>
+    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">How does the lollipop technique compare to other breast reduction methods?</button>
   </h2>
   <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-bs-parent="#accordion_lollipop_technique">
     <div class="accordion-body">
@@ -482,9 +529,7 @@ font-family: Verdana, sans-serif;
 
 <div class="accordion-item">
   <h2 class="mb-0">
-    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
-      What are the long-term results of the lollipop technique?
-    </button>
+    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">What are the long-term results of the lollipop technique?</button>
   </h2>
   <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-bs-parent="#accordion_lollipop_technique">
     <div class="accordion-body">
@@ -495,9 +540,7 @@ font-family: Verdana, sans-serif;
 
 <div class="accordion-item">
   <h2 class="mb-0">
-    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
-      Can the lollipop technique be combined with other procedures?
-    </button>
+    <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">Can the lollipop technique be combined with other procedures?</button>
   </h2>
   <div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-bs-parent="#accordion_lollipop_technique">
     <div class="accordion-body">
@@ -957,6 +1000,23 @@ font-family: Verdana, sans-serif;
 
   // Attach the scroll event listener
   window.addEventListener("scroll", handleScroll);
+</script>
+<script>
+document.getElementById('categorySearch').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const categories = document.querySelectorAll('.category-item');
+    const questions = document.querySelectorAll('.accordion-item');
+    
+    categories.forEach(category => {
+        const categoryText = category.textContent.toLowerCase();
+        category.style.display = categoryText.includes(searchTerm) ? '' : 'none';
+    });
+    
+    questions.forEach(question => {
+        const questionText = question.textContent.toLowerCase();
+        question.style.display = questionText.includes(searchTerm) ? '' : 'none';
+    });
+});
 </script>
 
 	</body>
