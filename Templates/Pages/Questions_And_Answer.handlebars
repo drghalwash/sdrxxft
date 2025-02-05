@@ -1376,6 +1376,12 @@ document.addEventListener('DOMContentLoaded', function() {
         content.style.display = content.style.display === 'none' ? 'block' : 'none';
     });
 });
+	document.querySelectorAll('.accordion-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const content = document.querySelector(button.dataset.bsTarget);
+        content.classList.toggle('show'); // Toggle visibility
+    });
+});
 </script>
 	
 	</body>
