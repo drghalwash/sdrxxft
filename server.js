@@ -75,6 +75,18 @@ app.use('/Read_More',Read_More_route);
 app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
 
+
+// Handle 404 errors for partial files
+app.use('/qapartials/*', (req, res) => {
+    res.status(404).send('Partial not found');
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
 async function connectToDatabase() {
     try {
         await mongoose.connect(process.env.mongooconectionurl, {
