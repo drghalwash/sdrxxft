@@ -46,9 +46,6 @@ app.engine('handlebars', engine({
         add: function(a, b) {
             return a + b;
         },
-        hasPartial: function(partialName) {
-            return Handlebars.partials.hasOwnProperty(partialName);
-        }
     }
 }));
 
