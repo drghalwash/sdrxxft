@@ -1262,6 +1262,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+	<script>
+  // Define the desired order based on your category links
+  const categoryOrder = [
+    "rhinoplasty",
+    "liposuction",
+    "facelift",
+    "breastpsycho",
+	  "lollipoptechnique",
+    "breastaugmentation",
+    "bodycontouring",
+    "fatgrafting",
+    "tummytuck",
+    "brazilianbuttlift",
+    "eyelidlift",
+    "botoxfillers",
+    "mommyMakeover",
+    "hairtransplant",
+    "skinresurfacing",
+    "noninvasivecontouring"
+  ];
+
+  // Get the parent element that contains all the Q&A container blocks (div.mb-8)
+  const qaParent = document.querySelector("section"); // Change this selector if needed
+
+  // Loop through the order and for each category, find the corresponding block and append it
+  categoryOrder.forEach(categoryId => {
+    const header = document.getElementById(categoryId); // Finds the <h3 id="categoryid">
+    if (header) {
+      const block = header.closest(".mb-8"); // Get the full Q&A block for that category
+      if (block) {
+        // Append moves the block so that they appear in the order defined in categoryOrder
+        qaParent.appendChild(block);
+      }
+    }
+  });
+</script>
+
 	
 	</body>
 	</html>
