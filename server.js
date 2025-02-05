@@ -29,9 +29,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-app.use(express.urlencoded({extended:true}));
-app.use(methodOverride('_method'))
-app.engine('handlebars', engine());
+app.use(express.urlencoded({extended: true}));
+app.use(methodOverride('_method'));
+
+// Configure Handlebars with partials directory
+app.engine('handlebars', engine({
+    // Define multiple partial directories
+    partialsDir: [
+        join(__dirname, 'qapartials'),
+        join(__dirname, 'Templates', 'partials') // For other partials if needed
+    ],
+    // Optional: Configure helpers
+    helpers: {
+        add: function(a, b) {
+            return a + b;
+        }
+    }
+}));
+
 app.set('view engine', 'handlebars');
 const viewsPath = join(__dirname, 'Templates');
 app.set('views', viewsPath);
@@ -41,6 +56,7 @@ Handlebars.registerHelper('add', function(a, b) {
 // Serve static files
 app.use(express.static(join(__dirname, 'Templates')));
 app.use(express.static(join(__dirname, 'Upload')));
+app.use('/qapartials', express.static(join(__dirname, 'qapartials')));
 
 app.use('/',Home_route);
 app.use('/Home',Home_route);
@@ -58,6 +74,18 @@ app.use('/Blog',Blog_route);
 app.use('/Read_More',Read_More_route);
 app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
+
+
+// Handle 404 errors for partial files
+app.use('/qapartials/*', (req, res) => {
+    res.status(404).send('Partial not found');
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 
 async function connectToDatabase() {
     try {
