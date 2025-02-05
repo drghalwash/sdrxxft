@@ -71,7 +71,7 @@ Handlebars.registerHelper('partial', function(name) {
 // Serve static files
 app.use(express.static(join(__dirname, 'Templates')));
 app.use(express.static(join(__dirname, 'Upload')));
-app.use('/Qapartials', express.static(join(__dirname, 'Qapartials')));
+app.use(express.static(join(__dirname, 'Qapartials')));
 
 app.use('/',Home_route);
 app.use('/Home',Home_route);
