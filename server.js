@@ -34,24 +34,39 @@ app.use(methodOverride('_method'));
 
 // Configure Handlebars with partials directory
 app.engine('handlebars', engine({
-    // Define multiple partial directories
-    partialsDir: [
+    // Use partialsDirs instead of partialsDir (partialsDir is deprecated)
+    partialsDirs: [
         join(__dirname, 'Qapartials'),
-        join(__dirname, 'Templates', 'partials') // For other partials if needed
+        join(__dirname, 'Templates', 'partials')
     ],
-    // Optional: Configure helpers
+    extname: '.handlebars',
+    defaultLayout: 'main',
+    layoutsDir: join(__dirname, 'Templates', 'layouts'),
     helpers: {
         add: function(a, b) {
             return a + b;
+        },
+        hasPartial: function(partialName) {
+            return Handlebars.partials.hasOwnProperty(partialName);
         }
     }
 }));
+
 
 app.set('view engine', 'handlebars');
 const viewsPath = join(__dirname, 'Templates');
 app.set('views', viewsPath);
 Handlebars.registerHelper('add', function(a, b) {
     return a + b;
+});
+// Add error handling for missing partials
+Handlebars.registerHelper('partial', function(name) {
+    if (Handlebars.partials[name]) {
+        return new Handlebars.SafeString(Handlebars.partials[name]);
+    } else {
+        console.warn(`Partial ${name} not found`);
+        return '';
+    }
 });
 // Serve static files
 app.use(express.static(join(__dirname, 'Templates')));
