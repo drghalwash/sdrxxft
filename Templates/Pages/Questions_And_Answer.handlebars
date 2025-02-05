@@ -1369,19 +1369,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-<script>
-	document.querySelectorAll('.accordion-item > h2').forEach(header => {
-  header.addEventListener('click', function (e) {
-    // Prevent multiple events if the user clicked directly on the button
-    if (e.target.tagName !== 'BUTTON') {
-      const btn = header.querySelector('button');
-      if (btn) {
-        btn.click();  // Simulate a click on the button to toggle
+	<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Toggle the entire accordion header when any non-button area is clicked.
+  document.querySelectorAll('.accordion-item > h2').forEach(header => {
+    header.addEventListener('click', function(e) {
+      // Only trigger the button click if the target isn't already the button
+      if (e.target.tagName !== 'BUTTON') {
+        const button = header.querySelector('button');
+        if (button) {
+          button.click(); // Trigger Bootstrap's collapse toggle on the button
+        }
       }
-    }
+    });
   });
 });
 </script>
-	
+
 	</body>
 	</html>
