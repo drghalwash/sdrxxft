@@ -569,9 +569,10 @@ font-family: Verdana, sans-serif;
    <div class="category-item"><a href="#rhinoplasty">Rhinoplasty</a></div>
 <div class="category-item"><a href="#liposuction">Liposuction</a></div>
 <div class="category-item"><a href="#facelift">Facelift</a></div>
-	<div class="category-item"><a href="#breastpsycho" style="font-weight: bold; color: #007bff;">Breast:Thinking all night</a></div>
-	  <div class="category-item"><a href="#lollipoptechnique" style="font-weight: bold; color: #007bff;">Breast Reduction:Lollipop technique</a></div>
-	  <div class="category-item"><a href="#breastaugmentation">Breast Augmentation</a></div>	
+<div class="category-item"><a href="#breastpsycho" style="font-weight: bold; color: #007bff;">Breast:Thinking all night</a></div>
+<div class="category-item"><a href="#lollipoptechnique" style="font-weight: bold; color: #007bff;">Breast Reduction:Lollipop technique</a></div>
+<div class="category-item"><a href="#miniinvasivebreast" style="font-weight: bold; color: #007bff;">Thinking about mini invasive</a></div>
+<div class="category-item"><a href="#breastaugmentation">Breast Augmentation</a></div>	
 <div class="category-item"><a href="#bodycontouring">Body Contouring</a></div>
 <div class="category-item"><a href="#fatgrafting">Fat Grafting</a></div>
 <div class="category-item"><a href="#tummytuck">Tummy Tuck (Abdominoplasty)</a></div>
@@ -583,10 +584,47 @@ font-family: Verdana, sans-serif;
 <div class="category-item"><a href="#skinresurfacing" style="font-weight: bold; color: #007bff;">LASER SKIN RESURFACING</a></div>
 <div class="category-item"><a href="#noninvasivecontouring">Non-Invasive Body Contouring</a></div>
 
-  <div class="category-item"><a href="#miniinvasivebreast" style="font-weight: bold; color: #007bff;">Thinking about mini invasive</a></div>
     <!-- Other category items -->
   </div>
 </div>
+	
+<script>
+  // Define the desired order based on your category links
+  const categoryOrder = [
+    "rhinoplasty",
+    "liposuction",
+    "facelift",
+    "breastpsycho",
+	  "lollipoptechnique",
+    "breastaugmentation",
+    "bodycontouring",
+    "fatgrafting",
+    "tummytuck",
+    "brazilianbuttlift",
+    "eyelidlift",
+    "botoxfillers",
+    "mommyMakeover",
+    "hairtransplant",
+    "skinresurfacing",
+    "noninvasivecontouring"
+ "miniinvasivebreast"
+  ];
+
+  // Get the parent element that contains all the Q&A container blocks (div.mb-8)
+  const qaParent = document.querySelector("section"); // Change this selector if needed
+
+  // Loop through the order and for each category, find the corresponding block and append it
+  categoryOrder.forEach(categoryId => {
+    const header = document.getElementById(categoryId); // Finds the <h3 id="categoryid">
+    if (header) {
+      const block = header.closest(".mb-8"); // Get the full Q&A block for that category
+      if (block) {
+        // Append moves the block so that they appear in the order defined in categoryOrder
+        qaParent.appendChild(block);
+      }
+    }
+  });
+</script>
 
 <!-- FAQ 3 - Bootstrap Brain Component -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
@@ -956,44 +994,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-	<script>
-  // Define the desired order based on your category links
-  const categoryOrder = [
-    "rhinoplasty",
-    "liposuction",
-    "facelift",
-    "breastpsycho",
-	  "lollipoptechnique",
-    "breastaugmentation",
-    "bodycontouring",
-    "fatgrafting",
-    "tummytuck",
-    "brazilianbuttlift",
-    "eyelidlift",
-    "botoxfillers",
-    "mommyMakeover",
-    "hairtransplant",
-    "skinresurfacing",
-    "noninvasivecontouring"
- "miniinvasivebreast"
-  ];
-
-  // Get the parent element that contains all the Q&A container blocks (div.mb-8)
-  const qaParent = document.querySelector("section"); // Change this selector if needed
-
-  // Loop through the order and for each category, find the corresponding block and append it
-  categoryOrder.forEach(categoryId => {
-    const header = document.getElementById(categoryId); // Finds the <h3 id="categoryid">
-    if (header) {
-      const block = header.closest(".mb-8"); // Get the full Q&A block for that category
-      if (block) {
-        // Append moves the block so that they appear in the order defined in categoryOrder
-        qaParent.appendChild(block);
-      }
-    }
-  });
-</script>
-
+	
 	
 	</body>
 	</html>
