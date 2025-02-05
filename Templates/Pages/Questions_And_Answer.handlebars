@@ -1371,20 +1371,32 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 	<script>
 document.addEventListener("DOMContentLoaded", function() {
-  // Toggle the entire accordion header when any non-button area is clicked.
-  document.querySelectorAll('.accordion-item > h2').forEach(header => {
-    header.addEventListener('click', function(e) {
-      // Only trigger the button click if the target isn't already the button
-      if (e.target.tagName !== 'BUTTON') {
-        const button = header.querySelector('button');
-        if (button) {
-          button.click(); // Trigger Bootstrap's collapse toggle on the button
+  // Select all accordion buttons (assumed to use the Bootstrap classes)
+  const accordionButtons = document.querySelectorAll('.btn.btn-link');
+
+  accordionButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      // Get the target selector defined in the button's data attribute
+      const targetSelector = button.getAttribute('data-bs-target');
+      const targetEl = document.querySelector(targetSelector);
+      
+      if (targetEl) {
+        // Get an existing Bootstrap collapse instance for the target element, if any
+        let collapseInstance = bootstrap.Collapse.getInstance(targetEl);
+        
+        if (collapseInstance) {
+          // If the collapse instance exists, toggle its state (open if closed or vice versa)
+          collapseInstance.toggle();
+        } else {
+          // Otherwise, create a new collapse instance for the target element
+          new bootstrap.Collapse(targetEl, { toggle: true });
         }
       }
     });
   });
 });
 </script>
+
 
 	</body>
 	</html>
