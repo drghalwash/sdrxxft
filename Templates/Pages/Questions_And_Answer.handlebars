@@ -1369,6 +1369,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<script>
+	document.querySelectorAll('.qa-heading').forEach(heading => {
+    heading.addEventListener('click', () => {
+        const content = heading.nextElementSibling;
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    });
+});
+</script>
 	
 	</body>
 	</html>
