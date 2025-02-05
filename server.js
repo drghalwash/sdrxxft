@@ -91,15 +91,16 @@ app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
 
 
-// Handle 404 errors for partial files
-app.use('/Qapartials/*', (req, res) => {
+
+// Error handlers
+app.use('/Qapartials/*', (req, res, next) => {
+    console.error('Partial not found:', req.url);  // Add logging
     res.status(404).send('Partial not found');
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    console.error('Error stack:', err.stack);  // Add detailed logging
+    res.status(500).render('error', { error: err }); // Render error page instead of plain text
 });
 
 async function connectToDatabase() {
