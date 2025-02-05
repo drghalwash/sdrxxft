@@ -36,7 +36,7 @@ app.use(methodOverride('_method'));
 app.engine('handlebars', engine({
     // Define multiple partial directories
     partialsDir: [
-        join(__dirname, 'qapartials'),
+        join(__dirname, 'Qapartials'),
         join(__dirname, 'Templates', 'partials') // For other partials if needed
     ],
     // Optional: Configure helpers
@@ -56,7 +56,7 @@ Handlebars.registerHelper('add', function(a, b) {
 // Serve static files
 app.use(express.static(join(__dirname, 'Templates')));
 app.use(express.static(join(__dirname, 'Upload')));
-app.use('/qapartials', express.static(join(__dirname, 'qapartials')));
+app.use('/Qapartials', express.static(join(__dirname, 'Qapartials')));
 
 app.use('/',Home_route);
 app.use('/Home',Home_route);
@@ -77,7 +77,7 @@ app.use('/Out_of_town',Out_of_town_route);
 
 
 // Handle 404 errors for partial files
-app.use('/qapartials/*', (req, res) => {
+app.use('/Qapartials/*', (req, res) => {
     res.status(404).send('Partial not found');
 });
 
