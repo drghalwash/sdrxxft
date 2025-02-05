@@ -618,11 +618,11 @@ font-family: Verdana, sans-serif;
             <!-- First Q&A (Default Open) -->
             <div class="accordion-item">
               <h2 class="mb-0">
-                <button class="btn btn-link" 
+                <button class="btn btn-link collapsed" 
                         type="button" 
                         data-bs-toggle="collapse" 
                         data-bs-target="#breastpsycho_q1" 
-                        aria-expanded="true" 
+                        aria-expanded="false" 
                         aria-controls="breastpsycho_q1">
                   Why should I consider a breast reduction surgery?
                 </button>
@@ -1370,11 +1370,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script>
-	document.querySelectorAll('.qa-heading').forEach(heading => {
-  heading.addEventListener('click', () => {
-    const content = heading.nextElementSibling;
-    const currentDisplay = window.getComputedStyle(content).display;
-    content.style.display = currentDisplay === 'none' ? 'block' : 'none';
+	document.querySelectorAll('.accordion-item > h2').forEach(header => {
+  header.addEventListener('click', function (e) {
+    // Prevent multiple events if the user clicked directly on the button
+    if (e.target.tagName !== 'BUTTON') {
+      const btn = header.querySelector('button');
+      if (btn) {
+        btn.click();  // Simulate a click on the button to toggle
+      }
+    }
   });
 });
 </script>
