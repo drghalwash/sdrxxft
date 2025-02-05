@@ -1371,16 +1371,11 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script>
 	document.querySelectorAll('.qa-heading').forEach(heading => {
-    heading.addEventListener('click', () => {
-        const content = heading.nextElementSibling;
-        content.style.display = content.style.display === 'none' ? 'block' : 'none';
-    });
-});
-	document.querySelectorAll('.accordion-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const content = document.querySelector(button.dataset.bsTarget);
-        content.classList.toggle('show'); // Toggle visibility
-    });
+  heading.addEventListener('click', () => {
+    const content = heading.nextElementSibling;
+    const currentDisplay = window.getComputedStyle(content).display;
+    content.style.display = currentDisplay === 'none' ? 'block' : 'none';
+  });
 });
 </script>
 	
