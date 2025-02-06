@@ -4,39 +4,31 @@ import Handlebars from 'handlebars';
 import dotenv from 'dotenv';
 dotenv.config();
 import methodOverride from 'method-override';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import mongoose from 'mongoose';
 
-// Determine __dirname in ES modules
+// Serverless-compatible __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Import Routes
-import Home_route from "./Routes/Home_route.js";
-import Contact_route from "./Routes/Contact_route.js";
-import About_route from "./Routes/About_route.js";
-import Guidelines_route from "./Routes/Guidelines_route.js";
-import Choose_route from "./Routes/Choose_route.js";
-import Diet_route from "./Routes/Diet_route.js";
-import Drain_Care_route from "./Routes/Drain_Care_route.js";
-import Finance_route from "./Routes/Finance_route.js";
-import Meet_Our_Patients_route from "./Routes/Meet_Our_Patients_route.js";
-import Policies_route from "./Routes/Policies_route.js";
-import Questions_And_Answer_route from "./Routes/Questions_And_Answer_route.js";
-import Blog_route from "./Routes/Blog_route.js";
-import Read_More_route from "./Routes/Read_More_route.js";
-import Photo_Gallary_route from "./Routes/Photo_Gallary_route.js";
-import Out_of_town_route from "./Routes/Out_of_town_route.js";
+// Dynamic route imports (Vercel-friendly)
+const importRoute = async (routePath) => {
+  try {
+    return await import(`./Routes/${routePath}`);
+  } catch (error) {
+    console.error(`Failed to import route: ${routePath}`, error);
+    process.exit(1);
+  }
+};
 
 const app = express();
 
-// Middleware Setup
+// Serverless-optimized middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
-// Configure Handlebars with partials directories and helpers
+// Handlebars configuration for serverless
 app.engine('handlebars', engine({
   partialsDir: [
     join(__dirname, 'Qapartials'),
@@ -45,95 +37,91 @@ app.engine('handlebars', engine({
   extname: '.handlebars',
   defaultLayout: 'main',
   layoutsDir: join(__dirname, 'Templates', 'layouts'),
-  helpers: {
-    add: (a, b) => a + b,
+  runtimeOptions: {
+    allowProtoPropertiesByDefault: true,
+    allowProtoMethodsByDefault: true
   }
 }));
+
 app.set('view engine', 'handlebars');
 app.set('views', join(__dirname, 'Templates'));
 
-// Register standard Handlebars helper
-Handlebars.registerHelper('add', (a, b) => a + b);
+// Serverless-safe static files
+app.use(express.static(join(__dirname, 'Templates'), { maxAge: '1y' }));
+app.use(express.static(join(__dirname, 'Upload'), { maxAge: '1y' }));
+app.use(express.static(join(__dirname, 'Qapartials'), { maxAge: '1y' }));
 
-// Enhanced Partial Helper: Checks if the partial file exists; if not, renders fallback content.
+// Enhanced partial handler for serverless environments
 Handlebars.registerHelper('partial', function(name) {
-  const partialPath = join(__dirname, 'Qapartials', `${name}.handlebars`);
-  if (fs.existsSync(partialPath)) {
-    return new Handlebars.SafeString(Handlebars.partials[name]);
-  } else {
-    console.warn(`Partial "${name}" not found. Rendering fallback content.`);
+  try {
+    if (Handlebars.partials[name]) {
+      return new Handlebars.SafeString(Handlebars.partials[name]);
+    }
+    console.warn(`Partial "${name}" not found. Rendering fallback.`);
     return new Handlebars.SafeString(`
-      <div class="alert alert-warning mt-3" data-missing-partial="${name}">
-        <h3>${name}</h3>
-        <p>Content coming soon! Please check back later.</p>
+      <div class="alert alert-warning mt-3" data-partial-fallback="${name}">
+        <h3>${name.replace(/([A-Z])/g, ' $1')}</h3>
+        <p>Content coming soon! Check back later.</p>
       </div>
     `);
+  } catch (error) {
+    console.error(`Partial error: ${error.message}`);
+    return new Handlebars.SafeString('');
   }
 });
 
-// Serve static files from multiple directories
-app.use(express.static(join(__dirname, 'Templates')));
-app.use(express.static(join(__dirname, 'Upload')));
-app.use(express.static(join(__dirname, 'Qapartials')));
+// Dynamic route mounting
+const routes = [
+  { path: '/', route: 'Home_route' },
+  { path: '/Questions_And_Answer', route: 'Questions_And_Answer_route' },
+  // ... other routes ...
+];
 
-// Mount all routes
-app.use('/', Home_route);
-app.use('/Home', Home_route);
-app.use('/Contact', Contact_route);
-app.use('/About_Us', About_route);
-app.use('/Guidelines', Guidelines_route);
-app.use('/Choose', Choose_route);
-app.use('/Diet', Diet_route);
-app.use('/Drain_Care', Drain_Care_route);
-app.use('/Finance', Finance_route);
-app.use('/Meet_Our_Patients', Meet_Our_Patients_route);
-app.use('/Policies', Policies_route);
-app.use('/Questions_And_Answer', Questions_And_Answer_route);
-app.use('/Blog', Blog_route);
-app.use('/Read_More', Read_More_route);
-app.use('/Photo_Gallary', Photo_Gallary_route);
-app.use('/Out_of_town', Out_of_town_route);
+for (const { path, route } of routes) {
+  try {
+    const routeModule = await importRoute(route);
+    app.use(path, routeModule.default);
+  } catch (error) {
+    console.error(`Failed to mount route: ${route}`);
+  }
+}
 
-// Error handler for missing partial requests
-app.use('/Qapartials/*', (req, res) => {
-  console.error('Partial not found:', req.url);
-  res.status(404).send('Partial not found');
-});
-
-// Global Error Handler for server errors
-app.use((err, req, res, next) => {
-  console.error('Error stack:', err.stack);
-  res.status(500).render('error', { error: err });
-});
-
-// MongoDB Connection Setup
-async function connectToDatabase() {
+// Serverless-optimized MongoDB connection
+const connectDatabase = async () => {
   try {
     await mongoose.connect(process.env.mongooconectionurl, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      connectTimeoutMS: 60000,
-      socketTimeoutMS: 120000,
-      bufferCommands: true
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
     });
-    console.log('Connected to MongoDB');
+    console.log('MongoDB connected successfully');
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    app.use((req, res) => {
-      res.status(500).render('Dashboard/404', { error });
-    });
+    console.error('MongoDB connection failed:', error);
+    process.exit(1); // Critical for serverless functions
   }
-}
+};
 
-// Connect to MongoDB, then start the server
-connectToDatabase().then(() => {
-  const port = process.env.port || 3000;
-  app.listen(port, () => {
-    console.log(`Started the application on http://localhost:${port}`);
-  });
-}).catch(error => {
-  console.error('Failed to start the application:', error);
-  app.use((req, res) => {
-    res.status(500).render('Dashboard/404', { error });
+// Error handling optimized for serverless
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.stack);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' 
+      ? 'An unexpected error occurred' 
+      : err.message
   });
 });
+
+// Serverless startup sequence
+const startServer = async () => {
+  await connectDatabase();
+  const port = process.env.port || 3000;
+  return app.listen(port, () => {
+    console.log(`Server ready on port ${port}`);
+  });
+};
+
+// Vercel serverless compatibility
+const server = startServer();
+export default server;
