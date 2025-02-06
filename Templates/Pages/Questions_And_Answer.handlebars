@@ -148,14 +148,14 @@ font-family: Verdana, sans-serif;
   margin-bottom: 25px;
 }
 
-/* Category Group Title - Dark Blue Background with White Bold Text */
 .category-group-title {
-  background-color: #1d367b; /* Dark blue background */
-  color: #ffffff; /* White text */
-  font-size: 1.2em; /* Slightly larger font size for emphasis */
-  font-weight: bold; /* Bold text for visibility */
-  padding: 12px 20px; /* Padding for spacing */
-  border-radius: 6px; /* Rounded corners for modern look */
+  background: #1d367b; /* Dark blue matching Dr. Khaled's style */
+  color: #ffffff;
+  font-size: 1.2em;
+  font-weight: 700;
+  padding: 10px 15px;
+  margin: 15px 0;
+  border-radius: 4px;
   font-family: 'Verdana', sans-serif;
 }
 
@@ -168,13 +168,15 @@ font-family: Verdana, sans-serif;
 
 /* Individual Category Items (Minimal Styling) */
 .category-item {
-  padding: 5px; /* Minimal padding to avoid large backgrounds */
+  padding: 6px 0;
+  background: transparent;
+  border: none !important; /* Remove all borders */
 }
 
 .category-item a {
-  color: #495057; /* Neutral dark gray text color */
-  text-decoration: none;
-  font-family: 'Verdana', sans-serif;
+  color: #495057;
+  padding-left: 15px;
+  transition: color 0.2s ease;
 }
 
 .category-item a:hover {
@@ -598,35 +600,27 @@ font-family: Verdana, sans-serif;
 </div>
 
 	
-
-	
-<div style="width: 85%; ">
-<div class="categories-container">
-  <h2>Categories</h2>
-  <div class="categories">
-   <div class="category-item"><a href="#rhinoplasty">Rhinoplasty</a></div>
-<div class="category-item"><a href="#liposuction">Liposuction</a></div>
-<div class="category-item"><a href="#facelift">Facelift</a></div>
-<div class="category-item"><a href="#breastpsycho" style="font-weight: bold; color: #007bff;">Breast:Thinking all night</a></div>
-<div class="category-item"><a href="#lollipoptechnique" style="font-weight: bold; color: #007bff;">Breast Reduction:Lollipop technique</a></div>
-<div class="category-item"><a href="#miniinvasivebreast" style="font-weight: bold; color: #007bff;">Thinking about mini invasive</a></div>
-<div class="category-item"><a href="#breastaugmentation">Breast Augmentation</a></div>	
-<div class="category-item"><a href="#bodycontouring">Body Contouring</a></div>
-<div class="category-item"><a href="#fatgrafting">Fat Grafting</a></div>
-<div class="category-item"><a href="#tummytuck">Tummy Tuck (Abdominoplasty)</a></div>
-<div class="category-item"><a href="#brazilianbuttlift">Brazilian Butt Lift (BBL)</a></div>
-<div class="category-item"><a href="#eyelidlift">Eyelid Lift (Blepharoplasty)</a></div>
-<div class="category-item"><a href="#botoxfillers">Botox and Dermal Fillers</a></div>
-<div class="category-item"><a href="#mommyMakeover">Mommy Makeover</a></div>
-<div class="category-item"><a href="#hairtransplant">Hair Transplant</a></div>
-<div class="category-item"><a href="#skinresurfacing" style="font-weight: bold; color: #007bff;">LASER SKIN RESURFACING</a></div>
-<div class="category-item"><a href="#noninvasivecontouring">Non-Invasive Body Contouring</a></div>
-
-    <!-- Other category items -->
+<div style="width: 85%;">
+  <div class="categories-container">
+    <h2>Categories</h2>
+    {{#each categoriesConfig}}
+    <div class="category-group">
+      <!-- Updated group title with proper styling -->
+      <div class="category-group-title">{{this.displayName}}</div>
+      <div class="categories">
+        {{#each this.ids}}
+        <!-- Clean category items without borders -->
+        <div class="category-item">
+          <a href="#{{this}}">{{lookup ../texts this}}</a>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/each}}
   </div>
 </div>
-	
 
+	
 
 <!-- FAQ 3 - Bootstrap Brain Component -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
