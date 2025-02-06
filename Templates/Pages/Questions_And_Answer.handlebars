@@ -600,17 +600,20 @@ font-family: Verdana, sans-serif;
 </div>
 
 	
+<!-- Updated Q&A Section -->
 <div style="width: 85%;">
   <div class="categories-container">
     <h2>Categories</h2>
-    {{!-- Generate navigation --}}
     {{#each categoriesConfig}}
       <div class="category-group">
         <div class="category-group-title">{{this.displayName}}</div>
         <div class="categories">
           {{#each this.ids}}
             <div class="category-item">
-              <a href="#{{this}}">{{lookup ../Qapartials this}}</a>
+              <!-- Show category name even without partial -->
+              <a href="#{{this}}" data-category="{{this}}">
+                {{lookup ../texts this}}
+              </a>
             </div>
           {{/each}}
         </div>
@@ -619,21 +622,26 @@ font-family: Verdana, sans-serif;
   </div>
 </div>
 
+<!-- Content Section with Graceful Partial Handling -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-        {{!-- Dynamically include Q&A partials --}}
         {{#each categoriesConfig}}
           {{#each this.ids}}
-            {{> (lookup ../Qapartials this) }}
+            {{#if (lookup ../qaPartials this)}}
+              {{> (lookup ../qaPartials this)}}
+            {{else}}
+              <div class="partial-placeholder" data-category="{{this}}">
+                <!-- Optional: Add loading spinner or future content notice -->
+              </div>
+            {{/if}}
           {{/each}}
         {{/each}}
       </div>
     </div>
   </div>
 </section>
-</div>
 
 	
 
