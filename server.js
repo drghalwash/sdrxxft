@@ -8,11 +8,10 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import mongoose from 'mongoose';
 
-// Serverless-safe environment setup
+// Determine __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Dynamic route imports (Vercel-compatible)
 // Import Routes
 import Home_route from "./Routes/Home_route.js";
 import Contact_route from "./Routes/Contact_route.js";
@@ -30,14 +29,13 @@ import Read_More_route from "./Routes/Read_More_route.js";
 import Photo_Gallary_route from "./Routes/Photo_Gallary_route.js";
 import Out_of_town_route from "./Routes/Out_of_town_route.js";
 
-
 const app = express();
 
-// Serverless-optimized middleware
+// ========= Middleware Setup =========
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
-// Enhanced Handlebars configuration
+// ========= Handlebars Engine Configuration =========
 app.engine('handlebars', engine({
   partialsDir: [
     join(__dirname, 'Qapartials'),
@@ -46,97 +44,96 @@ app.engine('handlebars', engine({
   extname: '.handlebars',
   defaultLayout: 'main',
   layoutsDir: join(__dirname, 'Templates', 'layouts'),
-  runtimeOptions: {
-    allowProtoPropertiesByDefault: true,
-    allowProtoMethodsByDefault: true
+  helpers: {
+    add: (a, b) => a + b,
   }
 }));
-
 app.set('view engine', 'handlebars');
 app.set('views', join(__dirname, 'Templates'));
 
-// Serverless-safe partial handling
+// ========= Register Handlebars Helpers =========
+// Standard helper
+Handlebars.registerHelper('add', (a, b) => a + b);
+
+// Enhanced Partial Helper
+// This helper avoids filesystem calls (which can be problematic in serverless)
+// and relies on registered partials. If a partial is missing,
+// it renders a styled fallback message.
 Handlebars.registerHelper('partial', function(name) {
-  try {
-    if (Handlebars.partials[name]) {
-      return new Handlebars.SafeString(Handlebars.partials[name]);
-    }
-    console.warn(`Partial "${name}" missing - rendering fallback`);
+  if (Handlebars.partials && Handlebars.partials[name]) {
+    return new Handlebars.SafeString(Handlebars.partials[name]);
+  } else {
+    console.warn(`Partial "${name}" not found. Rendering fallback content.`);
     return new Handlebars.SafeString(`
-      <div class="alert alert-warning my-4" data-partial-fallback="${name}">
-        <h3>${name.replace(/([A-Z])/g, ' $1')}</h3>
-        <p>Content coming soon! Check back later.</p>
+      <div class="alert alert-warning mt-3" data-missing-partial="${name}">
+        <h3>${name}</h3>
+        <p>Content coming soon! Please check back later.</p>
       </div>
     `);
-  } catch (error) {
-    console.error(`Partial error: ${error.message}`);
-    return new Handlebars.SafeString('');
   }
 });
 
-// Static assets configuration
-const staticConfig = {
-  maxAge: '1y',
-  setHeaders: (res, path) => {
-    if (path.endsWith('.css')) res.set('Content-Type', 'text/css');
-  }
-};
+// ========= Serve Static Files =========
+// Make sure your static assets (Templates, Upload, Qapartials) are correctly deployed.
+app.use(express.static(join(__dirname, 'Templates')));
+app.use(express.static(join(__dirname, 'Upload')));
+app.use(express.static(join(__dirname, 'Qapartials')));
 
-app.use(express.static(join(__dirname, 'Templates'), staticConfig));
-app.use(express.static(join(__dirname, 'Upload'), staticConfig));
-app.use(express.static(join(__dirname, 'Qapartials'), staticConfig));
+// ========= Mount Routes =========
+app.use('/', Home_route);
+app.use('/Home', Home_route);
+app.use('/Contact', Contact_route);
+app.use('/About_Us', About_route);
+app.use('/Guidelines', Guidelines_route);
+app.use('/Choose', Choose_route);
+app.use('/Diet', Diet_route);
+app.use('/Drain_Care', Drain_Care_route);
+app.use('/Finance', Finance_route);
+app.use('/Meet_Our_Patients', Meet_Our_Patients_route);
+app.use('/Policies', Policies_route);
+app.use('/Questions_And_Answer', Questions_And_Answer_route);
+app.use('/Blog', Blog_route);
+app.use('/Read_More', Read_More_route);
+app.use('/Photo_Gallary', Photo_Gallary_route);
+app.use('/Out_of_town', Out_of_town_route);
 
-// Dynamic route loading
-Object.entries(routeImports).forEach(async ([routeName, path]) => {
-  try {
-    const { default: router } = await import(path);
-    app.use(`/${routeName.replace('_route', '')}`, router);
-  } catch (error) {
-    console.error(`Failed to load route ${routeName}:`, error);
-    process.exit(1);
-  }
+// ========= Specific Error Handler for Missing Partials =========
+app.use('/Qapartials/*', (req, res) => {
+  console.error('Static partial not found:', req.url);
+  res.status(404).send('Partial not found');
 });
 
-// Database connection with serverless optimizations
-const dbConfig = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 30000,
-  bufferCommands: false
-};
+// ========= Global Error Handler =========
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.stack);
+  res.status(500).render('error', { error: err });
+});
 
-async function connectDatabase() {
+// ========= MongoDB Connection Setup =========
+async function connectToDatabase() {
   try {
-    await mongoose.connect(process.env.mongooconectionurl, dbConfig);
-    console.log('MongoDB connected successfully');
+    await mongoose.connect(process.env.mongooconectionurl, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      connectTimeoutMS: 60000,
+      socketTimeoutMS: 120000,
+      bufferCommands: true
+    });
+    console.log('Connected to MongoDB');
   } catch (error) {
-    console.error('Database connection failed:', error);
+    console.error('Error connecting to MongoDB:', error);
+    // In a serverless environment, force exit on critical DB connection failure.
     process.exit(1);
   }
 }
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server Error:', err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' 
-      ? 'An unexpected error occurred' 
-      : err.message
-  });
-});
-
-// Serverless startup sequence
-const startServer = async () => {
-  await connectDatabase();
+// ========= Start Server =========
+connectToDatabase().then(() => {
   const port = process.env.port || 3000;
-  return app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log('Registered partials:', Object.keys(Handlebars.partials));
+  app.listen(port, () => {
+    console.log(`Application started on http://localhost:${port}`);
   });
-};
-
-// Vercel serverless compatibility
-const server = startServer();
-export default server;
+}).catch(error => {
+  console.error('Failed to start the application:', error);
+  process.exit(1);
+});
