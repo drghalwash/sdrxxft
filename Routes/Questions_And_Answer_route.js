@@ -26,7 +26,7 @@ const categoriesConfig = {
 };
 
 // Dynamically generate the mapping for Q&A partials
-const Qapartials = Object.values(categoriesConfig).reduce((partials, group) => {
+const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
   group.ids.forEach(id => {
     partials[id] = `Qapartials/${id}`; // Maps each category ID to its corresponding partial file path
   });
