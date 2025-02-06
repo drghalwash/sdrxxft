@@ -35,7 +35,7 @@ app.use(methodOverride('_method'));
 // Configure Handlebars with partials directory
 app.engine('handlebars', engine({
     // Use partialsDirs instead of partialsDir (partialsDir is deprecated)
-    partialsDir: [
+    partialsDirs: [
         join(__dirname, 'Qapartials'),
         join(__dirname, 'Templates', 'partials')
     ],
