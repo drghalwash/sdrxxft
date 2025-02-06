@@ -8,19 +8,28 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import mongoose from 'mongoose';
 
-// Serverless-compatible __dirname
+// Serverless-safe environment setup
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Dynamic route imports (Vercel-friendly)
-const importRoute = async (routePath) => {
-  try {
-    return await import(`./Routes/${routePath}`);
-  } catch (error) {
-    console.error(`Failed to import route: ${routePath}`, error);
-    process.exit(1);
-  }
-};
+// Dynamic route imports (Vercel-compatible)
+// Import Routes
+import Home_route from "./Routes/Home_route.js";
+import Contact_route from "./Routes/Contact_route.js";
+import About_route from "./Routes/About_route.js";
+import Guidelines_route from "./Routes/Guidelines_route.js";
+import Choose_route from "./Routes/Choose_route.js";
+import Diet_route from "./Routes/Diet_route.js";
+import Drain_Care_route from "./Routes/Drain_Care_route.js";
+import Finance_route from "./Routes/Finance_route.js";
+import Meet_Our_Patients_route from "./Routes/Meet_Our_Patients_route.js";
+import Policies_route from "./Routes/Policies_route.js";
+import Questions_And_Answer_route from "./Routes/Questions_And_Answer_route.js";
+import Blog_route from "./Routes/Blog_route.js";
+import Read_More_route from "./Routes/Read_More_route.js";
+import Photo_Gallary_route from "./Routes/Photo_Gallary_route.js";
+import Out_of_town_route from "./Routes/Out_of_town_route.js";
+
 
 const app = express();
 
@@ -28,7 +37,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
-// Handlebars configuration for serverless
+// Enhanced Handlebars configuration
 app.engine('handlebars', engine({
   partialsDir: [
     join(__dirname, 'Qapartials'),
@@ -46,20 +55,15 @@ app.engine('handlebars', engine({
 app.set('view engine', 'handlebars');
 app.set('views', join(__dirname, 'Templates'));
 
-// Serverless-safe static files
-app.use(express.static(join(__dirname, 'Templates'), { maxAge: '1y' }));
-app.use(express.static(join(__dirname, 'Upload'), { maxAge: '1y' }));
-app.use(express.static(join(__dirname, 'Qapartials'), { maxAge: '1y' }));
-
-// Enhanced partial handler for serverless environments
+// Serverless-safe partial handling
 Handlebars.registerHelper('partial', function(name) {
   try {
     if (Handlebars.partials[name]) {
       return new Handlebars.SafeString(Handlebars.partials[name]);
     }
-    console.warn(`Partial "${name}" not found. Rendering fallback.`);
+    console.warn(`Partial "${name}" missing - rendering fallback`);
     return new Handlebars.SafeString(`
-      <div class="alert alert-warning mt-3" data-partial-fallback="${name}">
+      <div class="alert alert-warning my-4" data-partial-fallback="${name}">
         <h3>${name.replace(/([A-Z])/g, ' $1')}</h3>
         <p>Content coming soon! Check back later.</p>
       </div>
@@ -70,39 +74,49 @@ Handlebars.registerHelper('partial', function(name) {
   }
 });
 
-// Dynamic route mounting
-const routes = [
-  { path: '/', route: 'Home_route' },
-  { path: '/Questions_And_Answer', route: 'Questions_And_Answer_route' },
-  // ... other routes ...
-];
-
-for (const { path, route } of routes) {
-  try {
-    const routeModule = await importRoute(route);
-    app.use(path, routeModule.default);
-  } catch (error) {
-    console.error(`Failed to mount route: ${route}`);
-  }
-}
-
-// Serverless-optimized MongoDB connection
-const connectDatabase = async () => {
-  try {
-    await mongoose.connect(process.env.mongooconectionurl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000
-    });
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('MongoDB connection failed:', error);
-    process.exit(1); // Critical for serverless functions
+// Static assets configuration
+const staticConfig = {
+  maxAge: '1y',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.css')) res.set('Content-Type', 'text/css');
   }
 };
 
-// Error handling optimized for serverless
+app.use(express.static(join(__dirname, 'Templates'), staticConfig));
+app.use(express.static(join(__dirname, 'Upload'), staticConfig));
+app.use(express.static(join(__dirname, 'Qapartials'), staticConfig));
+
+// Dynamic route loading
+Object.entries(routeImports).forEach(async ([routeName, path]) => {
+  try {
+    const { default: router } = await import(path);
+    app.use(`/${routeName.replace('_route', '')}`, router);
+  } catch (error) {
+    console.error(`Failed to load route ${routeName}:`, error);
+    process.exit(1);
+  }
+});
+
+// Database connection with serverless optimizations
+const dbConfig = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 30000,
+  bufferCommands: false
+};
+
+async function connectDatabase() {
+  try {
+    await mongoose.connect(process.env.mongooconectionurl, dbConfig);
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    process.exit(1);
+  }
+}
+
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server Error:', err.stack);
   res.status(500).json({
@@ -118,7 +132,8 @@ const startServer = async () => {
   await connectDatabase();
   const port = process.env.port || 3000;
   return app.listen(port, () => {
-    console.log(`Server ready on port ${port}`);
+    console.log(`Server running on port ${port}`);
+    console.log('Registered partials:', Object.keys(Handlebars.partials));
   });
 };
 
