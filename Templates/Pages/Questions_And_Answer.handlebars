@@ -118,13 +118,13 @@
 font-family: Verdana, sans-serif;
 	}
 	/* General container styles */
-/* Container Styling */
+/* Categories Container */
 .categories-container {
   width: 100%;
   padding: 20px;
   background: #ffffff; /* Clean white background */
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
   max-height: 400px; /* Limit height for scrollable content */
   overflow-y: auto; /* Enable vertical scrolling */
 }
@@ -135,27 +135,27 @@ font-family: Verdana, sans-serif;
 }
 
 .categories-container::-webkit-scrollbar-thumb {
-  background: #007bff; /* Blue scrollbar thumb */
+  background: #007bff;
   border-radius: 4px;
 }
 
 .categories-container::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Light gray track */
+  background: #f1f1f1;
 }
 
-/* Category Group Styling */
+/* Category Group */
 .category-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
-/* Category Group Title */
+/* Category Group Title - Dark Blue Background with White Bold Text */
 .category-group-title {
   background-color: #1d367b; /* Dark blue background */
   color: #ffffff; /* White text */
   font-size: 1.2em; /* Slightly larger font size for emphasis */
   font-weight: bold; /* Bold text for visibility */
-  padding: 10px 15px;
-  border-radius: 4px; /* Rounded corners for modern look */
+  padding: 12px 20px; /* Padding for spacing */
+  border-radius: 6px; /* Rounded corners for modern look */
   font-family: 'Verdana', sans-serif;
 }
 
@@ -163,7 +163,7 @@ font-family: Verdana, sans-serif;
 .categories {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid layout */
-  gap: 10px; /* Space between items */
+  gap: 15px; /* Space between items */
 }
 
 /* Individual Category Items (Minimal Styling) */
@@ -174,7 +174,6 @@ font-family: Verdana, sans-serif;
 .category-item a {
   color: #495057; /* Neutral dark gray text color */
   text-decoration: none;
-  font-size: 0.95em;
   font-family: 'Verdana', sans-serif;
 }
 
@@ -195,19 +194,10 @@ font-family: Verdana, sans-serif;
 @media (max-width: 768px) {
   .categories {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller columns on mobile devices */
-    gap: 8px;
+    gap: 10px;
     padding-left: unset;
     padding-right :unset
 }
-}
-
-
-.accordion-body{
-	padding: 0 0 !important;
-}
-. accordion-flush{
-		padding: 0 0 !important;
-
 }
 
 
