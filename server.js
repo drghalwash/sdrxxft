@@ -1,101 +1,11 @@
-// server.js
-import express from 'express';
+import  express from 'express';
 import { engine } from 'express-handlebars';
 import Handlebars from 'handlebars';
+
 import dotenv from 'dotenv';
-import methodOverride from 'method-override';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import mongoose from 'mongoose';
-import fs from 'fs';
-
-// Configuration Setup
 dotenv.config();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import methodOverride from 'method-override';
 
-// Database Configuration
-const mongoConfig = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 15000,
-  socketTimeoutMS: 45000,
-  bufferCommands: true,
-  bufferMaxEntries: 0
-};
-
-// Express Application Setup
-const app = express();
-
-// Middleware Configuration
-app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride('_method'));
-
-// Handlebars Engine Configuration
-app.engine('handlebars', engine({
-  partialsDir: [
-    join(__dirname, 'Qapartials'),
-    join(__dirname, 'Templates', 'partials')
-  ],
-  extname: '.handlebars',
-  defaultLayout: 'main',
-  layoutsDir: join(__dirname, 'Templates', 'layouts'),
-  runtimeOptions: {
-    allowProtoPropertiesByDefault: true,
-    allowProtoMethodsByDefault: true
-  }
-}));
-
-app.set('view engine', 'handlebars');
-app.set('views', join(__dirname, 'Templates'));
-
-// Partial Handling with Serverless Optimization
-const registerPartials = () => {
-  const partialsDir = join(__dirname, 'Qapartials');
-  fs.readdirSync(partialsDir).forEach(file => {
-    const partialName = file.split('.')[0];
-    const partialContent = fs.readFileSync(join(partialsDir, file), 'utf8');
-    Handlebars.registerPartial(partialName, partialContent);
-  });
-};
-
-// Custom Handlebars Helpers
-Handlebars.registerHelper('renderCategory', function(categoryId, categoriesConfig) {
-  const partialExists = Handlebars.partials[categoryId];
-  return partialExists ?
-    new Handlebars.SafeString(`{{> ${categoryId}}}`) :
-    new Handlebars.SafeString(`
-      <section class="category-placeholder" data-category="${categoryId}">
-        <h2>${getCategoryName(categoryId, categoriesConfig)}</h2>
-        <div class="content-coming-soon">
-          <i class="fas fa-wrench"></i>
-          <p>Content under development</p>
-        </div>
-      </section>
-    `);
-});
-
-function getCategoryName(categoryId, categoriesConfig) {
-  for (const group of Object.values(categoriesConfig.groups)) {
-    const category = group.categories.find(cat => cat.id === categoryId);
-    if (category) return category.name;
-  }
-  return categoryId.replace(/([A-Z])/g, ' $1');
-}
-
-// Static Assets Configuration
-const staticConfig = {
-  maxAge: '1y',
-  setHeaders: (res, path) => {
-    if (path.endsWith('.css')) res.set('Content-Type', 'text/css');
-  }
-};
-
-app.use(express.static(join(__dirname, 'Templates'), staticConfig));
-app.use(express.static(join(__dirname, 'Upload'), staticConfig));
-app.use(express.static(join(__dirname, 'Qapartials'), staticConfig));
-
-// Route Imports (Static for Serverless Reliability)
 import Home_route from "./Routes/Home_route.js"
 import Contact_route from "./Routes/Contact_route.js"
 import About_route from "./Routes/About_route.js"
@@ -112,7 +22,54 @@ import Read_More_route from "./Routes/Read_More_route.js"
 import Photo_Gallary_route from "./Routes/Photo_Gallary_route.js"
 import Out_of_town_route from "./Routes/Out_of_town_route.js"
 
-// Route Configuration
+import mongoose from 'mongoose';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+app.use(express.urlencoded({extended: true}));
+app.use(methodOverride('_method'));
+
+// Configure Handlebars with partials directory
+app.engine('handlebars', engine({
+    // Use partialsDirs instead of partialsDir (partialsDir is deprecated)
+    partialsDir: [
+        join(__dirname, 'Qapartials'),
+        join(__dirname, 'Templates', 'partials')
+    ],
+    extname: '.handlebars',
+    defaultLayout: 'main',
+    layoutsDir: join(__dirname, 'Templates', 'layouts'),
+    helpers: {
+        add: function(a, b) {
+            return a + b;
+        },
+    }
+}));
+
+
+app.set('view engine', 'handlebars');
+const viewsPath = join(__dirname, 'Templates');
+app.set('views', viewsPath);
+Handlebars.registerHelper('add', function(a, b) {
+    return a + b;
+});
+// Add error handling for missing partials
+Handlebars.registerHelper('partial', function(name) {
+    if (Handlebars.partials[name]) {
+        return new Handlebars.SafeString(Handlebars.partials[name]);
+    } else {
+        console.warn(`Partial ${name} not found`);
+        return '';
+    }
+});
+// Serve static files
+app.use(express.static(join(__dirname, 'Templates')));
+app.use(express.static(join(__dirname, 'Upload')));
+app.use(express.static(join(__dirname, 'Qapartials')));
+
 app.use('/',Home_route);
 app.use('/Home',Home_route);
 app.use('/Contact',Contact_route);
@@ -131,57 +88,45 @@ app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
 
 
-// Database Connection Manager
-let isDatabaseConnected = false;
 
-const connectDatabase = async () => {
-  if (isDatabaseConnected) return;
-  
-  try {
-    await mongoose.connect(process.env.mongooconectionurl, mongoConfig);
-    isDatabaseConnected = true;
-    console.log('MongoDB connection established');
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
-  }
-};
-
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error('Application Error:', err.stack);
-  res.status(500).render('error', {
-    message: process.env.NODE_ENV === 'production' ?
-      'Service temporarily unavailable' :
-      err.message
-  });
+// Error handlers
+app.use('/Qapartials/*', (req, res, next) => {
+    console.error('Partial not found:', req.url);  // Add logging
+    res.status(404).send('Partial not found');
 });
 
-// Serverless Initialization Sequence
-let isInitialized = false;
+app.use((err, req, res, next) => {
+    console.error('Error stack:', err.stack);  // Add detailed logging
+    res.status(500).render('error', { error: err }); // Render error page instead of plain text
+});
 
-const initializeApp = async () => {
-  if (isInitialized) return;
-  
-  await connectDatabase();
-  registerPartials();
-  console.log('Registered Partials:', Object.keys(Handlebars.partials));
-  
-  isInitialized = true;
-};
+async function connectToDatabase() {
+    try {
+        await mongoose.connect(process.env.mongooconectionurl, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            connectTimeoutMS: 60000, // 60 seconds
+            socketTimeoutMS: 120000, // 120 seconds
+            bufferCommands: true,   // Allow Mongoose to buffer commands until connection is established
+        });
 
-// Vercel Serverless Handler
-let vercelHandler;
-
-export default async (req, res) => {
-  try {
-    if (!vercelHandler) {
-      await initializeApp();
-      vercelHandler = app;
+        console.log('Connected to MongoDB');
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error);
+        app.use((req, res) => {
+            res.status(500).render('Dashboard/404', { error });
+        });
     }
-    return vercelHandler(req, res);
-  } catch (error) {
-    console.error('Initialization failed:', error);
-    return res.status(500).send('Server initialization failed');
-  }
-};
+}
+
+// Connect to MongoDB, then start the server
+connectToDatabase().then(() => {
+    app.listen(process.env.port, () => {
+        console.log('Started the application on http://localhost:' + process.env.port);
+    });
+}).catch(error => {
+    console.error('Failed to start the application:', error);
+    app.use((req, res) => {
+        res.status(500).render('Dashboard/404', { error });
+    });
+});
