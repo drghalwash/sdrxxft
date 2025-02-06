@@ -1031,6 +1031,138 @@ document.addEventListener('DOMContentLoaded', function() {
   fixPartialStructure();
 });
 </script>	
+
+// --- Global Error Handling Setup ---
+// This catches runtime errors, missing resources, and unhandled promise rejections.
+function setupGlobalErrorHandler() {
+  // Catch synchronous JS errors
+  window.onerror = function(message, source, lineno, colno, error) {
+    console.error(`Global Error: ${message} at ${source}:${lineno}:${colno}`, error);
+    // Return false to invoke the browser’s default error handler if needed.
+    return false;
+  };
+
+  // Catch asynchronous errors (unhandled promise rejections)
+  window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled Promise Rejection:', event.reason);
+  });
+}
+
+// --- Primary Validation Function ---
+// Checks the container’s inner HTML for mismatched <div> tags using regex.
+function validatePartialsContainer(selector, options = { selfHeal: false }) {
+  const container = document.querySelector(selector);
+  if (!container) {
+    console.error(`Container not found for selector: ${selector}`);
+    return;
+  }
+  try {
+    const htmlString = container.innerHTML;
+    // Count all opening and closing <div> tags.
+    const openDivs = htmlString.match(/<div\b[^>]*>/gi) || [];
+    const closeDivs = htmlString.match(/<\/div>/gi) || [];
+    const openCount = openDivs.length;
+    const closeCount = closeDivs.length;
+
+    if (openCount !== closeCount) {
+      console.error(`HTML structure error in ${selector}: ${openCount} opening <div> tags vs ${closeCount} closing </div> tags.`);
+      if (options.selfHeal) {
+        attemptStructuralFix(container, openCount, closeCount);
+      }
+    } else {
+      console.info(`HTML structure in ${selector} is valid: ${openCount} opening and ${closeCount} closing <div> tags.`);
+    }
+  } catch (e) {
+    console.error(`Error while validating container ${selector}:`, e);
+  }
+}
+
+// --- Detailed Validation (Line-by-Line Reporting) ---
+// Provides deeper insight by parsing each line and reporting context.
+// This function is optional and can be used in addition to the primary validator.
+function validatePartialsContainerDetailed(selector, options = { selfHeal: false }) {
+  const container = document.querySelector(selector);
+  if (!container) {
+    console.error(`Selector ${selector} not found.`);
+    return;
+  }
+  try {
+    const htmlString = container.innerHTML;
+    const lines = htmlString.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const divStack = [];
+    const errors = [];
+
+    lines.forEach((line, index) => {
+      const lineNum = index + 1;
+      const openMatches = line.match(/<div\b[^>]*>/gi) || [];
+      openMatches.forEach(() => divStack.push({ line: lineNum, snippet: line }));
+
+      const closeMatches = line.match(/<\/div>/gi) || [];
+      closeMatches.forEach(() => {
+        if (divStack.length === 0) {
+          errors.push(`Extra </div> found at line ${lineNum}: ${line}`);
+        } else {
+          divStack.pop();
+        }
+      });
+    });
+
+    if (divStack.length > 0 || errors.length > 0) {
+      console.error(`Detailed HTML structure errors in ${selector}:`);
+      divStack.forEach(item => console.error(`– Unclosed <div> opened at line ${item.line}: ${item.snippet}`));
+      errors.forEach(msg => console.error(`– ${msg}`));
+      if (options.selfHeal) {
+        // For simplicity, if there are unclosed tags, we append missing closing tags.
+        attemptStructuralFix(container, divStack.length, 0);
+      }
+    } else {
+      console.info(`Detailed validation passed: HTML is balanced in ${selector}.`);
+    }
+  } catch (err) {
+    console.error(`Detailed validation error for ${selector}:`, err);
+  }
+}
+
+// --- Self-Healing Function ---
+// If too many opening tags exist (or extra closing tags), this function appends or removes tags.
+function attemptStructuralFix(container, openCount, closeCount) {
+  const diff = openCount - closeCount;
+  if (diff > 0) {
+    // Append as many closing tags as needed.
+    container.innerHTML += '</div>'.repeat(diff);
+    console.warn(`Self-healing applied: Appended ${diff} missing closing </div> tag(s) to container.`);
+  } else if (diff < 0) {
+    console.warn(`Extra closing </div> tags detected (${-diff} extra). Manual review is recommended.`);
+    // Optionally attempt to remove extra closing tags:
+    let count = 0;
+    container.innerHTML = container.innerHTML.replace(/<\/div>/gi, function(match) {
+      count++;
+      return (count <= (-diff)) ? '' : match;
+    });
+    console.warn(`Self-healing attempted: Removed ${-diff} extra closing </div> tag(s) from container.`);
+  }
+}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    setupGlobalErrorHandler();
+    
+    // Validate and self-heal if necessary. You can choose either the simple or detailed check.
+    validatePartialsContainer('.bsb-faq-3', { selfHeal: true });
+    
+    // Optionally, run deeper analysis:
+    // validatePartialsContainerDetailed('.bsb-faq-3', { selfHeal: true });
+    
+    // Additional logic for dynamically injected Handlebars partials would go here.
+    // For example, if you later load {{> miniinvasivebreast}} or others dynamically,
+    // you can invoke the same validation functions on their container.
+    
+  } catch (initError) {
+    console.error('Error during initialization:', initError);
+  }
+});
+
 	
 	</body>
 	</html>
