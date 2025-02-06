@@ -41,5 +41,8 @@ router.get('/', (req, res) => {
     layout: 'main' // The main layout file
   });
 });
+console.log('categoriesConfig:', categoriesConfig);
+console.log('qaPartials:', qaPartials);
+
 
 export default router;
