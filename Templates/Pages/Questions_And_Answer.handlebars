@@ -603,13 +603,14 @@ font-family: Verdana, sans-serif;
 <div style="width: 85%;">
   <div class="categories-container">
     <h2>Categories</h2>
+    <!-- Dynamic Category Groups -->
     {{#each categoriesConfig}}
     <div class="category-group">
-      <!-- Updated group title with proper styling -->
+      <!-- Group Title -->
       <div class="category-group-title">{{this.displayName}}</div>
       <div class="categories">
+        <!-- Loop through each category in the group -->
         {{#each this.ids}}
-        <!-- Clean category items without borders -->
         <div class="category-item">
           <a href="#{{this}}">{{lookup ../texts this}}</a>
         </div>
@@ -620,21 +621,26 @@ font-family: Verdana, sans-serif;
   </div>
 </div>
 
-	
-
-<!-- FAQ 3 - Bootstrap Brain Component -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-          {{> miniinvasivebreast}}
-          {{> lollipoptechnique}}
-          {{> breastpsycho}}
-    </div>
+        <!-- Dynamically include partials for Q&A content -->
+        {{#each categoriesConfig}}
+          {{#each this.ids}}
+            {{> (lookup ../partials this) }}
+          {{/each}}
+        {{/each}}
       </div>
     </div>
+  </div>
 </section>
-</div>
+
+
+	
+
+<!-- FAQ 3 - Bootstrap Brain Component -->
+
 
 	<script>
 // Central configuration for all your categories.
