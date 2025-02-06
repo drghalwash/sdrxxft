@@ -603,20 +603,18 @@ font-family: Verdana, sans-serif;
 <div style="width: 85%;">
   <div class="categories-container">
     <h2>Categories</h2>
-    <!-- Dynamic Category Groups -->
+    {{!-- Generate navigation --}}
     {{#each categoriesConfig}}
-    <div class="category-group">
-      <!-- Group Title -->
-      <div class="category-group-title">{{this.displayName}}</div>
-      <div class="categories">
-        <!-- Loop through each category in the group -->
-        {{#each this.ids}}
-        <div class="category-item">
-          <a href="#{{this}}">{{lookup ../texts this}}</a>
+      <div class="category-group">
+        <div class="category-group-title">{{this.displayName}}</div>
+        <div class="categories">
+          {{#each this.ids}}
+            <div class="category-item">
+              <a href="#{{this}}">{{lookup ../Qapartials this}}</a>
+            </div>
+          {{/each}}
         </div>
-        {{/each}}
       </div>
-    </div>
     {{/each}}
   </div>
 </div>
@@ -625,17 +623,17 @@ font-family: Verdana, sans-serif;
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-        <!-- Dynamically include partials for Q&A content -->
+        {{!-- Dynamically include Q&A partials --}}
         {{#each categoriesConfig}}
           {{#each this.ids}}
-            {{> (lookup ../partials this) }}
+            {{> (lookup ../Qapartials this) }}
           {{/each}}
         {{/each}}
       </div>
     </div>
   </div>
 </section>
-
+</div>
 
 	
 
