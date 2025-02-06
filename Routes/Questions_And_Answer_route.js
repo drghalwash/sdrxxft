@@ -25,7 +25,7 @@ const categoriesConfig = {
 };
 
 // Dynamically generate partials mapping based on category IDs
-const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
+const Qapartials = Object.values(categoriesConfig).reduce((partials, group) => {
   group.ids.forEach(id => {
     partials[id] = `Qapartials/${id}`; // Maps category ID to corresponding partial
   });
@@ -35,7 +35,7 @@ const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
 router.get('/', (req, res) => {
   res.render('Questions_And_Answer', {
     categoriesConfig,
-    qaPartials,
+    Qapartials,
     layout: 'main' // Ensure the correct layout is used
   });
 });
