@@ -118,115 +118,88 @@
 font-family: Verdana, sans-serif;
 	}
 	/* General container styles */
-/* Container with modern gradient */
+/* Container Styling */
 .categories-container {
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 
-    0 10px 20px rgba(0, 0, 0, 0.05),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.06);
-  max-height: 400px;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  width: 100%;
+  padding: 20px;
+  background: #ffffff; /* Clean white background */
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+  max-height: 400px; /* Limit height for scrollable content */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
-/* Custom scrollbar styling */
+/* Scrollbar Styling */
 .categories-container::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .categories-container::-webkit-scrollbar-thumb {
-  background: #1d2b4b;
-  border-radius: 10px;
+  background: #007bff; /* Blue scrollbar thumb */
+  border-radius: 4px;
 }
 
-/* Category groups */
+.categories-container::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light gray track */
+}
+
+/* Category Group Styling */
 .category-group {
-  margin-bottom: 25px;
-  position: relative;
+  margin-bottom: 20px;
 }
 
-/* Group headers matching Dr. Khaled's style */
+/* Category Group Title */
 .category-group-title {
-  background-color: #1d2b4b;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
+  background-color: #1d367b; /* Dark blue background */
+  color: #ffffff; /* White text */
+  font-size: 1.2em; /* Slightly larger font size for emphasis */
+  font-weight: bold; /* Bold text for visibility */
+  padding: 10px 15px;
+  border-radius: 4px; /* Rounded corners for modern look */
   font-family: 'Verdana', sans-serif;
-  font-size: 1.1em;
-  margin-bottom: 15px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
 }
 
-/* Category items grid */
+/* Categories Grid Layout */
 .categories {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  padding: 0 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid layout */
+  gap: 10px; /* Space between items */
 }
 
-/* Individual category styling */
+/* Individual Category Items (Minimal Styling) */
 .category-item {
-  position: relative;
-  padding: 10px 15px;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
+  padding: 5px; /* Minimal padding to avoid large backgrounds */
 }
 
-/* Category links */
 .category-item a {
-  color: #495057;
+  color: #495057; /* Neutral dark gray text color */
   text-decoration: none;
-  font-family: 'Verdana', sans-serif;
   font-size: 0.95em;
-  display: block;
-  padding-left: 15px;
-  position: relative;
+  font-family: 'Verdana', sans-serif;
 }
 
-/* Hover effects */
-.category-item:hover {
-  transform: translateX(5px);
-  border-color: #1d2b4b;
-  background: linear-gradient(to right, rgba(29, 43, 75, 0.05), transparent);
+.category-item a:hover {
+  color: #007bff; /* Blue hover effect for links */
 }
 
-.category-item a::before {
-  content: '›';
-  position: absolute;
-  left: 0;
-  opacity: 0;
-  transition: all 0.2s ease;
+/* Active State for Selected Categories */
+.category-item.active a {
+  color: #ffffff; /* White text for active state */
 }
 
-.category-item:hover a::before {
-  opacity: 1;
-  transform: translateX(-5px);
-}
-
-/* Active state */
 .category-item.active {
-  background: #e7f1ff;
-  border-color: #1d2b4b;
+  background-color: #007bff; /* Blue background for active state */
 }
 
-/* Responsive adjustments */
+/* Responsive Adjustments for Smaller Screens */
 @media (max-width: 768px) {
   .categories {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-  
-  .category-group-title {
-    font-size: 1em;
-    padding: 10px 15px;
-  }
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Smaller columns on mobile devices */
+    gap: 8px;
+    padding-left: unset;
+    padding-right :unset
 }
-
+}
 
 
 .accordion-body{
