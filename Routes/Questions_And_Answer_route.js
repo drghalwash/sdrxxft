@@ -34,15 +34,15 @@ const Qapartials = Object.values(categoriesConfig).reduce((partials, group) => {
 }, {});
 
 router.get('/', (req, res) => {
-  res.render('Questions_And_Answer', {
-    categoriesConfig,
-    // Pass the dynamic partials mapping
-    Qapartials,
-    layout: 'main' // The main layout file
-  });
-});
-console.log('categoriesConfig:', categoriesConfig);
-console.log('Qapartials:', Qapartials);
+    console.log('Rendering Q&A Page');
+    console.log('categoriesConfig:', categoriesConfig);
+    console.log('Qapartials:', Qapartials);
 
+    res.render('Questions_And_Answer', {
+        categoriesConfig,
+        Qapartials: Qapartials,
+        layout: 'main'
+    });
+});
 
 export default router;
