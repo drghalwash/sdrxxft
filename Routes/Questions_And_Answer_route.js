@@ -42,7 +42,7 @@ router.get('/', (req, res) => {
   });
 });
 console.log('categoriesConfig:', categoriesConfig);
-console.log('qaPartials:', qaPartials);
+console.log('Qapartials:', Qapartials);
 
 
 export default router;
