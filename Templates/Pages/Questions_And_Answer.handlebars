@@ -616,42 +616,127 @@ font-family: Verdana, sans-serif;
 </div>
 
 	<script>
-  // Define the desired order based on your category links
-  const categoryOrder = [
-    "rhinoplasty",
-    "liposuction",
-    "facelift",
-    "breastpsycho",
-	  "lollipoptechnique",
-    "breastaugmentation",
-    "bodycontouring",
-    "fatgrafting",
-    "tummytuck",
-    "brazilianbuttlift",
-    "eyelidlift",
-    "botoxfillers",
-    "mommyMakeover",
-    "hairtransplant",
-    "skinresurfacing",
-    "noninvasivecontouring"
- "miniinvasivebreast"
-  ];
+document.addEventListener('DOMContentLoaded', () => {
+  // Define category groups and their respective IDs
+  const categoryGroups = {
+    face: ["rhinoplasty", "facelift", "eyelidlift"],
+    breast: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation"],
+    body: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"],
+    minimally_invasive: ["botoxfillers", "noninvasivecontouring"],
+    other: ["hairtransplant", "skinresurfacing"] // Uncategorized or miscellaneous
+  };
 
-  // Get the parent element that contains all the Q&A container blocks (div.mb-8)
-  const qaParent = document.querySelector("section"); // Change this selector if needed
+  // Get the parent container that holds all category items
+  const categoriesContainer = document.querySelector('.categories-container .categories');
 
-  // Loop through the order and for each category, find the corresponding block and append it
-  categoryOrder.forEach(categoryId => {
-    const header = document.getElementById(categoryId); // Finds the <h3 id="categoryid">
-    if (header) {
-      const block = header.closest(".mb-8"); // Get the full Q&A block for that category
-      if (block) {
-        // Append moves the block so that they appear in the order defined in categoryOrder
-        qaParent.appendChild(block);
+  if (!categoriesContainer) return; // Exit if container is not found
+
+  // Create a document fragment to minimize reflows
+  const fragment = document.createDocumentFragment();
+
+  // Loop through each group and organize categories
+  Object.entries(categoryGroups).forEach(([groupName, categoryIds]) => {
+    // Create a group header
+    const groupHeader = document.createElement('h3');
+    groupHeader.textContent = groupName.charAt(0).toUpperCase() + groupName.slice(1); // Capitalize group name
+    fragment.appendChild(groupHeader);
+
+    // Loop through each category ID in the group
+    categoryIds.forEach(categoryId => {
+      // Find the corresponding category item in the existing HTML
+      const categoryItem = categoriesContainer.querySelector(`.category-item a[href="#${categoryId}"]`);
+      if (categoryItem) {
+        // Append the parent `.category-item` div to the fragment
+        fragment.appendChild(categoryItem.closest('.category-item'));
       }
+    });
+
+    // Add a horizontal line after each group for separation (optional)
+    fragment.appendChild(document.createElement('hr'));
+  });
+
+  // Clear the original container and append the organized categories
+  categoriesContainer.innerHTML = '';
+  categoriesContainer.appendChild(fragment);
+});
+
+</script>
+
+	<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Define Q&A to category mapping
+  const qaCategoryMapping = {
+    miniinvasivebreast: 'breast',
+    lollipoptechnique: 'breast',
+    breastpsycho: 'breast',
+    rhinoplasty: 'face',
+    facelift: 'face',
+    eyelidlift: 'face',
+    liposuction: 'body',
+    bodycontouring: 'body',
+    fatgrafting: 'body',
+    tummytuck: 'body',
+    brazilianbuttlift: 'body',
+    mommyMakeover: 'body',
+    botoxfillers: 'minimally_invasive',
+    noninvasivecontouring: 'minimally_invasive',
+    hairtransplant: 'other',
+    skinresurfacing: 'other'
+  };
+
+  // Define category order for display
+  const categoryOrder = ['face', 'breast', 'body', 'minimally_invasive', 'other'];
+
+  // Get all Q&A blocks (partials) in the DOM
+  const qaBlocks = document.querySelectorAll('.mb-8');
+
+  // Container where organized content will be appended
+  const container = document.querySelector('.bsb-faq-3 .row');
+  if (!container) {
+    console.error('Container not found for organizing Q&A blocks.');
+    return;
+  }
+
+  // Group Q&A blocks by category
+  const groupedBlocks = {};
+  qaBlocks.forEach(block => {
+    const header = block.querySelector('h3'); // Assuming each block has an <h3> with an ID
+    if (header && header.id) {
+      const category = qaCategoryMapping[header.id];
+      if (category) {
+        if (!groupedBlocks[category]) groupedBlocks[category] = [];
+        groupedBlocks[category].push(block);
+      } else {
+        console.warn(`No category mapping found for ID "${header.id}".`);
+      }
+    } else {
+      console.warn('Q&A block missing an identifiable header or ID.', block);
     }
   });
-</script>
+
+  // Clear the container before appending organized content
+  container.innerHTML = '';
+
+  // Append grouped blocks in the defined category order
+  categoryOrder.forEach(category => {
+    if (groupedBlocks[category]) {
+      // Create a header for each category
+      const categoryHeader = document.createElement('h3');
+      categoryHeader.textContent = category.charAt(0).toUpperCase() + category.slice(1); // Capitalize first letter
+      container.appendChild(categoryHeader);
+
+      // Append all blocks in this category
+      groupedBlocks[category].forEach(block => container.appendChild(block));
+
+      // Add a horizontal line for separation (optional)
+      container.appendChild(document.createElement('hr'));
+    }
+  });
+
+  console.info('Q&A blocks have been successfully organized.');
+});
+
+	</script>
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
     <button id="scrollTopBtn">⬆ </button>
