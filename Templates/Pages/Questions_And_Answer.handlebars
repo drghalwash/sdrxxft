@@ -609,8 +609,8 @@ font-family: Verdana, sans-serif;
         <div class="category-group-title">{{this.displayName}}</div>
         <div class="categories">
           {{#each this.ids}}
+            <!-- Always show category name -->
             <div class="category-item">
-              <!-- Show category name even without partial -->
               <a href="#{{this}}" data-category="{{this}}">
                 {{lookup ../texts this}}
               </a>
@@ -622,18 +622,20 @@ font-family: Verdana, sans-serif;
   </div>
 </div>
 
-<!-- Content Section with Graceful Partial Handling -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
         {{#each categoriesConfig}}
           {{#each this.ids}}
+            <!-- Check if partial exists -->
             {{#if (lookup ../qaPartials this)}}
               {{> (lookup ../qaPartials this)}}
             {{else}}
+              <!-- Fallback content -->
               <div class="partial-placeholder" data-category="{{this}}">
-                <!-- Optional: Add loading spinner or future content notice -->
+                <h3>{{lookup ../texts this}}</h3>
+                <p>Content coming soon!</p>
               </div>
             {{/if}}
           {{/each}}
@@ -642,6 +644,7 @@ font-family: Verdana, sans-serif;
     </div>
   </div>
 </section>
+
 
 	
 
