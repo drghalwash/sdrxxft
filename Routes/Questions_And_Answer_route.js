@@ -1,6 +1,7 @@
 import { Router } from 'express';
 const router = new Router();
 
+// Central configuration for all category groups and IDs
 const categoriesConfig = {
   face: {
     displayName: 'Face',
@@ -24,10 +25,10 @@ const categoriesConfig = {
   }
 };
 
-// Dynamically generate partials mapping based on category IDs
-const Qapartials = Object.values(categoriesConfig).reduce((partials, group) => {
+// Dynamically generate the mapping for Q&A partials
+const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
   group.ids.forEach(id => {
-    partials[id] = `Qapartials/${id}`; // Maps category ID to corresponding partial
+    partials[id] = `Qapartials/${id}`; // Maps each category ID to its corresponding partial file path
   });
   return partials;
 }, {});
@@ -35,8 +36,9 @@ const Qapartials = Object.values(categoriesConfig).reduce((partials, group) => {
 router.get('/', (req, res) => {
   res.render('Questions_And_Answer', {
     categoriesConfig,
+    // Pass the dynamic partials mapping
     Qapartials,
-    layout: 'main' // Ensure the correct layout is used
+    layout: 'main' // The main layout file
   });
 });
 
