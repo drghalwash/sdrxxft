@@ -24,25 +24,35 @@ const categoriesConfig = {
     ids: ["hairtransplant", "skinresurfacing"]
   }
 };
+const texts = {
+  rhinoplasty: "Rhinoplasty",
+  facelift: "Facelift",
+  eyelidlift: "Eyelid Lift",
+  breastpsycho: "Breast Psychoanalysis",
+  lollipoptechnique: "Lollipop Technique",
+  miniinvasivebreast: "Mini-Invasive Breast Surgery",
+  breastaugmentation: "Breast Augmentation"
+};
 
-// Dynamically generate the mapping for Q&A partials
-const Qapartials = Object.values(categoriesConfig).reduce((partials, group) => {
+// Generate partials mapping ONLY for existing files
+const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
   group.ids.forEach(id => {
-    partials[id] = id; // Maps each category ID to its corresponding partial file path
+    const partialPath = join(__dirname, 'Qapartials', `${id}.handlebars`);
+    if (existsSync(partialPath)) {
+      partials[id] = `Qapartials/${id}`;
+    }
   });
   return partials;
 }, {});
 
-router.get('/', (req, res) => {
-    console.log('Rendering Q&A Page');
-    console.log('categoriesConfig:', categoriesConfig);
-    console.log('Qapartials:', Qapartials);
 
-    res.render('Questions_And_Answer', {
-        categoriesConfig,
-        Qapartials: Qapartials,
-        layout: 'main'
-    });
+    router.get('/', (req, res) => {
+  res.render('Questions_And_Answer', {
+    categoriesConfig,
+    texts,
+    qaPartials,
+    layout: 'main'
+  });
 });
 
 export default router;
