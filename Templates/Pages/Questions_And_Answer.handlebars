@@ -991,8 +991,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-	
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+  // Select the container that holds the partials
+  const partialContainer = document.querySelector('.col-12');
+  
+  // Function to fix nested divs and maintain width
+  function fixPartialStructure() {
+    // Remove any empty or redundant div closures
+    const content = partialContainer.innerHTML;
+    const cleanedContent = content.replace(/(<\/div>(?:\s*<\/div>)+)/g, '</div>');
+    partialContainer.innerHTML = cleanedContent;
+    
+    // Ensure proper Bootstrap classes are maintained
+    const qaContainers = partialContainer.querySelectorAll('.qa-container');
+    qaContainers.forEach(container => {
+      container.classList.add('w-100');
+    });
+  }
+  
+  // Run the fix after partial content is loaded
+  fixPartialStructure();
+});
+</script>	
 	
 	</body>
 	</html>
