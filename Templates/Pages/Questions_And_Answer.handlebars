@@ -766,6 +766,19 @@ document.addEventListener('DOMContentLoaded', () => {
   generateCategoryNav();
   groupQABlocks();
 });
+		// deactivate
+		const CategoryState = {
+  activeCategory: null,
+  lastInteraction: null,
+  visibleGroups: new Set(),
+  
+  updateState(category) {
+    this.activeCategory = category;
+    this.lastInteraction = new Date();
+    localStorage.setItem('categoryState', 
+      JSON.stringify(this.getState()));
+  }
+};
 	</script>
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
