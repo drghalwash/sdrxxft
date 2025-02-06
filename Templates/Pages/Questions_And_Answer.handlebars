@@ -1144,7 +1144,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+	
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+  const CategoryManager = {
+    config: {
+      containerSelector: '.categories-container',
+      groupClass: 'category-group',
+      itemClass: 'category-item',
+      endpoints: {
+        categories: '/api/categories',
+        websocket: 'your-websocket-endpoint'
+      }
+    },
 
+    async init() {
+      this.container = document.querySelector(this.config.containerSelector);
+      if (!this.container) {
+        console.error('Categories container not found');
+        return;
+      }
+      await this.loadCategories();
+      this.setupSearch();
+      this.bindEvents();
+    },
+
+    async loadCategories() {
+      try {
+        const response = await fetch(this.config.endpoints.categories);
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        this.categories = this.groupCategories(data);
+        this.renderCategories();
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+        this.handleError(error);
+      }
+    },
+
+    groupCategories(data) {
+      return data.reduce((groups, category) => {
+        if (!category.group || !category.name) return groups;
+        
+        const groupName = category.group;
+        if (!groups[groupName]) {
+          groups[groupName] = {
+            title: groupName,
+            categories: []
+          };
+        }
+        
+        groups[groupName].categories.push({
+          id: category.id || this.generateId(),
+          name: category.name,
+          slug: category.slug || this.slugify(category.name),
+          partial: category.partial
+        });
+        
+        return groups;
+      }, {});
+    },
+
+    setupSearch() {
+      const searchInput = document.getElementById('categorySearch');
+      if (searchInput) {
+        searchInput.addEventListener('input', this.debounce((e) => {
+          const term = e.target.value.toLowerCase();
+          this.filterCategories(term);
+        }, 300));
+      }
+    },
+
+    filterCategories(term) {
+      const items = document.querySelectorAll(`.${this.config.itemClass}`);
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(term) ? '' : 'none';
+      });
+    },
+
+    debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    },
+
+    generateId() {
+      return `cat_${Math.random().toString(36).substr(2, 9)}`;
+    },
+
+    handleError(error) {
+      this.container.innerHTML = `
+        <div class="error-message">
+          Unable to load categories. Please try again later.
+        </div>
+      `;
+    }
+  };
+
+  CategoryManager.init();
+});
+
+	
+</script>
+	
 <script>
 	document.querySelectorAll('.answer p').forEach(paragraph => {
     // Collect all text nodes and their word content
