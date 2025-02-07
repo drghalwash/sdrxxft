@@ -66,15 +66,22 @@
 /* Responsive design adjustments */
 
 /* Three columns on medium screens (tablets) */
+/* For tablets (3 columns) */
 @media (max-width: 1200px) {
-  .categories {
-    grid-template-columns: repeat(3, minmax(200px, auto));
-    gap: 12px; /* Slightly smaller gaps on smaller screens */
-    padding-bottom: auto !important
-      ;
+    .categories {
+        grid-template-columns: repeat(3, minmax(200px, auto));
+    }
+}
+
 /* For mobile screens (1 column) */
 @media (max-width: 768px) {
-  .categories {
-    grid-template-columns: 1fr;
-  }
+    .categories {
+        grid-template-columns: repeat(2, minmax(200px, auto));
+    }
+}
+
+@media (max-width: 576px) {
+    .categories {
+        grid-template-columns: repeat(1, minmax(200px, auto));
+    }
 }
