@@ -612,50 +612,46 @@ font-family: Verdana, sans-serif;
 </div>
 
 	
-<!-- Updated Q&A Section -->
-<div style="width: 85%;">
-  <div class="categories-container">
-    <h2>Categories</h2>
-    {{#each categoriesConfig}}
-      <div class="category-group">
-        <div class="category-group-title">{{this.displayName}}</div>
-        <div class="categories">
-          {{#each this.ids}}
-            <!-- Always show category name -->
-            <div class="category-item">
-              <a href="#{{this}}" data-category="{{this}}">
-                {{lookup ../texts this}}
-              </a>
-            </div>
-          {{/each}}
-        </div>
-      </div>
-    {{/each}}
-  </div>
-</div>
-
-<section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
-  <div class="container">
-    <div class="row justify-content-md-center">
-      <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-        {{#each categoriesConfig}}
-          {{#each this.ids}}
-            <!-- Check if partial exists -->
-            {{#if (lookup ../qaPartials this)}}
-              {{> (lookup ../qaPartials this)}}
-            {{else}}
-              <!-- Fallback content -->
-              <div class="partial-placeholder" data-category="{{this}}">
-                <h3>{{lookup ../texts this}}</h3>
-                <p>Content coming soon!</p>
-              </div>
-            {{/if}}
-          {{/each}}
+{{!-- ---------- Category Navigation Section ---------- --}}
+<div class="categories-container">
+  <h2>Categories</h2>
+  {{!-- Iterate over each category group defined in categoriesConfig --}}
+  {{#each categoriesConfig}}
+    <div class="category-group">
+      <div class="category-group-title">{{displayName}}</div>
+      <div class="categories">
+        {{!-- For each category id in the group, display its name via the texts map --}}
+        {{#each ids}}
+          <div class="category-item">
+            <a href="#" data-category="{{this}}">
+              {{lookup ../texts this}}
+            </a>
+          </div>
         {{/each}}
       </div>
     </div>
-  </div>
-</section>
+  {{/each}}
+</div>
+
+{{!-- ---------- Q&A Content Section ---------- --}}
+<div class="qa-content">
+  {{!-- Iterate over all category IDs (ensuring every Q&A section is rendered) --}}
+  {{#each allCategoryIds}}
+    <div class="qa-category" data-category="{{this}}">
+      {{!-- If a partial exists for this category, render it dynamically.
+            Otherwise, show fallback placeholder content. --}}
+      {{#if (lookup ../qaPartials this)}}
+         {{> (lookup ../qaPartials this) }}
+      {{else}}
+         <div class="partial-placeholder" data-category="{{this}}">
+            <h3>{{lookup ../texts this}}</h3>
+            <p>Content coming soon!</p>
+         </div>
+      {{/if}}
+    </div>
+  {{/each}}
+</div>
+
 
 
 	
