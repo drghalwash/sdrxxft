@@ -538,22 +538,18 @@ font-family: Verdana, sans-serif;
 
 	
 
-	
 <div style="width: 85%;">
   <div class="categories-container">
     <h2>Categories</h2>
-    <div id="categories">
-      <!-- CategoryRenderer will inject content here -->
+    <div class="categories">
+      <!-- Empty container: the external JS will generate and insert category items here -->
     </div>
   </div>
 </div>
 
-<script type="module">
-  import CategoryRenderer from '/js/categoryRenderer.js';
-  document.addEventListener('DOMContentLoaded', () => {
-    new CategoryRenderer('categories');
-  });
-</script>
+<!-- Remove the old inline <script> block.
+     Instead, include the external script just before the closing </body> tag: -->
+<script src="/js/categoryManager.js"></script>
 
 
     <!-- Other category items -->
