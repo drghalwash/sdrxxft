@@ -55,15 +55,17 @@ const allCategoryIds = Object.values(categoriesConfig)
 // This mapping is computed once at startup so missing partials don’t trigger errors.
 const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
   group.ids.forEach(id => {
-    // Construct the file path to the partial inside the Qapartials folder
     const partialPath = join(__dirname, '../Qapartials', `${id}.handlebars`);
     if (existsSync(partialPath)) {
-      // Map the partial’s relative path; note that the views folder should be set accordingly
       partials[id] = `Qapartials/${id}`;
+    } else {
+      console.warn(`Partial not found for category ID: ${id}`); // Log missing partials
     }
   });
   return partials;
 }, {});
+
+
 
 // ---------- Q&A Route Handler ----------
 router.get('/', (req, res) => {
