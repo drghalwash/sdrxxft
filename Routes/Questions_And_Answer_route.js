@@ -77,5 +77,13 @@ router.get('/', (req, res) => {
     layout: 'main'     // Main layout to use for rendering the page
   });
 });
+// Global Error Handler
+router.use((err, req, res, next) => {
+  console.error(err.stack); // Log the stack trace for debugging
+  res.status(500).render('error', {
+    message: 'Internal Server Error',
+    error: err // Remove `error: err` in production for security reasons
+  });
+});
 
 export default router;
