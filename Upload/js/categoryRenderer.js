@@ -51,19 +51,7 @@ class CategoryRenderer {
   }
 
   // Returns the group header HTML using properties from the group configuration.
-  generateGroupHeader(group) {
-    return `
-      <div class="group-title" style="
-        background-color: ${group.bgColor};
-        padding: 8px 15px;
-        margin-bottom: 15px;
-        border-radius: 4px;
-        ${group.titleStyle}
-      ">
-        ${group.title}
-      </div>
-    `;
-  }
+  generateGroupHeader(group) { return ` <div class="group-title"> ${group.title} </div> `; }
 
   // Generates the HTML for an individual category item.
   generateCategoryHTML(category) {
