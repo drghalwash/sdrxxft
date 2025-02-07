@@ -53,17 +53,19 @@ const allCategoryIds = Object.values(categoriesConfig)
 // ---------- Build a Map of Available Partial Templates ----------
 // For each category ID, check if a partial file exists in the Qapartials folder.
 // This mapping is computed once at startup so missing partials don’t trigger errors.
+
 const qaPartials = Object.values(categoriesConfig).reduce((partials, group) => {
   group.ids.forEach(id => {
     const partialPath = join(__dirname, '../Qapartials', `${id}.handlebars`);
     if (existsSync(partialPath)) {
-      partials[id] = `Qapartials/${id}`;
+      partials[id] = id; // Changed from `Qapartials/${id}` to just id
     } else {
-      console.warn(`Partial not found for category ID: ${id}`); // Log missing partials
+      console.warn(`Partial not found for category ID: ${id}`);
     }
   });
   return partials;
 }, {});
+
 
 
 
