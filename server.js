@@ -119,11 +119,12 @@ app.use('/Qapartials/*', (req, res, next) => {
 // --------------------------------------------------------------------------------
 // Global error handling middleware
 // This middleware catches errors thrown in any route or middleware.
+// Error-handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error stack:', err.stack);
-  // Renders an error view (create /Templates/error.handlebars)
-  res.status(500).render('error', { error: err });
+  console.error('Error stack:', err.stack); // Log detailed error information
+  res.status(500).render('error', { error: err }); // Render a custom error page
 });
+
 
 // --------------------------------------------------------------------------------
 // Connect to MongoDB using Mongoose with robust connection options
