@@ -570,7 +570,129 @@ font-family: Verdana, sans-serif;
 </section>
 </div>
 
-	
+	<script>
+		
+  import CategoryRenderer from '/js/categoryConfig.js';
+		import CategoryRenderer from '/js/categoryRenderer.js';
+  document.addEventListener('DOMContentLoaded', () => {
+    new CategoryRenderer('categories');
+  });
+// -----------------------------
+// Generate Category Navigation
+// -----------------------------
+function generateCategoryNav() {
+  const navContainer = document.querySelector('.categories-container .categories');
+  if (!navContainer) return;
+  const fragment = document.createDocumentFragment();
+
+  // Loop over each group in the central config.
+  Object.keys(categoriesConfig).forEach(groupKey => {
+    const group = categoriesConfig[groupKey];
+
+    // Create and append a header for the group.
+    const header = document.createElement('h3');
+    header.textContent = group.displayName;
+    fragment.appendChild(header);
+
+    // Create each navigation link under the group.
+    group.ids.forEach(id => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'category-item';
+      const aElem = document.createElement('a');
+      aElem.href = `#${id}`;
+      aElem.textContent = generateCategoryLinkText(id);
+      // Optionally add inline style if needed:
+      // aElem.style.cssText = 'font-weight: bold; color: #007bff;';
+      itemDiv.appendChild(aElem);
+      fragment.appendChild(itemDiv);
+    });
+
+    // Optionally add a horizontal line for separation.
+    fragment.appendChild(document.createElement('hr'));
+  });
+
+  navContainer.innerHTML = '';
+  navContainer.appendChild(fragment);
+}
+
+// -----------------------------
+// Group Q&A Partials (e.g., .mb-8 Blocks)
+// -----------------------------
+function groupQABlocks() {
+  // Create a "reverse mapping" from category ID to its group key.
+  const reverseMapping = {};
+  Object.keys(categoriesConfig).forEach(groupKey => {
+    categoriesConfig[groupKey].ids.forEach(id => {
+      reverseMapping[id] = groupKey;
+    });
+  });
+
+  // Select all Q&A partials; assume each partial is a block with class ".mb-8"
+  // and it contains an <h3 id="..."> element that indicates its category.
+  const qaBlocks = document.querySelectorAll('.mb-8');
+  const qaContainer = document.querySelector('.bsb-faq-3 .row');
+  if (!qaContainer) {
+    console.error('Q&A container not found.');
+    return;
+  }
+
+  // Group the Q&A blocks by their category using our reverse mapping.
+  const groupedQA = {};
+  qaBlocks.forEach(block => {
+    const header = block.querySelector('h3');
+    if (header && header.id) {
+      const groupKey = reverseMapping[header.id];
+      if (groupKey) {
+        if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
+        groupedQA[groupKey].push(block);
+      } else {
+        console.warn(`No mapping found for block with header id "${header.id}".`);
+      }
+    } else {
+      console.warn('Q&A block is missing a header with an id.', block);
+    }
+  });
+
+  // Clear the container and then append blocks group by group, following the central config order.
+  qaContainer.innerHTML = '';
+  Object.keys(categoriesConfig).forEach(groupKey => {
+    if (groupedQA[groupKey] && groupedQA[groupKey].length) {
+      // Create and append the group header.
+      const groupHeader = document.createElement('h3');
+      groupHeader.textContent = categoriesConfig[groupKey].displayName;
+      qaContainer.appendChild(groupHeader);
+
+      // Append all Q&A blocks for this group.
+      groupedQA[groupKey].forEach(block => {
+        qaContainer.appendChild(block);
+      });
+
+      // Optionally add a horizontal rule for separation.
+      qaContainer.appendChild(document.createElement('hr'));
+    }
+  });
+}
+
+// -----------------------------
+// Initialize both modules once the DOM is ready.
+document.addEventListener('DOMContentLoaded', () => {
+  generateCategoryNav();
+  groupQABlocks();
+});
+		// deactivate
+		const CategoryState = {
+  activeCategory: null,
+  lastInteraction: null,
+  visibleGroups: new Set(),
+  
+  updateState(category) {
+    this.activeCategory = category;
+    this.lastInteraction = new Date();
+    localStorage.setItem('categoryState', 
+      JSON.stringify(this.getState()));
+  }
+};
+	</script>
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
     <button id="scrollTopBtn">⬆ </button>
