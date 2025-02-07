@@ -575,7 +575,12 @@ font-family: Verdana, sans-serif;
 </div>
 
 	<script>
+		
   import CategoryRenderer from '/js/categoryConfig.js';
+		import CategoryRenderer from '/js/categoryRenderer.js';
+  document.addEventListener('DOMContentLoaded', () => {
+    new CategoryRenderer('categories');
+  });
 // -----------------------------
 // Generate Category Navigation
 // -----------------------------
