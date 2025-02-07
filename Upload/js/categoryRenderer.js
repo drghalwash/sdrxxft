@@ -2,7 +2,7 @@ import categoryConfig from './categoryConfig.js';
 
 class CategoryRenderer {
     constructor(containerId = 'categories') {
-        this.container = document.getElementById(containerId);
+        this.container = document.getElementById(containerId); // Use correct container ID
         if (!this.container) {
             console.error('Categories container not found');
             return;
@@ -11,17 +11,12 @@ class CategoryRenderer {
     }
 
     init() {
-        if (!this.container) {
-            console.error('Categories container not found');
-            return;
-        }
         this.render();
     }
 
     generateGroupHTML(group) {
         const categoriesHTML = group.categories.map(category => {
-            const style = category.highlighted ?
-                'font-weight: bold; color: #007bff;' : '';
+            const style = category.highlighted ? 'font-weight: bold; color: #007bff;' : '';
             return `
                 <div class="category-item">
                     <a href="#${category.id}" style="${style}">
@@ -33,9 +28,7 @@ class CategoryRenderer {
 
         return `
             <div class="category-group">
-                <h3 class="group-title" style="background-color: ${group.bgColor}; color: white; font-weight: bold;">
-                    ${group.title}
-                </h3>
+                <h3 class="group-title">${group.title}</h3>
                 <div class="category-list">
                     ${categoriesHTML}
                 </div>
@@ -45,12 +38,9 @@ class CategoryRenderer {
 
     render() {
         try {
-            let html = '';
-            for (const key in categoryConfig.groups) {
-                if (categoryConfig.groups.hasOwnProperty(key)) {
-                    html += this.generateGroupHTML(categoryConfig.groups[key]);
-                }
-            }
+            const html = Object.values(categoryConfig.groups)
+                .map(group => this.generateGroupHTML(group))
+                .join('');
             this.container.innerHTML = html;
         } catch (error) {
             console.error('Error rendering categories:', error);
