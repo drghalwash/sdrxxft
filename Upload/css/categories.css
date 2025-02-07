@@ -10,7 +10,7 @@
 /* Masonry grid layout for categories */
 .categories {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Four columns on desktop */
+  grid-template-columns: repeat(4, minmax(200px, 1fr)); /* Four columns on desktop */
   gap: 15px; /* Space between groups */
 }
 
