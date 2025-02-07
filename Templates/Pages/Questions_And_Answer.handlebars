@@ -118,51 +118,115 @@
 font-family: Verdana, sans-serif;
 	}
 	/* General container styles */
+/* Container with modern gradient */
 .categories-container {
-  width: 80%;
-  margin: 0 auto; /* Center horizontally */
-  padding: 20px;
-  background-color: #f9f9f9; /* Optional background color */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
-  margin-top: 20PX;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.05),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.06);
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
-/* Heading style */
-.categories-container h2 {
-  color: #007bff; /* Blue heading */
-  font-size: 1.5em;
-  margin-bottom: 10px;
-  text-align: left;
+/* Custom scrollbar styling */
+.categories-container::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* Categories grid */
+.categories-container::-webkit-scrollbar-thumb {
+  background: #1d2b4b;
+  border-radius: 10px;
+}
+
+/* Category groups */
+.category-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+/* Group headers matching Dr. Khaled's style */
+.category-group-title {
+  background-color: #1d2b4b;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: 'Verdana', sans-serif;
+  font-size: 1.1em;
+  margin-bottom: 15px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+/* Category items grid */
 .categories {
-  display: flex;
-  flex-wrap: wrap; /* Wrap items to the next line when needed */
-  gap: 10px; /* Space between items */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 0 10px;
 }
 
-/* Individual category styles */
+/* Individual category styling */
 .category-item {
-  flex: 1 1 calc(50% - 10px); /* Two items per row on larger screens */
-  text-align: left;
-  color: #333;
-  font-size: 1em;
+  position: relative;
+  padding: 10px 15px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
 }
-.category-item a{
-	text-decoration: none;
-	  color: #333;
-	  font-family: Verdana, sans-serif;
 
-
+/* Category links */
+.category-item a {
+  color: #495057;
+  text-decoration: none;
+  font-family: 'Verdana', sans-serif;
+  font-size: 0.95em;
+  display: block;
+  padding-left: 15px;
+  position: relative;
 }
-/* Responsive behavior */
+
+/* Hover effects */
+.category-item:hover {
+  transform: translateX(5px);
+  border-color: #1d2b4b;
+  background: linear-gradient(to right, rgba(29, 43, 75, 0.05), transparent);
+}
+
+.category-item a::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.category-item:hover a::before {
+  opacity: 1;
+  transform: translateX(-5px);
+}
+
+/* Active state */
+.category-item.active {
+  background: #e7f1ff;
+  border-color: #1d2b4b;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .category-item {
-    flex: 1 1 100%; /* One item per row on small screens */
+  .categories {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .category-group-title {
+    font-size: 1em;
+    padding: 10px 15px;
   }
 }
+
 
 
 .accordion-body{
@@ -606,54 +670,180 @@ font-family: Verdana, sans-serif;
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-        <div class="qa-wrapper w-100">
           {{> miniinvasivebreast}}
           {{> lollipoptechnique}}
           {{> breastpsycho}}
-        </div>
+    </div>
       </div>
     </div>
-  </div>
 </section>
 </div>
 
 	<script>
-  // Define the desired order based on your category links
-  const categoryOrder = [
-    "rhinoplasty",
-    "liposuction",
-    "facelift",
-    "breastpsycho",
-	  "lollipoptechnique",
-    "breastaugmentation",
-    "bodycontouring",
-    "fatgrafting",
-    "tummytuck",
-    "brazilianbuttlift",
-    "eyelidlift",
-    "botoxfillers",
-    "mommyMakeover",
-    "hairtransplant",
-    "skinresurfacing",
-    "noninvasivecontouring"
- "miniinvasivebreast"
-  ];
+// Central configuration for all your categories.
+// Define group keys, a display name, and the list of associated category IDs.
+const categoriesConfig = {
+  face: {
+    displayName: 'Face',
+    ids: ["rhinoplasty", "facelift", "eyelidlift"]
+  },
+  breast: {
+    displayName: 'Breast',
+    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation"]
+  },
+  body: {
+    displayName: 'Body',
+    ids: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"]
+  },
+  minimally_invasive: {
+    displayName: 'Minimally Invasive',
+    ids: ["botoxfillers", "noninvasivecontouring"]
+  },
+  other: {
+    displayName: 'Other',
+    ids: ["hairtransplant", "skinresurfacing"]
+  }
+};
 
-  // Get the parent element that contains all the Q&A container blocks (div.mb-8)
-  const qaParent = document.querySelector("section"); // Change this selector if needed
+// Helper function for generating friendly link text for a category ID.writeid
+function generateCategoryLinkText(id) {
+  const texts = {
+    rhinoplasty: "Rhinoplasty",
+    facelift: "Facelift",
+    eyelidlift: "Eyelid Lift",
+    breastpsycho: "Breast: Thinking all night",
+    lollipoptechnique: "Breast Reduction: Lollipop technique",
+    miniinvasivebreast: "Thinking about mini invasive",
+    breastaugmentation: "Breast Augmentation",
+    bodycontouring: "Body Contouring",
+    fatgrafting: "Fat Grafting",
+    tummytuck: "Tummy Tuck (Abdominoplasty)",
+    brazilianbuttlift: "Brazilian Butt Lift (BBL)",
+    mommyMakeover: "Mommy Makeover",
+    botoxfillers: "Botox & Dermal Fillers",
+    noninvasivecontouring: "Non-Invasive Body Contouring",
+    hairtransplant: "Hair Transplant",
+    skinresurfacing: "LASER SKIN RESURFACING"
+  };
+  return texts[id] || id;
+}
 
-  // Loop through the order and for each category, find the corresponding block and append it
-  categoryOrder.forEach(categoryId => {
-    const header = document.getElementById(categoryId); // Finds the <h3 id="categoryid">
-    if (header) {
-      const block = header.closest(".mb-8"); // Get the full Q&A block for that category
-      if (block) {
-        // Append moves the block so that they appear in the order defined in categoryOrder
-        qaParent.appendChild(block);
+// -----------------------------
+// Generate Category Navigation
+// -----------------------------
+function generateCategoryNav() {
+  const navContainer = document.querySelector('.categories-container .categories');
+  if (!navContainer) return;
+  const fragment = document.createDocumentFragment();
+
+  // Loop over each group in the central config.
+  Object.keys(categoriesConfig).forEach(groupKey => {
+    const group = categoriesConfig[groupKey];
+
+    // Create and append a header for the group.
+    const header = document.createElement('h3');
+    header.textContent = group.displayName;
+    fragment.appendChild(header);
+
+    // Create each navigation link under the group.
+    group.ids.forEach(id => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'category-item';
+      const aElem = document.createElement('a');
+      aElem.href = `#${id}`;
+      aElem.textContent = generateCategoryLinkText(id);
+      // Optionally add inline style if needed:
+      // aElem.style.cssText = 'font-weight: bold; color: #007bff;';
+      itemDiv.appendChild(aElem);
+      fragment.appendChild(itemDiv);
+    });
+
+    // Optionally add a horizontal line for separation.
+    fragment.appendChild(document.createElement('hr'));
+  });
+
+  navContainer.innerHTML = '';
+  navContainer.appendChild(fragment);
+}
+
+// -----------------------------
+// Group Q&A Partials (e.g., .mb-8 Blocks)
+// -----------------------------
+function groupQABlocks() {
+  // Create a "reverse mapping" from category ID to its group key.
+  const reverseMapping = {};
+  Object.keys(categoriesConfig).forEach(groupKey => {
+    categoriesConfig[groupKey].ids.forEach(id => {
+      reverseMapping[id] = groupKey;
+    });
+  });
+
+  // Select all Q&A partials; assume each partial is a block with class ".mb-8"
+  // and it contains an <h3 id="..."> element that indicates its category.
+  const qaBlocks = document.querySelectorAll('.mb-8');
+  const qaContainer = document.querySelector('.bsb-faq-3 .row');
+  if (!qaContainer) {
+    console.error('Q&A container not found.');
+    return;
+  }
+
+  // Group the Q&A blocks by their category using our reverse mapping.
+  const groupedQA = {};
+  qaBlocks.forEach(block => {
+    const header = block.querySelector('h3');
+    if (header && header.id) {
+      const groupKey = reverseMapping[header.id];
+      if (groupKey) {
+        if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
+        groupedQA[groupKey].push(block);
+      } else {
+        console.warn(`No mapping found for block with header id "${header.id}".`);
       }
+    } else {
+      console.warn('Q&A block is missing a header with an id.', block);
     }
   });
-</script>
+
+  // Clear the container and then append blocks group by group, following the central config order.
+  qaContainer.innerHTML = '';
+  Object.keys(categoriesConfig).forEach(groupKey => {
+    if (groupedQA[groupKey] && groupedQA[groupKey].length) {
+      // Create and append the group header.
+      const groupHeader = document.createElement('h3');
+      groupHeader.textContent = categoriesConfig[groupKey].displayName;
+      qaContainer.appendChild(groupHeader);
+
+      // Append all Q&A blocks for this group.
+      groupedQA[groupKey].forEach(block => {
+        qaContainer.appendChild(block);
+      });
+
+      // Optionally add a horizontal rule for separation.
+      qaContainer.appendChild(document.createElement('hr'));
+    }
+  });
+}
+
+// -----------------------------
+// Initialize both modules once the DOM is ready.
+document.addEventListener('DOMContentLoaded', () => {
+  generateCategoryNav();
+  groupQABlocks();
+});
+		// deactivate
+		const CategoryState = {
+  activeCategory: null,
+  lastInteraction: null,
+  visibleGroups: new Set(),
+  
+  updateState(category) {
+    this.activeCategory = category;
+    this.lastInteraction = new Date();
+    localStorage.setItem('categoryState', 
+      JSON.stringify(this.getState()));
+  }
+};
+	</script>
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
     <button id="scrollTopBtn">⬆ </button>
@@ -954,7 +1144,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+	
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+  const CategoryManager = {
+    config: {
+      containerSelector: '.categories-container',
+      groupClass: 'category-group',
+      itemClass: 'category-item',
+      endpoints: {
+        categories: '/api/categories',
+        websocket: 'your-websocket-endpoint'
+      }
+    },
 
+    async init() {
+      this.container = document.querySelector(this.config.containerSelector);
+      if (!this.container) {
+        console.error('Categories container not found');
+        return;
+      }
+      await this.loadCategories();
+      this.setupSearch();
+      this.bindEvents();
+    },
+
+    async loadCategories() {
+      try {
+        const response = await fetch(this.config.endpoints.categories);
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        this.categories = this.groupCategories(data);
+        this.renderCategories();
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+        this.handleError(error);
+      }
+    },
+
+    groupCategories(data) {
+      return data.reduce((groups, category) => {
+        if (!category.group || !category.name) return groups;
+        
+        const groupName = category.group;
+        if (!groups[groupName]) {
+          groups[groupName] = {
+            title: groupName,
+            categories: []
+          };
+        }
+        
+        groups[groupName].categories.push({
+          id: category.id || this.generateId(),
+          name: category.name,
+          slug: category.slug || this.slugify(category.name),
+          partial: category.partial
+        });
+        
+        return groups;
+      }, {});
+    },
+
+    setupSearch() {
+      const searchInput = document.getElementById('categorySearch');
+      if (searchInput) {
+        searchInput.addEventListener('input', this.debounce((e) => {
+          const term = e.target.value.toLowerCase();
+          this.filterCategories(term);
+        }, 300));
+      }
+    },
+
+    filterCategories(term) {
+      const items = document.querySelectorAll(`.${this.config.itemClass}`);
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(term) ? '' : 'none';
+      });
+    },
+
+    debounce(func, wait) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    },
+
+    generateId() {
+      return `cat_${Math.random().toString(36).substr(2, 9)}`;
+    },
+
+    handleError(error) {
+      this.container.innerHTML = `
+        <div class="error-message">
+          Unable to load categories. Please try again later.
+        </div>
+      `;
+    }
+  };
+
+  CategoryManager.init();
+});
+
+	
+</script>
+	
 <script>
 	document.querySelectorAll('.answer p').forEach(paragraph => {
     // Collect all text nodes and their word content
@@ -1025,6 +1320,139 @@ document.addEventListener('DOMContentLoaded', function() {
   fixPartialStructure();
 });
 </script>	
+
+	<script>
+// --- Global Error Handling Setup ---
+// This catches runtime errors, missing resources, and unhandled promise rejections.
+function setupGlobalErrorHandler() {
+  // Catch synchronous JS errors
+  window.onerror = function(message, source, lineno, colno, error) {
+    console.error(`Global Error: ${message} at ${source}:${lineno}:${colno}`, error);
+    // Return false to invoke the browser’s default error handler if needed.
+    return false;
+  };
+
+  // Catch asynchronous errors (unhandled promise rejections)
+  window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled Promise Rejection:', event.reason);
+  });
+}
+
+// --- Primary Validation Function ---
+// Checks the container’s inner HTML for mismatched <div> tags using regex.
+function validatePartialsContainer(selector, options = { selfHeal: false }) {
+  const container = document.querySelector(selector);
+  if (!container) {
+    console.error(`Container not found for selector: ${selector}`);
+    return;
+  }
+  try {
+    const htmlString = container.innerHTML;
+    // Count all opening and closing <div> tags.
+    const openDivs = htmlString.match(/<div\b[^>]*>/gi) || [];
+    const closeDivs = htmlString.match(/<\/div>/gi) || [];
+    const openCount = openDivs.length;
+    const closeCount = closeDivs.length;
+
+    if (openCount !== closeCount) {
+      console.error(`HTML structure error in ${selector}: ${openCount} opening <div> tags vs ${closeCount} closing </div> tags.`);
+      if (options.selfHeal) {
+        attemptStructuralFix(container, openCount, closeCount);
+      }
+    } else {
+      console.info(`HTML structure in ${selector} is valid: ${openCount} opening and ${closeCount} closing <div> tags.`);
+    }
+  } catch (e) {
+    console.error(`Error while validating container ${selector}:`, e);
+  }
+}
+
+// --- Detailed Validation (Line-by-Line Reporting) ---
+// Provides deeper insight by parsing each line and reporting context.
+// This function is optional and can be used in addition to the primary validator.
+function validatePartialsContainerDetailed(selector, options = { selfHeal: false }) {
+  const container = document.querySelector(selector);
+  if (!container) {
+    console.error(`Selector ${selector} not found.`);
+    return;
+  }
+  try {
+    const htmlString = container.innerHTML;
+    const lines = htmlString.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const divStack = [];
+    const errors = [];
+
+    lines.forEach((line, index) => {
+      const lineNum = index + 1;
+      const openMatches = line.match(/<div\b[^>]*>/gi) || [];
+      openMatches.forEach(() => divStack.push({ line: lineNum, snippet: line }));
+
+      const closeMatches = line.match(/<\/div>/gi) || [];
+      closeMatches.forEach(() => {
+        if (divStack.length === 0) {
+          errors.push(`Extra </div> found at line ${lineNum}: ${line}`);
+        } else {
+          divStack.pop();
+        }
+      });
+    });
+
+    if (divStack.length > 0 || errors.length > 0) {
+      console.error(`Detailed HTML structure errors in ${selector}:`);
+      divStack.forEach(item => console.error(`– Unclosed <div> opened at line ${item.line}: ${item.snippet}`));
+      errors.forEach(msg => console.error(`– ${msg}`));
+      if (options.selfHeal) {
+        // For simplicity, if there are unclosed tags, we append missing closing tags.
+        attemptStructuralFix(container, divStack.length, 0);
+      }
+    } else {
+      console.info(`Detailed validation passed: HTML is balanced in ${selector}.`);
+    }
+  } catch (err) {
+    console.error(`Detailed validation error for ${selector}:`, err);
+  }
+}
+
+// --- Self-Healing Function ---
+// If too many opening tags exist (or extra closing tags), this function appends or removes tags.
+function attemptStructuralFix(container, openCount, closeCount) {
+  const diff = openCount - closeCount;
+  if (diff > 0) {
+    // Append as many closing tags as needed.
+    container.innerHTML += '</div>'.repeat(diff);
+    console.warn(`Self-healing applied: Appended ${diff} missing closing </div> tag(s) to container.`);
+  } else if (diff < 0) {
+    console.warn(`Extra closing </div> tags detected (${-diff} extra). Manual review is recommended.`);
+    // Optionally attempt to remove extra closing tags:
+    let count = 0;
+    container.innerHTML = container.innerHTML.replace(/<\/div>/gi, function(match) {
+      count++;
+      return (count <= (-diff)) ? '' : match;
+    });
+    console.warn(`Self-healing attempted: Removed ${-diff} extra closing </div> tag(s) from container.`);
+  }
+}
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    setupGlobalErrorHandler();
+    
+    // Validate and self-heal if necessary. You can choose either the simple or detailed check.
+    validatePartialsContainer('.bsb-faq-3', { selfHeal: true });
+    
+    // Optionally, run deeper analysis:
+    // validatePartialsContainerDetailed('.bsb-faq-3', { selfHeal: true });
+    
+    // Additional logic for dynamically injected Handlebars partials would go here.
+    // For example, if you later load {{> miniinvasivebreast}} or others dynamically,
+    // you can invoke the same validation functions on their container.
+    
+  } catch (initError) {
+    console.error('Error during initialization:', initError);
+  }
+});
+      </script>
 	
 	</body>
 	</html>
