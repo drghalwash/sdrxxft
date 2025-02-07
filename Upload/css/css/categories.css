@@ -1,0 +1,66 @@
+/* Replace or update your existing category styles */
+.categories-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+/* Group title styling - matches Dr. Khaled's header style */
+.group-title {
+  background-color: #1d2b4b;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2em;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  font-family: 'Verdana', sans-serif;
+}
+
+/* Simple category item styling without borders */
+.category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.category-item {
+  padding: 8px 0;
+}
+
+.category-item a {
+  color: #495057;
+  text-decoration: none;
+  font-family: 'Verdana', sans-serif;
+  font-size: 0.95em;
+  transition: color 0.3s ease;
+}
+
+.category-item a:hover {
+  color: #007bff;
+}
+
+/* Highlighted categories */
+.category-item a[style*="bold"] {
+  position: relative;
+  padding-left: 10px;
+}
+
+.category-item a[style*="bold"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 80%;
+  background-color: #007bff;
+  border-radius: 2px;
+}
+
+/* Group spacing */
+.category-group {
+  margin-bottom: 25px;
+}
