@@ -158,7 +158,11 @@ font-family: Verdana, sans-serif;
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: hidden; /* Disable horizontal scrolling */
 }
-	
+	.categories {
+  display: grid;
+  grid-template-columns: repeat(4); /* Four columns on desktop */
+  gap: 15px; /* Space between groups */
+}
 
 
 /* Custom scrollbar styling for the categories container */
@@ -545,7 +549,7 @@ font-family: Verdana, sans-serif;
 </div>
 
 <script type="module">
-import CategoryRenderer from './categoryRenderer.js';
+  import CategoryRenderer from '/js/categoryRenderer.js';
   document.addEventListener('DOMContentLoaded', () => {
     new CategoryRenderer('categories');
   });
@@ -569,6 +573,7 @@ import CategoryRenderer from './categoryRenderer.js';
     </div>
 </section>
 </div>
+
 	<script>
 // Central configuration for all your categories.
 // Define group keys, a display name, and the list of associated category IDs.
@@ -734,7 +739,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 };
 	</script>
-	
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
     <button id="scrollTopBtn">⬆ </button>
