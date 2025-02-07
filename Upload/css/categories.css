@@ -72,3 +72,9 @@
     gap: 12px; /* Slightly smaller gaps on smaller screens */
     padding-bottom: auto !important
       ;
+/* For mobile screens (1 column) */
+@media (max-width: 768px) {
+  .categories {
+    grid-template-columns: 1fr;
+  }
+}
