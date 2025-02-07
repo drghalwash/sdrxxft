@@ -51,6 +51,12 @@ app.use(methodOverride('_method'));
 // Optionally, add JSON parsing if needed:
 // app.use(express.json());
 
+// File: /server.js (add near other route imports)
+import categoriesApi from './Routes/api/categories.js';
+
+// Add this after other app.use() calls
+app.use('/api/categories', categoriesApi);
+
 // --------------------------------------------------------------------------------
 // CONFIGURE THE HANDLEBARS VIEW ENGINE
 // --------------------------------------------------------------------------------
