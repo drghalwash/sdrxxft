@@ -15,9 +15,9 @@ const router = new Router();
 // Only one file needs to be maintained for both navigation and content.
 const categoriesConfig = {
   
-  breast: {
+  Breast: {
     displayName: 'Breast',
-    ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation']
+    ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast']
   }
 
   }
