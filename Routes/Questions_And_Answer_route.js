@@ -14,35 +14,21 @@ const router = new Router();
 // Update this object to add new groups or categories.
 // Only one file needs to be maintained for both navigation and content.
 const categoriesConfig = {
-  face: {
-    displayName: 'Face',
-    ids: ['rhinoplasty', 'facelift', 'eyelidlift']
-  },
+  
   breast: {
     displayName: 'Breast',
     ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation']
-  },
-  body: {
-    displayName: 'Body',
-    ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
+  }
+
   }
 };
 
 // ---------- Mapping Display Names for Categories ----------
 // Use this object to consistently show the category names
 const texts = {
-  rhinoplasty: 'Rhinoplasty',
-  facelift: 'Facelift',
-  eyelidlift: 'Eyelid Lift',
   breastpsycho: 'Breast Psychoanalysis',
   lollipoptechnique: 'Lollipop Technique',
-  miniinvasivebreast: 'Mini-Invasive Breast Surgery',
-  breastaugmentation: 'Breast Augmentation',
-  bodycontouring: 'Body Contouring',
-  fatgrafting: 'Fat Grafting',
-  tummytuck: 'Tummy Tuck (Abdominoplasty)',
-  brazilianbuttlift: 'Brazilian Butt Lift (BBL)',
-  mommyMakeover: 'Mommy Makeover'
+  miniinvasivebreast: 'Mini-Invasive Breast Surgery'
 };
 
 // ---------- Create a Flat List of All Category IDs ----------
