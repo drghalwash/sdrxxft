@@ -575,53 +575,6 @@ font-family: Verdana, sans-serif;
 </div>
 
 	<script>
-// Central configuration for all your categories.
-// Define group keys, a display name, and the list of associated category IDs.
-const categoriesConfig = {
-  face: {
-    displayName: 'Face',
-    ids: ["rhinoplasty", "facelift", "eyelidlift"]
-  },
-  breast: {
-    displayName: 'Breast',
-    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation"]
-  },
-  body: {
-    displayName: 'Body',
-    ids: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"]
-  },
-  minimally_invasive: {
-    displayName: 'Minimally Invasive',
-    ids: ["botoxfillers", "noninvasivecontouring"]
-  },
-  other: {
-    displayName: 'Other',
-    ids: ["hairtransplant", "skinresurfacing"]
-  }
-};
-
-// Helper function for generating friendly link text for a category ID.writeid
-function generateCategoryLinkText(id) {
-  const texts = {
-    rhinoplasty: "Rhinoplasty",
-    facelift: "Facelift",
-    eyelidlift: "Eyelid Lift",
-    breastpsycho: "Breast: Thinking all night",
-    lollipoptechnique: "Breast Reduction: Lollipop technique",
-    miniinvasivebreast: "Thinking about mini invasive",
-    breastaugmentation: "Breast Augmentation",
-    bodycontouring: "Body Contouring",
-    fatgrafting: "Fat Grafting",
-    tummytuck: "Tummy Tuck (Abdominoplasty)",
-    brazilianbuttlift: "Brazilian Butt Lift (BBL)",
-    mommyMakeover: "Mommy Makeover",
-    botoxfillers: "Botox & Dermal Fillers",
-    noninvasivecontouring: "Non-Invasive Body Contouring",
-    hairtransplant: "Hair Transplant",
-    skinresurfacing: "LASER SKIN RESURFACING"
-  };
-  return texts[id] || id;
-}
 
 // -----------------------------
 // Generate Category Navigation
