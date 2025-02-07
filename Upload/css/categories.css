@@ -1,127 +1,74 @@
-/* File: /css/categories.css */
-
 /* Main container styling */
 .categories-container {
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  max-height: 500px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
 }
 
-/* Custom scrollbar */
-.categories-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.categories-container::-webkit-scrollbar-thumb {
-  background: #1d2b4b;
-  border-radius: 10px;
-}
-
-.categories-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-/* Category groups container */
+/* Masonry grid layout for categories */
 .categories {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  padding: 10px;
+  grid-template-columns: repeat(4, 1fr); /* Four columns on desktop */
+  gap: 15px; /* Space between groups */
 }
 
-/* Category group styling */
+/* Category group container */
 .category-group {
-  break-inside: avoid;
-  margin-bottom: 25px;
+  background-color: #ffffff;
+  border: 2px solid #ffa500; /* Orange border */
+  border-radius: 8px; /* Semi-curved angles */
+  padding: 15px;
+  break-inside: avoid; /* Prevent breaking in masonry layout */
 }
 
-/* Category group header - using Dr. Khaled's tag style */
+/* Group title styling - dark blue background with white text */
 .group-title {
-  background-color: #394464;
-  color: white;
-  padding: 8px;
-  border-radius: 0 20px 20px 0;
-  padding-right: 20px;
-  padding-left: 12px;
+  background-color: #394464; /* Dark blue background */
+  color: white; /* White text */
   font-family: Verdana, sans-serif;
   font-weight: bold;
   font-size: 1.1em;
+  padding: 8px 15px;
   margin-bottom: 15px;
-  display: inline-block;
+  border-radius: 0 20px 20px 0; /* Semi-curved angles on the right */
 }
 
-/* Category items container */
+/* Category list container inside each group */
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-left: 12px;
 }
 
-/* Individual category item */
+/* Individual category item styling */
 .category-item {
-  padding: 4px 0;
+  padding: 5px 0; /* Narrower spacing between items */
 }
 
 .category-item a {
-  color: #495057;
+  color: #495057; /* Default text color */
   text-decoration: none;
   font-family: Verdana, sans-serif;
   font-size: 0.95em;
-  transition: color 0.2s ease;
-  display: inline-block;
 }
 
-/* Highlighted categories */
+/* Highlighted category items (special styling) */
 .category-item a[style*="bold"] {
-  color: #007bff !important;
-  font-weight: bold;
-  position: relative;
-  padding-left: 10px;
+  color: #007bff !important; /* Blue color for highlighted items */
 }
 
-.category-item a[style*="bold"]::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 70%;
-  background-color: #007bff;
-  border-radius: 2px;
-}
-
-/* Hover effects */
+/* Hover effects for category links */
 .category-item a:hover {
-  color: #007bff;
-  transform: translateX(5px);
+  color: #007bff; /* Change to blue on hover */
 }
 
-/* Responsive design */
+/* Responsive design adjustments */
+
+/* Three columns on medium screens (tablets) */
 @media (max-width: 1200px) {
   .categories {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 992px) {
-  .categories {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 576px) {
-  .categories {
-    grid-template-columns: 1fr;
-  }
-  
-  .group-title {
-    width: 100%;
-    border-radius: 4px;
-  }
-}
+    grid-template-columns: repeat(3, minmax(200px, auto));
+    gap: 12px; /* Slightly smaller gaps on smaller screens */
+    padding-bottom: auto !important
+      ;
