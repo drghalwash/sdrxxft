@@ -547,11 +547,6 @@ font-family: Verdana, sans-serif;
 <script type="module">
  import categoryConfig from './categoryConfig.js'; // Adjust path if necessary
 import CategoryRenderer from './categoryRenderer.js';
-
-function generateCategoryLinkText(id) {
-  return categoryConfig.texts[id] || id;
-}
-
   document.addEventListener('DOMContentLoaded', () => {
     new CategoryRenderer('categories');
   });
