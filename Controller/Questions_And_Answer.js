@@ -1,7 +1,6 @@
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-
 export const index = async (req, res) => {
     try {
         // Get photo gallery data
@@ -19,7 +18,6 @@ export const index = async (req, res) => {
                 acc[partialName] = true;
                 return acc;
             }, {});
-
         // Render the template with both photo gallery and Q&A data
         res.render('Pages/Questions_And_Answer', {
             Photo_Gallary,
@@ -27,7 +25,6 @@ export const index = async (req, res) => {
             title: 'Q&As',
             layout: 'main'
         });
-
     } catch (error) {
         console.error('Error loading Q&A content:', error);
         res.status(500).render("Pages/404", { error });

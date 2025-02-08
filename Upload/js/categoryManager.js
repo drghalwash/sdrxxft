@@ -1,74 +1,27 @@
-/********************************************
- * File: /js/categoryManager.js
- * Description: Centralizes the categories configuration,
- * dynamically builds the category navigation, and groups Q&A blocks.
- ********************************************/
+// File: /js/categoryManager.js
+// Description: Dynamically builds category navigation and groups Q&A blocks on the Q&A page.
 
-// Central configuration for categories.
-const categoriesConfig = {
-  face: {
-    displayName: 'Face',
-    ids: ["rhinoplasty", "facelift", "eyelidlift"]
-  },
-  breast: {
-    displayName: 'Breast',
-    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation"]
-  },
-  body: {
-    displayName: 'Body',
-    ids: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"]
-  },
-  minimally_invasive: {
-    displayName: 'Minimally Invasive',
-    ids: ["botoxfillers", "noninvasivecontouring"]
-  },
-  other: {
-    displayName: 'Other',
-    ids: ["hairtransplant", "skinresurfacing"]
-  }
-};
+import { categoriesConfig, generateCategoryLinkText } from '../config/categoryConfig.js';
 
-// Helper function to get friendly display text for a category ID.
-function generateCategoryLinkText(id) {
-  const texts = {
-    rhinoplasty: "Rhinoplasty",
-    facelift: "Facelift",
-    eyelidlift: "Eyelid Lift",
-    breastpsycho: "Breast: Thinking all night",
-    lollipoptechnique: "Breast Reduction: Lollipop technique",
-    miniinvasivebreast: "Thinking about mini invasive",
-    breastaugmentation: "Breast Augmentation",
-    bodycontouring: "Body Contouring",
-    fatgrafting: "Fat Grafting",
-    tummytuck: "Tummy Tuck (Abdominoplasty)",
-    brazilianbuttlift: "Brazilian Butt Lift (BBL)",
-    mommyMakeover: "Mommy Makeover",
-    botoxfillers: "Botox & Dermal Fillers",
-    noninvasivecontouring: "Non-Invasive Body Contouring",
-    hairtransplant: "Hair Transplant",
-    skinresurfacing: "LASER SKIN RESURFACING"
-  };
-  return texts[id] || id;
-}
-
-// Generate dynamic category navigation.
-// Generate dynamic category navigation with inline styling
+// ----------------------------------------------------------------------
+// Generate dynamic category navigation using the centralized config
+// ----------------------------------------------------------------------
 function generateCategoryNav() {
   const navContainer = document.querySelector('.categories-container .categories');
   if (!navContainer) return;
 
-  // Apply styles to the container (replaces CSS rules)
+  // Set up a responsive grid layout.
   navContainer.style.cssText = `
     display: grid;
     grid-template-columns: repeat(4, minmax(200px, 1fr));
     gap: 15px;
   `;
 
+  // Loop through each category group defined in the config.
   Object.keys(categoriesConfig).forEach(groupKey => {
     const group = categoriesConfig[groupKey];
     const groupDiv = document.createElement('div');
     groupDiv.className = 'category-group';
-    // Apply group styles
     groupDiv.style.cssText = `
       background-color: #ffffff;
       border: 2px solid #ffa500;
@@ -77,9 +30,9 @@ function generateCategoryNav() {
       break-inside: avoid;
     `;
 
+    // Create and style the group header.
     const header = document.createElement('h3');
     header.textContent = group.displayName;
-    // Apply header styles
     header.style.cssText = `
       background-color: #394464;
       color: white;
@@ -92,10 +45,11 @@ function generateCategoryNav() {
     `;
     groupDiv.appendChild(header);
 
+    // Build each category item and attach hover effects.
     group.ids.forEach(id => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'category-item';
-      itemDiv.style.cssText = 'padding: 5px 0;'; // Item padding
+      itemDiv.style.cssText = 'padding: 5px 0;';
 
       const aElem = document.createElement('a');
       aElem.href = `#${id}`;
@@ -107,8 +61,7 @@ function generateCategoryNav() {
         font-size: 0.95em;
         transition: color 0.3s ease;
       `;
-      
-      // Add hover effects via JavaScript instead of CSS
+
       aElem.addEventListener('mouseenter', () => {
         aElem.style.color = '#007bff';
         aElem.style.fontWeight = 'bold';
@@ -126,11 +79,13 @@ function generateCategoryNav() {
   });
 }
 
-
-// Group Q&A blocks based on category ID.
-// Assumes each Q&A block (partial) has the .mb-8 class and a child header with an id.
+// ----------------------------------------------------------------------
+// Group Q&A blocks based on category id in the header element.
+// Each auto‑generated Q&A partial should have an outer container with class "mb-8"
+// and an <h3> header with its id set to the category id.
+// ----------------------------------------------------------------------
 function groupQABlocks() {
-  // Build a reverse mapping from category ID to its group key.
+  // Build a reverse mapping: category id => group key.
   const reverseMapping = {};
   Object.keys(categoriesConfig).forEach(groupKey => {
     categoriesConfig[groupKey].ids.forEach(id => {
@@ -138,52 +93,52 @@ function groupQABlocks() {
     });
   });
 
-  // Find all Q&A partial blocks.
+  // Select all Q&A blocks and the Q&A container.
   const qaBlocks = document.querySelectorAll('.mb-8');
-  // The container that wraps the Q&A blocks (adjust selector as needed).
   const qaContainer = document.querySelector('.bsb-faq-3 .row');
   if (!qaContainer) {
     console.error('Q&A container not found.');
     return;
   }
 
-  // Group blocks by their category (using the header id).
   const groupedQA = {};
   qaBlocks.forEach(block => {
-    const header = block.querySelector('h3');
-    if (header && header.id) {
-      const groupKey = reverseMapping[header.id];
+    const header = block.querySelector('h3[id]');
+    if (header) {
+      const catId = header.id;
+      const groupKey = reverseMapping[catId];
       if (groupKey) {
         if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
         groupedQA[groupKey].push(block);
       } else {
-        console.warn(`No mapping found for block with header id "${header.id}".`);
+        console.warn(`No group mapping found for header id "${catId}".`);
       }
     } else {
-      console.warn('Q&A block missing a header with an id.', block);
+      console.warn('Q&A block missing a header with an id:', block);
     }
   });
 
-  // Clear out the container before re-adding grouped content.
+  // Clear the container and re-append grouped Q&A blocks.
   qaContainer.innerHTML = '';
-  // Append grouped blocks following the order of the configuration.
   Object.keys(categoriesConfig).forEach(groupKey => {
+    const group = categoriesConfig[groupKey];
     if (groupedQA[groupKey] && groupedQA[groupKey].length) {
       const groupHeader = document.createElement('h3');
-      groupHeader.textContent = categoriesConfig[groupKey].displayName;
+      groupHeader.textContent = group.displayName;
+      groupHeader.style.cssText = 'margin-top: 30px; margin-bottom: 10px;';
       qaContainer.appendChild(groupHeader);
 
       groupedQA[groupKey].forEach(block => {
         qaContainer.appendChild(block);
       });
-      
-      // Optionally, add a separator.
       qaContainer.appendChild(document.createElement('hr'));
     }
   });
 }
 
-// Initialize the navigation and grouping functions when the DOM is ready.
+// ----------------------------------------------------------------------
+// Adjust the responsive grid layout of the navigation on window resize.
+// ----------------------------------------------------------------------
 function handleResponsiveDesign() {
   const categories = document.querySelector('.categories');
   if (!categories) return;
@@ -205,9 +160,11 @@ function handleResponsiveDesign() {
   window.addEventListener('resize', updateGrid);
 }
 
-// Initialize in DOMContentLoaded
+// ----------------------------------------------------------------------
+// Initialize everything once the DOM is fully loaded.
+// ----------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   generateCategoryNav();
   groupQABlocks();
-  handleResponsiveDesign(); // Add this line
+  handleResponsiveDesign();
 });
