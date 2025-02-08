@@ -1,78 +1,27 @@
-/********************************************
- * File: /js/categoryManager.js
- * Description: 
- *   Centralizes the categories configuration,
- *   dynamically builds the category navigation, and 
- *   groups Q&A blocks on the page.
- ********************************************/
+// File: /js/categoryManager.js
+// Description: Dynamically builds category navigation and groups Q&A blocks on the Q&A page.
 
-// Central configuration for categories.
-const categoriesConfig = {
-  face: {
-    displayName: 'Face',
-    ids: ["rhinoplasty", "facelift", "eyelidlift"]
-  },
-  breast: {
-    displayName: 'Breast',
-    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation"]
-  },
-  body: {
-    displayName: 'Body',
-    ids: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"]
-  },
-  minimally_invasive: {
-    displayName: 'Minimally Invasive',
-    ids: ["botoxfillers", "noninvasivecontouring"]
-  },
-  other: {
-    displayName: 'Other',
-    ids: ["hairtransplant", "skinresurfacing"]
-  }
-};
-
-// Helper: Returns friendly link text for a given category id.
-function generateCategoryLinkText(id) {
-  const texts = {
-    rhinoplasty: "Rhinoplasty",
-    facelift: "Facelift",
-    eyelidlift: "Eyelid Lift",
-    breastpsycho: "Breast: Thinking all night",
-    lollipoptechnique: "Breast Reduction: Lollipop technique",
-    miniinvasivebreast: "Thinking about mini invasive",
-    breastaugmentation: "Breast Augmentation",
-    bodycontouring: "Body Contouring",
-    fatgrafting: "Fat Grafting",
-    tummytuck: "Tummy Tuck (Abdominoplasty)",
-    brazilianbuttlift: "Brazilian Butt Lift (BBL)",
-    mommyMakeover: "Mommy Makeover",
-    botoxfillers: "Botox & Dermal Fillers",
-    noninvasivecontouring: "Non-Invasive Body Contouring",
-    hairtransplant: "Hair Transplant",
-    skinresurfacing: "LASER SKIN RESURFACING"
-  };
-  return texts[id] || id;
-}
+import { categoriesConfig, generateCategoryLinkText } from '../config/categoryConfig.js';
 
 // ----------------------------------------------------------------------
-// Generate dynamic category navigation
+// Generate dynamic category navigation using the centralized config
 // ----------------------------------------------------------------------
 function generateCategoryNav() {
   const navContainer = document.querySelector('.categories-container .categories');
   if (!navContainer) return;
 
-  // Apply grid layout for responsive navigation.
+  // Set up a responsive grid layout.
   navContainer.style.cssText = `
     display: grid;
     grid-template-columns: repeat(4, minmax(200px, 1fr));
     gap: 15px;
   `;
 
-  // Loop through each defined category group.
+  // Loop through each category group defined in the config.
   Object.keys(categoriesConfig).forEach(groupKey => {
     const group = categoriesConfig[groupKey];
     const groupDiv = document.createElement('div');
     groupDiv.className = 'category-group';
-    // Group container styling.
     groupDiv.style.cssText = `
       background-color: #ffffff;
       border: 2px solid #ffa500;
@@ -96,11 +45,11 @@ function generateCategoryNav() {
     `;
     groupDiv.appendChild(header);
 
-    // Build category items for the group.
+    // Build each category item and attach hover effects.
     group.ids.forEach(id => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'category-item';
-      itemDiv.style.cssText = 'padding: 5px 0;'; // Item padding
+      itemDiv.style.cssText = 'padding: 5px 0;';
 
       const aElem = document.createElement('a');
       aElem.href = `#${id}`;
@@ -113,7 +62,6 @@ function generateCategoryNav() {
         transition: color 0.3s ease;
       `;
 
-      // Add hover effects.
       aElem.addEventListener('mouseenter', () => {
         aElem.style.color = '#007bff';
         aElem.style.fontWeight = 'bold';
@@ -132,9 +80,9 @@ function generateCategoryNav() {
 }
 
 // ----------------------------------------------------------------------
-// Group Q&A blocks based on category ID.
-// Assumes each Q&A partial (auto‑generated) has an outer container with class "mb-8"
-// and contains a header <h3> element with an id equal to the category id.
+// Group Q&A blocks based on category id in the header element.
+// Each auto‑generated Q&A partial should have an outer container with class "mb-8"
+// and an <h3> header with its id set to the category id.
 // ----------------------------------------------------------------------
 function groupQABlocks() {
   // Build a reverse mapping: category id => group key.
@@ -145,19 +93,16 @@ function groupQABlocks() {
     });
   });
 
-  // Get all Q&A blocks (partials) with the class "mb-8".
+  // Select all Q&A blocks and the Q&A container.
   const qaBlocks = document.querySelectorAll('.mb-8');
-  // Selector for Q&A container that wraps all Q&A blocks.
   const qaContainer = document.querySelector('.bsb-faq-3 .row');
   if (!qaContainer) {
     console.error('Q&A container not found.');
     return;
   }
 
-  // Group blocks by their category based on the id of the first <h3> with an id.
   const groupedQA = {};
   qaBlocks.forEach(block => {
-    // Search for a header element bearing an id.
     const header = block.querySelector('h3[id]');
     if (header) {
       const catId = header.id;
@@ -169,36 +114,30 @@ function groupQABlocks() {
         console.warn(`No group mapping found for header id "${catId}".`);
       }
     } else {
-      console.warn('Q&A block missing header with id:', block);
+      console.warn('Q&A block missing a header with an id:', block);
     }
   });
 
-  // Clear out the container before appending grouped Q&A blocks.
+  // Clear the container and re-append grouped Q&A blocks.
   qaContainer.innerHTML = '';
-  // Append grouped blocks in the order defined in categoriesConfig.
   Object.keys(categoriesConfig).forEach(groupKey => {
     const group = categoriesConfig[groupKey];
     if (groupedQA[groupKey] && groupedQA[groupKey].length) {
-      // Create group header for the Q&A blocks.
       const groupHeader = document.createElement('h3');
       groupHeader.textContent = group.displayName;
       groupHeader.style.cssText = 'margin-top: 30px; margin-bottom: 10px;';
       qaContainer.appendChild(groupHeader);
 
-      // Append each Q&A block from the group.
       groupedQA[groupKey].forEach(block => {
         qaContainer.appendChild(block);
       });
-
-      // Optionally, append a horizontal separator after each group.
-      const hr = document.createElement('hr');
-      qaContainer.appendChild(hr);
+      qaContainer.appendChild(document.createElement('hr'));
     }
   });
 }
 
 // ----------------------------------------------------------------------
-// Handle responsive grid layout for categories navigation.
+// Adjust the responsive grid layout of the navigation on window resize.
 // ----------------------------------------------------------------------
 function handleResponsiveDesign() {
   const categories = document.querySelector('.categories');
