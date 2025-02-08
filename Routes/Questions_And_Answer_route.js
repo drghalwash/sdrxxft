@@ -28,28 +28,28 @@ router.get('/', async (req, res) => {
 });
 
 // Route: Individual Q&A category page.
-router.get('/:categoryId', async (req, res) => {
-  const { categoryId } = req.params;
-  // Verify that the passed categoryId exists in categoriesConfig.
-  const isValid = Object.values(categoriesConfig).some(group => group.ids.includes(categoryId));
+router.get('/:categoryid', async (req, res) => {
+  const { categoryid } = req.params;
+  // Verify that the passed categoryid exists in categoriesConfig.
+  const isValid = Object.values(categoriesConfig).some(group => group.ids.includes(categoryid));
   if (!isValid) {
     return res.status(404).send("Category not found");
   }
 
   // Build the absolute path to the Q&A text file for the requested category.
-  const filePath = path.join(process.cwd(), 'Qapartials', `${categoryId}.txt`);
+  const filePath = path.join(process.cwd(), 'Qapartials', `${categoryid}.txt`);
   try {
     const fileContent = await fs.readFile(filePath, 'utf8');
     // Split and trim the file content to extract header lines.
     const lines = fileContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     // Extract the title from the header line starting with "##TITLE="
     const titleLine = lines.find(line => line.startsWith('##TITLE='));
-    const title = titleLine ? titleLine.split('=')[1].trim() : categoryId;
+    const title = titleLine ? titleLine.split('=')[1].trim() : categoryid;
     
     // Render the individual Q&A category page (qna-category.handlebars) with the category details.
-    res.render('qna-category', { categoryId, title });
+    res.render('qna-category', { categoryid, title });
   } catch (err) {
-    console.error(`Error processing Q&A file for category "${categoryId}":`, err);
+    console.error(`Error processing Q&A file for category "${categoryid}":`, err);
     res.status(404).send("Category content not found");
   }
 });
