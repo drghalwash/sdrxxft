@@ -15,8 +15,8 @@ const INPUT_DIR = path.join(process.cwd(), 'Qapartials'); // Input directory for
 const OUTPUT_DIR = INPUT_DIR; // Output directory for Handlebars partials
 
 // Function: Generate accordion items HTML from Q&A pairs
-function generateAccordionHTML(categoryId, qnaPairs) {
-  let accordionHTML = `<div class="custom-accordion" id="accordion_${categoryId}">\n`;
+function generateAccordionHTML(categoryid, qnaPairs) {
+  let accordionHTML = `<div class="custom-accordion" id="accordion_${categoryid}">\n`;
 
   qnaPairs.forEach((pair, index) => {
     const itemIndex = index + 1;
@@ -30,16 +30,16 @@ function generateAccordionHTML(categoryId, qnaPairs) {
           <button class="${btnClass}" 
                   type="button" 
                   data-bs-toggle="collapse" 
-                  data-bs-target="#${categoryId}_q${itemIndex}" 
+                  data-bs-target="#${categoryid}_q${itemIndex}" 
                   aria-expanded="${ariaExpanded}" 
-                  aria-controls="${categoryId}_q${itemIndex}">
+                  aria-controls="${categoryid}_q${itemIndex}">
             ${pair.question.trim()}
           </button>
         </h2>
-        <div id="${categoryId}_q${itemIndex}" 
+        <div id="${categoryid}_q${itemIndex}" 
              class="${collapseClass}" 
-             aria-labelledby="heading_${categoryId}_${itemIndex}" 
-             data-bs-parent="#accordion_${categoryId}">
+             aria-labelledby="heading_${categoryid}_${itemIndex}" 
+             data-bs-parent="#accordion_${categoryid}">
           <div class="accordion-body">
             <p class="answer">
               ${pair.answer.trim()}
@@ -54,13 +54,13 @@ function generateAccordionHTML(categoryId, qnaPairs) {
 }
 
 // Function: Wrap accordion HTML in a full container structure
-function wrapInCategoryContainer(categoryId, title, accordionHTML) {
+function wrapInCategoryContainer(categoryid, title, accordionHTML) {
   return `<div class="mb-8">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-11 col-xl-10">
         <div class="d-flex align-items-end mb-5">
-          <h3 class="m-0" id="${categoryId}">${title}</h3>
+          <h3 class="m-0" id="${categoryid}">${title}</h3>
         </div>
       </div>
       <div class="col-11 col-xl-10">
@@ -85,7 +85,7 @@ function processFile(filePath) {
     console.error(`File ${filePath} does not contain valid header lines.`);
     return;
   }
-  const categoryId = categoryLine.split('=')[1].trim();
+  const categoryid = categoryLine.split('=')[1].trim();
   const title = titleLine.split('=')[1].trim();
 
   // Parse Q&A pairs
