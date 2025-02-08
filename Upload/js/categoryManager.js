@@ -1,7 +1,7 @@
 // File: /js/categoryManager.js
 // Description: Dynamically builds category navigation and groups Q&A blocks on the Q&A page.
 
-import { categoriesConfig, generateCategoryLinkText } from '../config/categoryConfig.js';
+import { categoriesConfig, generateCategoryLinkText } from './categoryConfig.js';
 
 // ----------------------------------------------------------------------
 // Generate dynamic category navigation using the centralized config
