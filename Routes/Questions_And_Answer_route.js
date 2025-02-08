@@ -20,7 +20,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     // Renders a template (questionnaire_and_answer.handlebars) that includes auto‑generated partials.
-    res.render('questionnaire_and_answer');
+    res.render('pages/questionnaire_and_answer');
   } catch (error) {
     console.error("Error rendering main Q&A page:", error);
     res.status(500).send("Internal Server Error");
