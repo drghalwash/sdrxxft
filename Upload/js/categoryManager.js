@@ -1,7 +1,9 @@
 /********************************************
  * File: /js/categoryManager.js
- * Description: Centralizes the categories configuration,
- * dynamically builds the category navigation, and groups Q&A blocks.
+ * Description: 
+ *   Centralizes the categories configuration,
+ *   dynamically builds the category navigation, and 
+ *   groups Q&A blocks on the page.
  ********************************************/
 
 // Central configuration for categories.
@@ -28,7 +30,7 @@ const categoriesConfig = {
   }
 };
 
-// Helper function to get friendly display text for a category ID.
+// Helper: Returns friendly link text for a given category id.
 function generateCategoryLinkText(id) {
   const texts = {
     rhinoplasty: "Rhinoplasty",
@@ -51,24 +53,26 @@ function generateCategoryLinkText(id) {
   return texts[id] || id;
 }
 
-// Generate dynamic category navigation.
-// Generate dynamic category navigation with inline styling
+// ----------------------------------------------------------------------
+// Generate dynamic category navigation
+// ----------------------------------------------------------------------
 function generateCategoryNav() {
   const navContainer = document.querySelector('.categories-container .categories');
   if (!navContainer) return;
 
-  // Apply styles to the container (replaces CSS rules)
+  // Apply grid layout for responsive navigation.
   navContainer.style.cssText = `
     display: grid;
     grid-template-columns: repeat(4, minmax(200px, 1fr));
     gap: 15px;
   `;
 
+  // Loop through each defined category group.
   Object.keys(categoriesConfig).forEach(groupKey => {
     const group = categoriesConfig[groupKey];
     const groupDiv = document.createElement('div');
     groupDiv.className = 'category-group';
-    // Apply group styles
+    // Group container styling.
     groupDiv.style.cssText = `
       background-color: #ffffff;
       border: 2px solid #ffa500;
@@ -77,9 +81,9 @@ function generateCategoryNav() {
       break-inside: avoid;
     `;
 
+    // Create and style the group header.
     const header = document.createElement('h3');
     header.textContent = group.displayName;
-    // Apply header styles
     header.style.cssText = `
       background-color: #394464;
       color: white;
@@ -92,6 +96,7 @@ function generateCategoryNav() {
     `;
     groupDiv.appendChild(header);
 
+    // Build category items for the group.
     group.ids.forEach(id => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'category-item';
@@ -107,8 +112,8 @@ function generateCategoryNav() {
         font-size: 0.95em;
         transition: color 0.3s ease;
       `;
-      
-      // Add hover effects via JavaScript instead of CSS
+
+      // Add hover effects.
       aElem.addEventListener('mouseenter', () => {
         aElem.style.color = '#007bff';
         aElem.style.fontWeight = 'bold';
@@ -126,11 +131,13 @@ function generateCategoryNav() {
   });
 }
 
-
+// ----------------------------------------------------------------------
 // Group Q&A blocks based on category ID.
-// Assumes each Q&A block (partial) has the .mb-8 class and a child header with an id.
+// Assumes each Q&A partial (auto‑generated) has an outer container with class "mb-8"
+// and contains a header <h3> element with an id equal to the category id.
+// ----------------------------------------------------------------------
 function groupQABlocks() {
-  // Build a reverse mapping from category ID to its group key.
+  // Build a reverse mapping: category id => group key.
   const reverseMapping = {};
   Object.keys(categoriesConfig).forEach(groupKey => {
     categoriesConfig[groupKey].ids.forEach(id => {
@@ -138,52 +145,61 @@ function groupQABlocks() {
     });
   });
 
-  // Find all Q&A partial blocks.
+  // Get all Q&A blocks (partials) with the class "mb-8".
   const qaBlocks = document.querySelectorAll('.mb-8');
-  // The container that wraps the Q&A blocks (adjust selector as needed).
+  // Selector for Q&A container that wraps all Q&A blocks.
   const qaContainer = document.querySelector('.bsb-faq-3 .row');
   if (!qaContainer) {
     console.error('Q&A container not found.');
     return;
   }
 
-  // Group blocks by their category (using the header id).
+  // Group blocks by their category based on the id of the first <h3> with an id.
   const groupedQA = {};
   qaBlocks.forEach(block => {
-    const header = block.querySelector('h3');
-    if (header && header.id) {
-      const groupKey = reverseMapping[header.id];
+    // Search for a header element bearing an id.
+    const header = block.querySelector('h3[id]');
+    if (header) {
+      const catId = header.id;
+      const groupKey = reverseMapping[catId];
       if (groupKey) {
         if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
         groupedQA[groupKey].push(block);
       } else {
-        console.warn(`No mapping found for block with header id "${header.id}".`);
+        console.warn(`No group mapping found for header id "${catId}".`);
       }
     } else {
-      console.warn('Q&A block missing a header with an id.', block);
+      console.warn('Q&A block missing header with id:', block);
     }
   });
 
-  // Clear out the container before re-adding grouped content.
+  // Clear out the container before appending grouped Q&A blocks.
   qaContainer.innerHTML = '';
-  // Append grouped blocks following the order of the configuration.
+  // Append grouped blocks in the order defined in categoriesConfig.
   Object.keys(categoriesConfig).forEach(groupKey => {
+    const group = categoriesConfig[groupKey];
     if (groupedQA[groupKey] && groupedQA[groupKey].length) {
+      // Create group header for the Q&A blocks.
       const groupHeader = document.createElement('h3');
-      groupHeader.textContent = categoriesConfig[groupKey].displayName;
+      groupHeader.textContent = group.displayName;
+      groupHeader.style.cssText = 'margin-top: 30px; margin-bottom: 10px;';
       qaContainer.appendChild(groupHeader);
 
+      // Append each Q&A block from the group.
       groupedQA[groupKey].forEach(block => {
         qaContainer.appendChild(block);
       });
-      
-      // Optionally, add a separator.
-      qaContainer.appendChild(document.createElement('hr'));
+
+      // Optionally, append a horizontal separator after each group.
+      const hr = document.createElement('hr');
+      qaContainer.appendChild(hr);
     }
   });
 }
 
-// Initialize the navigation and grouping functions when the DOM is ready.
+// ----------------------------------------------------------------------
+// Handle responsive grid layout for categories navigation.
+// ----------------------------------------------------------------------
 function handleResponsiveDesign() {
   const categories = document.querySelector('.categories');
   if (!categories) return;
@@ -205,9 +221,11 @@ function handleResponsiveDesign() {
   window.addEventListener('resize', updateGrid);
 }
 
-// Initialize in DOMContentLoaded
+// ----------------------------------------------------------------------
+// Initialize everything once the DOM is fully loaded.
+// ----------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   generateCategoryNav();
   groupQABlocks();
-  handleResponsiveDesign(); // Add this line
+  handleResponsiveDesign();
 });
