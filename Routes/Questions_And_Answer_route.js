@@ -17,13 +17,12 @@ import { categoriesConfig } from '../config/categoryConfig.js';
 const router = express.Router();
 
 // Route: Main Q&A page—renders the main questionnaire_and_answer template.
+// Temporary test route
 router.get('/', async (req, res) => {
   try {
-    // Renders a template (questionnaire_and_answer.handlebars) that includes auto‑generated partials.
-    res.render('pages/questionnaire_and_answer');
+    res.render('Pages/questionnaire_and_answer'); // Match exact case
   } catch (error) {
-    console.error("Error rendering main Q&A page:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send("Template path confirmed invalid. Check casing.");
   }
 });
 
