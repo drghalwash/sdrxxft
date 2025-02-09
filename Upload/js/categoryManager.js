@@ -128,61 +128,7 @@ function generateCategoryNav() {
 }
 
 
-// Group Q&A blocks based on category ID.
-// Assumes each Q&A block (partial) has the .mb-8 class and a child header with an id.
-function groupQABlocks() {
-  // Build a reverse mapping from category ID to its group key.
-  const reverseMapping = {};
-  Object.keys(categoriesConfig).forEach(groupKey => {
-    categoriesConfig[groupKey].ids.forEach(id => {
-      reverseMapping[id] = groupKey;
-    });
-  });
 
-  // Find all Q&A partial blocks.
-  const qaBlocks = document.querySelectorAll('.mb-8');
-  // The container that wraps the Q&A blocks (adjust selector as needed).
-  const qaContainer = document.querySelector('.bsb-faq-3 .row');
-  if (!qaContainer) {
-    console.error('Q&A container not found.');
-    return;
-  }
-
-  // Group blocks by their category (using the header id).
-  const groupedQA = {};
-  qaBlocks.forEach(block => {
-    const header = block.querySelector('h3');
-    if (header && header.id) {
-      const groupKey = reverseMapping[header.id];
-      if (groupKey) {
-        if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
-        groupedQA[groupKey].push(block);
-      } else {
-        console.warn(`No mapping found for block with header id "${header.id}".`);
-      }
-    } else {
-      console.warn('Q&A block missing a header with an id.', block);
-    }
-  });
-
-  // Clear out the container before re-adding grouped content.
-  qaContainer.innerHTML = '';
-  // Append grouped blocks following the order of the configuration.
-  Object.keys(categoriesConfig).forEach(groupKey => {
-    if (groupedQA[groupKey] && groupedQA[groupKey].length) {
-      const groupHeader = document.createElement('h3');
-      groupHeader.textContent = categoriesConfig[groupKey].displayName;
-      qaContainer.appendChild(groupHeader);
-
-      groupedQA[groupKey].forEach(block => {
-        qaContainer.appendChild(block);
-      });
-      
-      // Optionally, add a separator.
-      qaContainer.appendChild(document.createElement('hr'));
-    }
-  });
-}
 
 // Initialize the navigation and grouping functions when the DOM is ready.
 function handleResponsiveDesign() {
@@ -209,6 +155,5 @@ function handleResponsiveDesign() {
 // Initialize in DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   generateCategoryNav();
-  groupQABlocks();
   handleResponsiveDesign(); // Add this line
 });
