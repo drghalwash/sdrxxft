@@ -23,9 +23,8 @@ const path = require('path');       // For building cross-platform file paths
 // INPUT_DIR: Folder containing Q&A .txt files (placed in /Qapartials).
 // OUTPUT_DIR: Destination for generated .handlebars files (kept the same here).
 // ----------------------------------------------------------------------
-const INPUT_DIR = path.join(process.cwd(), 'Qapartials');
-const OUTPUT_DIR = INPUT_DIR; // Using the same folder for output partials
-
+const INPUT_DIR = path.join(__dirname, '../../Qapartials'); 
+const OUTPUT_DIR = path.join(__dirname, '../../Qapartials');
 // ----------------------------------------------------------------------
 // Function: generateAccordionHTML
 // Purpose: Build the inner Bootstrap accordion HTML based on Q&A pairs.
