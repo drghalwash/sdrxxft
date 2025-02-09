@@ -1,187 +1,134 @@
-/*
-  File: /upload/js/processQnA.js
-  Description:
-    • Scans the /Qapartials folder for source Q&A .txt files.
-    • Each file must start with exactly two header lines:
-         – "##CATEGORY_ID=<your_categoryid>" (unique identifier used in element IDs)
-         – "##TITLE=<display title>" (for display in the Q&A block header)
-    • The remaining lines contain numbered question-answer pairs.
-    • The script generates a Bootstrap accordion structure and wraps it in
-      a container matching your layout. The output is written as a Handlebars
-      partial (with the same basename as the source, but with a ".handlebars" extension).
-    • This version uses a consistent variable name “categoryid” (all lowercase)
-      to avoid errors from mixed naming (e.g. categoryId vs categoryid).
-    • No modifications in your routes/controllers are needed as long as
-      the generated partials exist and match the names referenced in your views.
-*/
+// File: /upload/js/processQnA.js
+const fs = require('fs').promises;
+const path = require('path');
+const { EOL } = require('os');
 
-const fs = require('fs');         // Node.js filesystem module
-const path = require('path');       // For building cross-platform file paths
+// Atomic Processing Components
+const qnaProcessor = {
+  // Enhanced header validation with position tracking
+  parseHeaders: (lines) => {
+    const headerStructure = [
+      { pattern: /^##CATEGORY_ID=(.+)$/, storeAs: 'categoryid' },
+      { pattern: /^##TITLE=(.+)$/, storeAs: 'title' }
+    ];
 
-// ----------------------------------------------------------------------
-// Directories Setup:
-// INPUT_DIR: Folder containing Q&A .txt files (placed in /Qapartials).
-// OUTPUT_DIR: Destination for generated .handlebars files (kept the same here).
-// ----------------------------------------------------------------------
-const INPUT_DIR = path.join(__dirname, '../../Qapartials'); 
-const OUTPUT_DIR = path.join(__dirname, '../../Qapartials');
-// ----------------------------------------------------------------------
-// Function: generateAccordionHTML
-// Purpose: Build the inner Bootstrap accordion HTML based on Q&A pairs.
-// Uses consistently “categoryid” in all string interpolations.
-// ----------------------------------------------------------------------
-function generateAccordionHTML(categoryid, qnaPairs) {
-  let accordionHTML = `<div class="custom-accordion" id="accordion_${categoryid}">\n`;
+    return headerStructure.reduce((acc, { pattern, storeAs }, index) => {
+      const match = lines[index]?.match(pattern);
+      if (!match) throw new Error(`Invalid header at line ${index + 1}`);
+      acc[storeAs] = match[1].trim();
+      return acc;
+    }, {});
+  },
 
-  qnaPairs.forEach((pair, index) => {
-    const itemIndex = index + 1; // User-friendly numbering starting at 1
-    const btnClass = index === 0 ? "btn btn-link" : "btn btn-link collapsed";
-    const ariaExpanded = index === 0 ? "true" : "false";
-    const collapseClass = index === 0 ? "accordion-collapse collapse show" : "accordion-collapse collapse";
+  // Advanced question detection with lookahead
+  parseQuestions: (contentLines) => {
+    const questionBlocks = contentLines.join('\n').split(/(?=^\d+\.\s)/gm);
+    return questionBlocks.filter(Boolean).map(block => {
+      const [questionLine, ...answerLines] = block.split('\n');
+      const question = questionLine.replace(/^\d+\.\s*/, '').trim();
+      const answer = answerLines.join(EOL).trim();
+      return { question, answer };
+    });
+  },
 
-    accordionHTML += `
-      <div class="accordion-item">
-        <h2 class="mb-0">
-          <button class="${btnClass}" 
-                  type="button" 
-                  data-bs-toggle="collapse" 
-                  data-bs-target="#${categoryid}_q${itemIndex}" 
-                  aria-expanded="${ariaExpanded}" 
-                  aria-controls="${categoryid}_q${itemIndex}">
-            ${pair.question.trim()}
-          </button>
-        </h2>
-        <div id="${categoryid}_q${itemIndex}" 
-             class="${collapseClass}" 
-             aria-labelledby="heading_${categoryid}_${itemIndex}" 
-             data-bs-parent="#accordion_${categoryid}">
-          <div class="accordion-body">
-            <p class="answer">
-              ${pair.answer.trim()}
-            </p>
+  // Template generation with validation
+  generateTemplate: (categoryid, title, qnaPairs) => {
+    if (!qnaPairs.length) throw new Error('No Q&A pairs found');
+    
+    const accordionItems = qnaPairs.map((pair, index) => {
+      const isFirst = index === 0;
+      return `
+        <div class="accordion-item">
+          <h2 class="mb-0">
+            <button class="btn btn-link${isFirst ? '' : ' collapsed'}" 
+                    type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#${categoryid}_q${index + 1}" 
+                    aria-expanded="${isFirst}">
+              ${pair.question}
+            </button>
+          </h2>
+          <div id="${categoryid}_q${index + 1}" 
+               class="accordion-collapse collapse${isFirst ? ' show' : ''}">
+            <div class="accordion-body">
+              <p>${pair.answer}</p>
+            </div>
+          </div>
+        </div>`;
+    }).join('\n');
+
+    return `
+      <div class="mb-8" data-category="${categoryid}">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-11 col-xl-10">
+              <h3 id="${categoryid}" class="category-header">${title}</h3>
+              <div class="accordion" id="accordion_${categoryid}">
+                ${accordionItems}
+              </div>
+            </div>
           </div>
         </div>
       </div>`;
-  });
-
-  accordionHTML += `\n</div>`;
-  return accordionHTML;
-}
-
-// ----------------------------------------------------------------------
-// Function: wrapInCategoryContainer
-// Purpose: Encase the accordion HTML in a complete HTML container structure.
-// Uses the consistent variable name “categoryid” in the header element.
-// ----------------------------------------------------------------------
-function wrapInCategoryContainer(categoryid, title, accordionHTML) {
-  return `<div class="mb-8">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-11 col-xl-10">
-        <div class="d-flex align-items-end mb-5">
-          <h3 class="m-0" id="${categoryid}">${title}</h3>
-        </div>
-      </div>
-      <div class="col-11 col-xl-10">
-        <div class="col-lg-5 mt-4 mt-lg-0" data-aos="fade-up" data-aos-delay="100" style="width: 100% !important;">
-${accordionHTML}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>`;
-}
-
-// ----------------------------------------------------------------------
-// Function: processFile
-// Purpose: Reads and processes a single Q&A .txt file:
-//   - Validates the first two header lines for "##CATEGORY_ID=" and "##TITLE=".
-//   - Extracts the unique categoryid and display title.
-//   - Parses numbered Q&A pairs using a robust regex pattern.
-//   - Generates and writes the complete HTML into a .handlebars file.
-// ----------------------------------------------------------------------
-function processFile(filePath) {
-  // Read file content with UTF-8 encoding
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-  
-  // Split the content into non-empty trimmed lines
-  const lines = fileContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  
-  // Check that the first two lines are valid headers
-  const categoryLine = lines[0] || '';
-  const titleLine = lines[1] || '';
-  
-  if (!categoryLine.startsWith('##CATEGORY_ID=') || !titleLine.startsWith('##TITLE=')) {
-    console.error(`File ${filePath} does not contain valid header lines.
-    Expected first two lines:
-      ##CATEGORY_ID=<your_categoryid>
-      ##TITLE=<your_display_title>`);
-    return; // Abort processing for this file
   }
+};
 
-  // Extract and use a consistent variable: categoryid (all lowercase)
-  const categoryid = categoryLine.split('=')[1].trim();
-  const title = titleLine.split('=')[1].trim();
+// File Processing Pipeline
+async function processQnAFile(filePath) {
+  try {
+    console.log(`Processing: ${path.basename(filePath)}`);
+    
+    const rawContent = await fs.readFile(filePath, 'utf8');
+    const lines = rawContent.split('\n').map(l => l.trim()).filter(l => l);
+    
+    if (lines.length < 3) throw new Error('Insufficient content');
+    
+    const { categoryid, title } = qnaProcessor.parseHeaders(lines);
+    const qnaPairs = qnaProcessor.parseQuestions(lines.slice(2));
+    const template = qnaProcessor.generateTemplate(categoryid, title, qnaPairs);
+    
+    const outputPath = path.join(
+      path.dirname(filePath),
+      `${path.basename(filePath, '.txt')}.handlebars`
+    );
+    
+    await fs.writeFile(outputPath, template);
+    console.log(`Generated: ${path.basename(outputPath)}`);
+    return true;
 
-  // Parse Q&A from remaining lines; remove header lines
-  const contentLines = lines.slice(2);
-  const qnaPairs = [];
-  let currentQna = null;
+  } catch (error) {
+    console.error(`Failed to process ${path.basename(filePath)}: ${error.message}`);
+    return false;
+  }
+}
 
-  // Regex to detect a new question line (e.g., "1. What is...")
-  const questionRegex = /^\d+\.\s*(.+)$/;
-
-  contentLines.forEach(line => {
-    const match = line.match(questionRegex);
-    if (match) {
-      // On finding a new question, push previous pair if it exists
-      if (currentQna) {
-        currentQna.answer = currentQna.answer.trim();
-        qnaPairs.push(currentQna);
-      }
-      // Begin a new Q&A pair with the captured question text
-      currentQna = {
-        question: match[1].trim(),
-        answer: ''
-      };
-    } else if (currentQna) {
-      // Append lines to the current answer (preserving spaces)
-      currentQna.answer += line + ' ';
+// Main Execution Flow
+async function main() {
+  const QAPARTIALS_DIR = path.join(process.cwd(), 'Qapartials');
+  
+  try {
+    const files = (await fs.readdir(QAPARTIALS_DIR))
+      .filter(f => f.endsWith('.txt') && !f.endsWith('.handlebars.txt'));
+    
+    if (!files.length) {
+      console.log('No Q&A files found in directory');
+      return;
     }
-    // Lines before the first question are ignored
-  });
 
-  // Push the final Q&A pair if it exists
-  if (currentQna) {
-    currentQna.answer = currentQna.answer.trim();
-    qnaPairs.push(currentQna);
+    const processingResults = await Promise.all(
+      files.map(f => processQnAFile(path.join(QAPARTIALS_DIR, f)))
+    );
+
+    const successCount = processingResults.filter(Boolean).length;
+    console.log(`Processed ${successCount}/${files.length} files successfully`);
+
+  } catch (error) {
+    console.error(`Fatal error: ${error.message}`);
+    process.exit(1);
   }
-
-  // Generate the accordion HTML and wrap it in the container structure
-  const accordionHTML = generateAccordionHTML(categoryid, qnaPairs);
-  const finalHTML = wrapInCategoryContainer(categoryid, title, accordionHTML);
-
-  // Determine the output file path: same basename as source, but with .handlebars extension
-  const baseName = path.basename(filePath, '.txt');
-  const outputPath = path.join(OUTPUT_DIR, `${baseName}.handlebars`);
-  
-  // Write the generated HTML to the output file with UTF-8 encoding
-  fs.writeFileSync(outputPath, finalHTML, 'utf-8');
-  console.log(`Successfully generated partial: ${outputPath}`);
 }
 
-// ----------------------------------------------------------------------
-// Main Execution: Process all .txt files in the INPUT_DIR folder.
-// ----------------------------------------------------------------------
-fs.readdir(INPUT_DIR, (err, files) => {
-  if (err) {
-    console.error('Error reading the Qapartials directory:', err);
-    return;
-  }
-
-  // Filter for files ending in .txt (ignoring already generated .handlebars files)
-  files.filter(file => file.endsWith('.txt')).forEach(file => {
-    const filePath = path.join(INPUT_DIR, file);
-    processFile(filePath);
-  });
-});
+// Execute with enhanced monitoring
+main()
+  .then(() => console.log('Processing complete'))
+  .catch(err => console.error('Unhandled error:', err));
