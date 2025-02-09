@@ -12,7 +12,7 @@ const categoriesConfig = {
   },
   breast: {
     displayName: 'Breast',
-    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation"]
+    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation", "pocketlift"]
   },
   body: {
     displayName: 'Body',
@@ -38,6 +38,7 @@ function generateCategoryLinkText(id) {
     lollipoptechnique: "Breast Reduction: Lollipop technique",
     miniinvasivebreast: "Thinking about mini invasive",
     breastaugmentation: "Breast Augmentation",
+    pocketlift: "Pocket Lift Breast Reduction",
     bodycontouring: "Body Contouring",
     fatgrafting: "Fat Grafting",
     tummytuck: "Tummy Tuck (Abdominoplasty)",
