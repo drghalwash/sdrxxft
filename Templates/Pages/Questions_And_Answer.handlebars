@@ -816,53 +816,66 @@ font-family: Verdana, sans-serif;
   // Attach the scroll event listener
   window.addEventListener("scroll", handleScroll);
 </script>
-
-<script>
+<script></script>
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('categorySearch');
-    
+    const searchInput = document.getElementById('categorySearch'); // Ensure this is the correct ID of your search input
+    const partialContainer = document.querySelector('.col-12'); // Container for QA items
+    const categoriesContainer = document.querySelector('.categories-container'); // Ensure this is the correct selector for your categories container
+
     searchInput.addEventListener('input', debounce(function() {
         const searchTerm = this.value.toLowerCase().trim();
-        
-        // Search in categories section
-        const categories = document.querySelectorAll('.categories-container .category-item');
-        categories.forEach(category => {
-            const categoryText = category.textContent.toLowerCase();
-            const isVisible = categoryText.includes(searchTerm);
-            category.style.display = isVisible ? '' : 'none';
-        });
-        
-        // Search in accordion sections
-        const accordionSections = document.querySelectorAll('.mb-8');
-        accordionSections.forEach(section => {
-            const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
-            const questions = section.querySelectorAll('.accordion-item');
-            let sectionHasMatch = false;
-            
-            questions.forEach(item => {
-                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
+      
+        // Function to filter Q&A items
+        function filterQAItems(container, term) {
+            const qaContainers = container.querySelectorAll('.qa-container'); // Ensure this is the correct selector for individual QA containers
+            qaContainers.forEach(item => {
+                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || ''; // Adjust selector as needed
+                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || ''; // Adjust selector as needed
                 const contentText = `${questionText} ${answerText}`;
                 
-                const isMatch = contentText.includes(searchTerm);
-                item.style.display = isMatch ? '' : 'none';
-                if (isMatch) sectionHasMatch = true;
-                
-                // Expand matching items
-                if (isMatch && searchTerm.length > 0) {
-                    const collapseElement = item.querySelector('.collapse');
-                    if (collapseElement && !collapseElement.classList.contains('show')) {
-                        new bootstrap.Collapse(collapseElement, { show: true });
-                    }
+                if (contentText.includes(term)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
                 }
             });
-            
-            // Show/hide entire section based on matches
-            section.style.display = sectionHasMatch || sectionTitle.includes(searchTerm) ? '' : 'none';
-        });
+        }
+
+        // Function to filter category navigation items
+        function filterCategoryItems(container, term) {
+            const categoryItems = container.querySelectorAll('.category-item'); // Ensure this is the correct selector
+            categoryItems.forEach(item => {
+                const categoryText = item.textContent.toLowerCase();
+                if (categoryText.includes(term)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Apply filtering if the search term is "face"
+        if (searchTerm === 'face') {
+            filterQAItems(partialContainer, searchTerm);
+            filterCategoryItems(categoriesContainer, searchTerm);
+        } else if (searchTerm === '') {
+            // If the search term is empty, show all items
+            const allQaContainers = partialContainer.querySelectorAll('.qa-container');
+            allQaContainers.forEach(item => {
+                item.style.display = '';
+            });
+            const allCategoryItems = categoriesContainer.querySelectorAll('.category-item');
+            allCategoryItems.forEach(item => {
+                item.style.display = '';
+            });
+        } else {
+             // For other search terms, you can implement different filtering logic or clear previous filters
+             filterQAItems(partialContainer, searchTerm);
+             filterCategoryItems(categoriesContainer, searchTerm);
+        }
     }, 300));
-    
-    // Debounce function
+
+    // Debounce function (ensure this is included if not already present)
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
