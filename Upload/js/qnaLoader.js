@@ -11,6 +11,9 @@ class QnALoader {
         this.containerSelector = '.bsb-faq-3 .row';
         this.loadedGroups = new Map();
         this.contentValidationMap = new Map();
+
+        // Bind the method to the class instance
+        this.createPlaceholderContent = this.createPlaceholderContent.bind(this);
     }
 
     /**
@@ -194,6 +197,21 @@ class QnALoader {
                 </div>
             </div>
         `;
+    }
+
+        /**
+     * Create placeholder content for a group
+     */
+    createPlaceholderContent(groupKey) {
+        return {
+            groupKey,
+            categories: categoriesConfig[groupKey]?.ids.map(categoryId => ({
+                id: categoryId,
+                title: categoryDisplayTexts[categoryId] || categoryId,
+                items: [],
+                isImplemented: false
+            })) || []
+        };
     }
 
     /**
