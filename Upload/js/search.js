@@ -1,286 +1,271 @@
 // File: /js/search.js
 /********************************************
- * Enhanced search functionality with maximum pitfall prevention
- * and seamless integration
+ * Ultra-Super-Smartly Detailed Search
  ********************************************/
 
-// Constants for better maintainability
-const DEBOUNCE_DELAY = 300; // Adjust as needed
+// Configuration Constants
+const DEBOUNCE_DELAY = 300;
 const HIGHLIGHT_CLASS = 'search-highlight';
-const LOADING_CLASS = 'search-loading';
 const NO_RESULTS_CLASS = 'search-no-results';
-const MIN_SEARCH_LENGTH = 2; // Prevent over-eager searches
-const MAX_SEARCH_RESULTS = 50; // Prevent performance drain with massive highlights
+const MIN_SEARCH_LENGTH = 2;
+const MAX_HIGHLIGHT_LENGTH = 150;
+const SECTION_FADE_DURATION = '0.3s';
 
-// Global variables for optimization and error handling
+// Globals for Performance and Safety
 let searchDebounceTimer;
 let previousSearchTerm = '';
-let domObserver = null; // For dynamic content updates
+let domObserver = null;
 
+// Style Injection with Enhanced Reset
 function injectSearchStyles() {
-    // Check if styles are already injected to prevent duplication
-    if (document.getElementById('search-styles')) return;
+  if (document.getElementById('search-styles')) return;
 
-    const style = document.createElement('style');
-    style.id = 'search-styles';
-    style.textContent = `
-        .category-hidden {
-            display: none !important;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .qa-hidden {
-            opacity: 0;
-            height: 0;
-            overflow: hidden;
-            transition: opacity 0.3s ease, height 0.3s ease;
-            pointer-events: none;
-            display: none !important; /* Ensure it's fully removed from layout */
-        }
-
-        .search-highlight {
-            background-color: #fff3d6;
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-weight: bold;
-            position: relative;
-            z-index: 1;
-        }
-
-        .search-no-results {
-            position: relative;
-            text-align: center;
-            padding: 40px 20px;
-            font-size: 1.5em;
-            color: #d9534f;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 20px auto;
-            max-width: 80%;
-            z-index: 2;
-        }
-
-        .search-loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-    `;
-    document.head.appendChild(style);
+  const style = document.createElement('style');
+  style.id = 'search-styles';
+  style.textContent = `
+    .category-hidden { 
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    .qa-hidden {
+      opacity: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      transition: opacity ${SECTION_FADE_DURATION} ease, 
+                  height ${SECTION_FADE_DURATION} ease !important;
+      pointer-events: none !important;
+      display: none !important;
+    }
+    .search-highlight {
+      background-color: #fff3d6 !important;
+      padding: 2px 5px !important;
+      border-radius: 3px !important;
+      font-weight: bold !important;
+    }
+    .search-no-results {
+      text-align: center !important;
+      padding: 40px 20px !important;
+      font-size: 1.5em !important;
+      color: #d9534f !important;
+    }
+    .search-loading {
+      /* Add your loading indicator styles here */
+    }
+  `;
+  document.head.appendChild(style);
 }
 
-// Secure HTML sanitization
+// Secure HTML Sanitization
 function sanitizeHTML(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;"); // Basic protection
+  const temp = document.createElement('div');
+  temp.textContent = text;
+  return temp.innerHTML;
 }
 
-// Optimized highlighting with safeguards
+// Optimized Highlighting
 function highlightTerms(text, term) {
-    if (!term || typeof text !== 'string' || text.length > 10000) return sanitizeHTML(text); // Protect against large content
-    try {
-        const safeTerm = term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`(${safeTerm})`, 'gi');
-        let matchCount = 0;
-        return text.replace(regex, (match) => {
-            if (matchCount++ >= MAX_SEARCH_RESULTS) return match; // Limit highlights
-            return `<span class="${HIGHLIGHT_CLASS}">${sanitizeHTML(match)}</span>`;
-        });
-    } catch (error) {
-        console.error('Highlighting error:', error);
-        return sanitizeHTML(text);
-    }
+  if (!term || typeof text !== 'string') return sanitizeHTML(text);
+
+  const safeTerm = term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const regex = new RegExp(`(${safeTerm})`, 'gi');
+  let matchCount = 0;
+
+  return text.replace(regex, (match) => {
+    if (text.length > MAX_HIGHLIGHT_LENGTH || matchCount > 5) return sanitizeHTML(match);
+    matchCount++;
+    return `<span class="${HIGHLIGHT_CLASS}">${sanitizeHTML(match)}</span>`;
+  });
 }
 
-// Setup observer for dynamically loaded content
+// DOM Observer Setup
 function observeDOMChanges(generateCategoryLinkText) {
-    if (domObserver) domObserver.disconnect(); // Prevent multiple observers
+  if (domObserver) domObserver.disconnect();
 
-    const targetNode = document.querySelector('.bsb-faq-3') || document.body; // Adjust selector as needed
-    if (!targetNode) return;
+  const targetNode = document.querySelector('.bsb-faq-3') || document.body;
+  if (!targetNode) return;
 
-    const config = { childList: true, subtree: true, characterData: true }; // Watch all relevant changes
+  const config = { 
+    childList: true, 
+    subtree: true, 
+    characterData: true,
+    attributes: true // Include attribute changes
+  };
 
-    domObserver = new MutationObserver((mutationsList) => {
-        for (const mutation of mutationsList) {
-            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                const searchTerm = document.getElementById('categorySearch')?.value.trim().toLowerCase() || '';
-                if (searchTerm.length >= MIN_SEARCH_LENGTH) {
-                    // Re-run search only if search term is meaningful
-                    performSearch(searchTerm, generateCategoryLinkText);
-                }
-            }
-        }
-    });
+  domObserver = new MutationObserver((mutationsList) => {
+    const searchTerm = document.getElementById('categorySearch')?.value.trim().toLowerCase() || '';
+    if (searchTerm.length >= MIN_SEARCH_LENGTH) {
+      performSearch(searchTerm, generateCategoryLinkText);
+    }
+  });
 
-    domObserver.observe(targetNode, config);
+  domObserver.observe(targetNode, config);
 }
 
-// Main handler with comprehensive error handling
+// Search Handling
 function handleSearch(generateCategoryLinkText) {
-    const searchInput = document.getElementById('categorySearch');
-    if (!searchInput) {
-        console.error('Search input not found.');
-        return;
-    }
+  const searchInput = document.getElementById('categorySearch');
+  if (!searchInput) {
+    console.error('Search input missing.');
+    return;
+  }
 
-    searchInput.addEventListener('input', function (e) {
-        const term = e.target.value.trim().toLowerCase();
+  searchInput.addEventListener('input', (e) => {
+    const term = e.target.value.trim().toLowerCase();
+    if (term === previousSearchTerm) return;
+    previousSearchTerm = term;
 
-        if (term === previousSearchTerm) return; // Quick exit for no changes
-        previousSearchTerm = term;
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+      performSearch(term, generateCategoryLinkText);
+    }, DEBOUNCE_DELAY);
+  });
 
-        clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => {
-            try {
-                performSearch(term, generateCategoryLinkText);
-            } catch (searchError) {
-                console.error('Search process error:', searchError);
-                displayNoResultsMessage(`Search failed: ${searchError.message || 'Unknown error'}`);
-            }
-        }, DEBOUNCE_DELAY);
-    });
-
-    // Start observing DOM for dynamic updates
-    observeDOMChanges(generateCategoryLinkText);
+  observeDOMChanges(generateCategoryLinkText);
 }
 
-// Core search logic
+// Core Search Logic
 function performSearch(term, generateCategoryLinkText) {
-    const results = { categories: 0, qaBlocks: 0 };
-    const categoriesContainer = document.querySelector('.categories-container');
-    const faqSection = document.querySelector('.bsb-faq-3');
-
-    // Initial check for minimal search length
-    if (term.length < MIN_SEARCH_LENGTH) {
-        resetDisplay();
-        return;
-    }
-
-    // Reset display elements before each search
+  if (term.length < MIN_SEARCH_LENGTH) {
     resetDisplay();
+    return;
+  }
 
-    // Highlight matched categories and Q&A
-    filterAndHighlight(term, generateCategoryLinkText, results);
-
-    // Hide or show sections based on search term
-    if (term && results.categories === 0 && results.qaBlocks === 0) {
-        hideSections(term, categoriesContainer, faqSection);
-    } else {
-        showSections(categoriesContainer, faqSection);
-    }
-
-    // Update global domObserver for ongoing content loads
-    observeDOMChanges(generateCategoryLinkText);
-
-    // Internal functions for code organization
-    function resetDisplay() {
-        document.querySelectorAll('.category-group, .mb-8').forEach(el => {
-            el.classList.remove('category-hidden', 'qa-hidden');
-            el.style.display = ''; // Reset any previous display settings
-
-            // Remove highlight spans
-            el.innerHTML = el.innerHTML.replace(new RegExp(`<span class="${HIGHLIGHT_CLASS}">(.*?)<\/span>`, 'gi'), '$1');
-        });
-
-        removeNoResultsMessage(); // Ensure the message is removed at start
-    }
-
-    function filterAndHighlight(term, generateCategoryLinkText, results) {
-        document.querySelectorAll('.category-group').forEach(group => {
-            const groupName = group.querySelector('h3')?.textContent.toLowerCase() || '';
-            let hasVisibleItems = false;
-
-            group.querySelectorAll('.category-item').forEach(item => {
-                const itemText = item.textContent.toLowerCase();
-                const isMatch = !term || itemText.includes(term) || groupName.includes(term);
-                item.classList.toggle('category-hidden', !isMatch);
-                item.style.display = isMatch ? '' : 'none'; // Ensure element is visible if matching
-
-                if (isMatch) {
-                    hasVisibleItems = true;
-                    results.categories++;
-                }
-            });
-
-            group.classList.toggle('category-hidden', !hasVisibleItems);
-            group.style.display = hasVisibleItems ? '' : 'none'; // Ensure group is visible if matching
-        });
-
-        document.querySelectorAll('.mb-8').forEach(block => {
-            let categoryMatch = false;
-            try {
-                const header = block.querySelector('h3');
-                const categoryId = header?.id;
-                categoryMatch = categoryId && generateCategoryLinkText(categoryId).toLowerCase().includes(term);
-
-                const contentMatch = block.textContent.toLowerCase().includes(term);
-
-                if ((categoryMatch || contentMatch) && term) {
-                    block.classList.remove('qa-hidden');
-                    block.style.display = ''; // Ensure element is visible if matching
-                    block.innerHTML = highlightTerms(block.innerHTML, term);
-                    results.qaBlocks++;
-                } else {
-                    block.classList.add('qa-hidden');
-                    block.style.display = 'none !important'; // Ensure element is hidden if not matching
-                }
-            } catch (blockError) {
-                console.error('Error processing block:', blockError);
-            }
-        });
-    }
-
-    function hideSections(term, categoriesContainer, faqSection) {
-        displayNoResultsMessage(term);
-
-        if (categoriesContainer) categoriesContainer.style.display = 'none';
-        if (faqSection) faqSection.style.display = 'none'; // Ensure this is hidden correctly
-    }
-
-    function showSections(categoriesContainer, faqSection) {
-        removeNoResultsMessage();
-
-        if (categoriesContainer) categoriesContainer.style.display = '';
-        if (faqSection) faqSection.style.display = ''; // Ensure this is displayed correctly
-    }
+  resetDisplay();
+  const results = filterAndHighlight(term, generateCategoryLinkText);
+  updateVisibility(term, results);
 }
 
-// Enhanced DOM addition and removal
-function displayNoResultsMessage(term) {
-    removeNoResultsMessage(); // Prevent duplicates
-    const container = document.querySelector('.categories-container')?.parentNode || document.body; // Fallback
-    const message = document.createElement('div');
-    message.className = NO_RESULTS_CLASS;
-    message.innerHTML = `No results found for "${sanitizeHTML(term)}". Please refine your search.`;
+// Visibility Handling
+function updateVisibility(term, results) {
+  const categoriesSection = document.querySelector('.categories-container');
+  const faqSection = document.querySelector('.bsb-faq-3');
 
-    container.insertBefore(message, container.firstChild); // Ensure it's at the top
+  if (term && results.categories === 0 && results.qaBlocks === 0) {
+    hideSections(term, categoriesSection, faqSection);
+  } else {
+    showSections(categoriesSection, faqSection);
+  }
+}
+
+// Section Hiding
+function hideSections(term, categoriesSection, faqSection) {
+  displayNoResultsMessage(term);
+
+  if (categoriesSection) {
+    categoriesSection.style.transition = `opacity ${SECTION_FADE_DURATION} ease, height ${SECTION_FADE_DURATION} ease`;
+    categoriesSection.style.opacity = '0';
+    categoriesSection.style.height = '0';
+    setTimeout(() => { categoriesSection.style.display = 'none'; }, parseInt(SECTION_FADE_DURATION) * 1000);
+  }
+
+  if (faqSection) {
+    faqSection.style.transition = `opacity ${SECTION_FADE_DURATION} ease, height ${SECTION_FADE_DURATION} ease`;
+    faqSection.style.opacity = '0';
+    faqSection.style.height = '0';
+    setTimeout(() => { faqSection.style.display = 'none'; }, parseInt(SECTION_FADE_DURATION) * 1000);
+  }
+}
+
+// Section Showing
+function showSections(categoriesSection, faqSection) {
+  removeNoResultsMessage();
+
+  if (categoriesSection) {
+    categoriesSection.style.display = '';
+    categoriesSection.style.opacity = '1';
+    categoriesSection.style.height = 'auto';
+  }
+
+  if (faqSection) {
+    faqSection.style.display = '';
+    faqSection.style.opacity = '1';
+    faqSection.style.height = 'auto';
+  }
+}
+
+// Add and Remove Message with Safety
+function displayNoResultsMessage(term) {
+  removeNoResultsMessage();
+  const parent = document.querySelector('.categories-container')?.parentNode || document.body;
+  const message = document.createElement('div');
+  message.className = NO_RESULTS_CLASS;
+  message.innerHTML = `No results found for "${sanitizeHTML(term)}".`;
+  parent.insertBefore(message, parent.firstChild);
 }
 
 function removeNoResultsMessage() {
-    const message = document.querySelector(`.${NO_RESULTS_CLASS}`);
-    message?.remove();
+  const message = document.querySelector(`.${NO_RESULTS_CLASS}`);
+  message?.remove();
 }
 
-// Initialize search functionality
-function initializeSearch(generateCategoryLinkText) {
-    try {
-        injectSearchStyles();
-        handleSearch(generateCategoryLinkText);
-    } catch (initError) {
-        console.error('Search initialization error:', initError);
+// Reset Display Settings
+function resetDisplay() {
+  document.querySelectorAll('.category-group, .mb-8').forEach(el => {
+    el.classList.remove('category-hidden', 'qa-hidden');
+    el.style.display = '';
+    el.style.opacity = '';
+    el.style.height = '';
+    el.innerHTML = el.innerHTML.replace(new RegExp(`<span class="${HIGHLIGHT_CLASS}">(.*?)<\/span>`, 'gi'), '$1');
+  });
+  removeNoResultsMessage();
+}
+
+// Filter and Highlight Content
+function filterAndHighlight(term, generateCategoryLinkText) {
+  const results = { categories: 0, qaBlocks: 0 };
+
+  // Categories
+  document.querySelectorAll('.category-group').forEach(group => {
+    const groupName = group.querySelector('h3')?.textContent.toLowerCase() || '';
+    let hasVisibleItems = false;
+
+    group.querySelectorAll('.category-item').forEach(item => {
+      const itemText = item.textContent.toLowerCase();
+      const isMatch = !term || itemText.includes(term) || groupName.includes(term);
+      item.classList.toggle('category-hidden', !isMatch);
+      item.style.display = isMatch ? '' : 'none';
+      if (isMatch) hasVisibleItems = true;
+    });
+
+    group.classList.toggle('category-hidden', !hasVisibleItems);
+    group.style.display = hasVisibleItems ? '' : 'none';
+    if (hasVisibleItems) results.categories++;
+  });
+
+  // Q&A Blocks
+  document.querySelectorAll('.mb-8').forEach(block => {
+    let categoryMatch = false;
+    const header = block.querySelector('h3');
+    const categoryId = header?.id;
+
+    if (categoryId) {
+      categoryMatch = generateCategoryLinkText(categoryId).toLowerCase().includes(term);
     }
+
+    const contentMatch = block.textContent.toLowerCase().includes(term);
+    const shouldShow = (categoryMatch || contentMatch) && term;
+
+    block.classList.toggle('qa-hidden', !shouldShow);
+    block.style.display = shouldShow ? '' : 'none';
+
+    if (shouldShow) {
+      block.innerHTML = highlightTerms(block.innerHTML, term);
+      results.qaBlocks++;
+    }
+  });
+
+  return results;
 }
 
-// Make initializeSearch available globally
+// Initialization
+function initializeSearch(generateCategoryLinkText) {
+  try {
+    injectSearchStyles();
+    handleSearch(generateCategoryLinkText);
+  } catch (err) {
+    console.error("Search init failed:", err);
+  }
+}
+
 window.initializeSearch = initializeSearch;
