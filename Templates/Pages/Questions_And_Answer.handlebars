@@ -824,26 +824,44 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', debounce(function() {
         const searchTerm = this.value.toLowerCase().trim();
 
-        // -- Category Search Functionality --
-        const categoriesContainer = document.querySelector('.categories-container .categories');
-        const categoryItems = document.querySelectorAll('.categories-container .category-item');
-
-        categoryItems.forEach(category => {
+        // Filter categories
+        const categories = document.querySelectorAll('.categories-container .category-item');
+        categories.forEach(category => {
             const categoryText = category.textContent.toLowerCase();
-            const isVisible = categoryText.includes(searchTerm) && searchTerm!="";
-            category.style.display = isVisible ? '' : 'none';
+            category.style.display = categoryText.includes(searchTerm) ? '' : 'none';
         });
+
         if (searchTerm === "") {
-               categoryItems.forEach(category => {
-                category.style.display = ''; 
+            categories.forEach(category => {
+                category.style.display = '';
             });
         }
 
-        // -- Accordion Section Search Functionality --
-        const accordionSections = document.querySelectorAll('.bsb-faq-3 .row > div');
+        // Filter Q&A blocks
+        const qaBlocks = document.querySelectorAll('.bsb-faq-3 .accordion-item');
+        qaBlocks.forEach(block => {
+            const questionText = block.querySelector('.btn-link')?.textContent.toLowerCase() || '';
+            const answerText = block.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
+            const contentText = `${questionText} ${answerText}`;
+            block.style.display = contentText.includes(searchTerm) ? '' : 'none';
 
-        accordionSections.forEach(section => {
-            const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
+            if (contentText.includes(searchTerm) && searchTerm.length > 0) {
+                const collapseElement = block.querySelector('.collapse');
+                if (collapseElement && !collapseElement.classList.contains('show')) {
+                    new bootstrap.Collapse(collapseElement, { show: true });
+                }
+            }
+        });
+
+        if (searchTerm === "") {
+            qaBlocks.forEach(block => {
+                block.style.display = '';
+            });
+        }
+
+        // Hide sections without matches
+        const sections = document.querySelectorAll('.bsb-faq-3 .row > div');
+        sections.forEach(section => {
             const questions = section.querySelectorAll('.accordion-item');
             let sectionHasMatch = false;
 
@@ -851,27 +869,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
                 const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
                 const contentText = `${questionText} ${answerText}`;
-
-                const isMatch = contentText.includes(searchTerm);
-                item.style.display = isMatch ? '' : 'none';
-                if (isMatch) sectionHasMatch = true;
-
-                if (isMatch && searchTerm.length > 0) {
-                    const collapseElement = item.querySelector('.collapse');
-                    if (collapseElement && !collapseElement.classList.contains('show')) {
-                        new bootstrap.Collapse(collapseElement, { show: true });
-                    }
+                if (contentText.includes(searchTerm)) {
+                    sectionHasMatch = true;
                 }
             });
-              
-            section.style.display = (sectionHasMatch || sectionTitle.includes(searchTerm)) ? '' : 'none';
-            if (searchTerm === "") {
-                section.style.display = '';
-            }
+
+            section.style.display = sectionHasMatch || searchTerm === "" ? '' : 'none';
         });
     }, 300));
 
-    // -- Debounce function --
+    // Debounce function
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -879,24 +886,6 @@ document.addEventListener('DOMContentLoaded', function() {
             timeout = setTimeout(() => func.apply(this, args), wait);
         };
     }
-});
-
-// Add this code block here:
-document.addEventListener('DOMContentLoaded', function() {
-    // Select the container
-    const partialContainer = document.querySelector('.col-12');
-
-    // Function to fix div structure
-    function fixPartialStructure() {
-        const content = partialContainer.innerHTML;
-        const cleanedContent = content.replace(/(<\/div>(?:\s*<\/div>)+)/g, '</div>');
-        partialContainer.innerHTML = cleanedContent;
-        const qaContainers = partialContainer.querySelectorAll('.qa-container');
-        qaContainers.forEach(container => {
-            container.classList.add('w-100');
-        });
-    }
-    fixPartialStructure();
 });
 </script>
 
