@@ -7,7 +7,7 @@
  * - Filters categories and Q&A blocks based on the search term.
  * - Displays a styled "No results found" message when no matches exist.
  * - Hides Categories and Q&A sections when no matches are found.
- * - Highlights search terms in Q&A sections
+ * - Highlights search terms in Q&A answers with a pop-up effect.
  ********************************************/
 
 // Inject inline CSS for search styling
@@ -47,13 +47,25 @@ function injectSearchStyles() {
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
     }
-    /* Highlighted search term style */
-    .highlighted {
-        background-color: yellow; /* Example: Yellow background */
-        font-weight: bold; /* Example: Bold text */
-        /* Add your "highly-online-reviewed" CSS here */
+    /* Highlight for potential search term wrap (if needed later) */
+    .search-highlight {
+        background-color: #fff3d6;
+        padding: 2px 5px;
+        border-radius: 3px;
+        animation: pulseHighlight 1.5s ease-in-out;
     }
-    `;
+
+    @keyframes pulseHighlight {
+        0% { transform: scale(1); background-color: #fff3d6; }
+        50% { transform: scale(1.1); background-color: #ffef99; }
+        100% { transform: scale(1); background-color: #fff3d6; }
+    }
+    /* Active category styling */
+    .active-category {
+        border-color: #007bff !important;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+    }
+  `;
     document.head.appendChild(style);
 }
 
@@ -100,42 +112,27 @@ function handleSearch(generateCategoryLinkText) {
             let sectionHasMatch = false;
 
             questions.forEach(item => {
-                const questionTextElement = item.querySelector('.btn-link');
-                const answerTextElement = item.querySelector('.accordion-body');
+                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
+                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
+                let contentText = `${questionText} ${answerText}`;
 
-                if (questionTextElement && answerTextElement) {
-                    let questionText = questionTextElement.textContent.toLowerCase();
-                    let answerText = answerTextElement.textContent.toLowerCase();
+                // Highlight the search term in the content
+                if (term && term.length > 0) {
+                    const regex = new RegExp(`(${term})`, 'gi');
+                    contentText = contentText.replace(regex, '<span class="search-highlight">$1</span>');
+                }
 
-                    // Highlight search term in question
-                    if (term && questionText.includes(term)) {
-                        questionText = questionText.replace(new RegExp(term, 'gi'), (match) => `<span class="highlighted">${match}</span>`);
-                        questionTextElement.innerHTML = questionText;
-                    } else {
-                        // Reset highlighting if no term or no match
-                        questionTextElement.innerHTML = questionTextElement.textContent; // Revert to original text
-                    }
+                item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
 
-                    // Highlight search term in answer
-                    if (term && answerText.includes(term)) {
-                        answerText = answerText.replace(new RegExp(term, 'gi'), (match) => `<span class="highlighted">${match}</span>`);
-                        answerTextElement.innerHTML = answerText;
-                    } else {
-                        // Reset highlighting if no term or no match
-                        answerTextElement.innerHTML = answerTextElement.textContent; // Revert to original text
-                    }
+                const isMatch = contentText.toLowerCase().includes(term);
+                item.style.display = isMatch ? '' : 'none';
+                if (isMatch) sectionHasMatch = true;
 
-                    const contentText = `${questionText} ${answerText}`;
-                    const isMatch = contentText.includes(term);
-                    item.style.display = isMatch ? '' : 'none';
-                    if (isMatch) sectionHasMatch = true;
-
-                    // Expand matching items
-                    if (isMatch && term.length > 0) {
-                        const collapseElement = item.querySelector('.collapse');
-                        if (collapseElement && !collapseElement.classList.contains('show')) {
-                            new bootstrap.Collapse(collapseElement, { show: true });
-                        }
+                // Expand matching items
+                if (isMatch && term.length > 0) {
+                    const collapseElement = item.querySelector('.collapse');
+                    if (collapseElement && !collapseElement.classList.contains('show')) {
+                        new bootstrap.Collapse(collapseElement, { show: true });
                     }
                 }
             });
@@ -182,6 +179,10 @@ function handleSearch(generateCategoryLinkText) {
             // Show Categories and Q&A sections when input is cleared
             if (categorySection) categorySection.style.display = 'block';
             if (qaContainer) qaContainer.style.display = 'block';
+            // Remove highlights when search term is cleared
+            document.querySelectorAll('.accordion-body').forEach(body => {
+                body.innerHTML = body.textContent; // Revert to original text
+            });
         }
 
     }, 300);
