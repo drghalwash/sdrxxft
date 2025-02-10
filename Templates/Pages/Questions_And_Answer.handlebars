@@ -819,64 +819,59 @@ font-family: Verdana, sans-serif;
 	
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('categorySearch'); // Ensure this is the correct ID of your search input
-    const partialContainer = document.querySelector('.col-12'); // Container for QA items
-    const categoriesContainer = document.querySelector('.categories-container'); // Ensure this is the correct selector for your categories container
+    const searchInput = document.getElementById('categorySearch');
 
     searchInput.addEventListener('input', debounce(function() {
         const searchTerm = this.value.toLowerCase().trim();
-      
-        // Function to filter Q&A items
-        function filterQAItems(container, term) {
-            const qaContainers = container.querySelectorAll('.qa-container'); // Ensure this is the correct selector for individual QA containers
-            qaContainers.forEach(item => {
-                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || ''; // Adjust selector as needed
-                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || ''; // Adjust selector as needed
+
+        // -- Category Search Functionality --
+        const categoriesContainer = document.querySelector('.categories-container .categories');
+        const categoryItems = document.querySelectorAll('.categories-container .category-item');
+
+        categoryItems.forEach(category => {
+            const categoryText = category.textContent.toLowerCase();
+            const isVisible = categoryText.includes(searchTerm) && searchTerm!="";
+            category.style.display = isVisible ? '' : 'none';
+        });
+        if (searchTerm === "") {
+               categoryItems.forEach(category => {
+                category.style.display = ''; 
+            });
+        }
+
+        // -- Accordion Section Search Functionality --
+        const accordionSections = document.querySelectorAll('.bsb-faq-3 .row > div');
+
+        accordionSections.forEach(section => {
+            const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
+            const questions = section.querySelectorAll('.accordion-item');
+            let sectionHasMatch = false;
+
+            questions.forEach(item => {
+                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
+                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
                 const contentText = `${questionText} ${answerText}`;
-                
-                if (contentText.includes(term)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
+
+                const isMatch = contentText.includes(searchTerm);
+                item.style.display = isMatch ? '' : 'none';
+                if (isMatch) sectionHasMatch = true;
+
+                if (isMatch && searchTerm.length > 0) {
+                    const collapseElement = item.querySelector('.collapse');
+                    if (collapseElement && !collapseElement.classList.contains('show')) {
+                        new bootstrap.Collapse(collapseElement, { show: true });
+                    }
                 }
             });
-        }
-
-        // Function to filter category navigation items
-        function filterCategoryItems(container, term) {
-            const categoryItems = container.querySelectorAll('.category-item'); // Ensure this is the correct selector
-            categoryItems.forEach(item => {
-                const categoryText = item.textContent.toLowerCase();
-                if (categoryText.includes(term)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
-
-        // Apply filtering if the search term is "face"
-        if (searchTerm === 'face') {
-            filterQAItems(partialContainer, searchTerm);
-            filterCategoryItems(categoriesContainer, searchTerm);
-        } else if (searchTerm === '') {
-            // If the search term is empty, show all items
-            const allQaContainers = partialContainer.querySelectorAll('.qa-container');
-            allQaContainers.forEach(item => {
-                item.style.display = '';
-            });
-            const allCategoryItems = categoriesContainer.querySelectorAll('.category-item');
-            allCategoryItems.forEach(item => {
-                item.style.display = '';
-            });
-        } else {
-             // For other search terms, you can implement different filtering logic or clear previous filters
-             filterQAItems(partialContainer, searchTerm);
-             filterCategoryItems(categoriesContainer, searchTerm);
-        }
+              
+            section.style.display = (sectionHasMatch || sectionTitle.includes(searchTerm)) ? '' : 'none';
+            if (searchTerm === "") {
+                section.style.display = '';
+            }
+        });
     }, 300));
 
-    // Debounce function (ensure this is included if not already present)
+    // -- Debounce function --
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -885,7 +880,26 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 });
+
+// Add this code block here:
+document.addEventListener('DOMContentLoaded', function() {
+    // Select the container
+    const partialContainer = document.querySelector('.col-12');
+
+    // Function to fix div structure
+    function fixPartialStructure() {
+        const content = partialContainer.innerHTML;
+        const cleanedContent = content.replace(/(<\/div>(?:\s*<\/div>)+)/g, '</div>');
+        partialContainer.innerHTML = cleanedContent;
+        const qaContainers = partialContainer.querySelectorAll('.qa-container');
+        qaContainers.forEach(container => {
+            container.classList.add('w-100');
+        });
+    }
+    fixPartialStructure();
+});
 </script>
+
 
 	
 	</body>
