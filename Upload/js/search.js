@@ -7,7 +7,7 @@
  * - Filters categories and Q&A blocks based on the search term.
  * - Displays a styled "No results found" message when no matches exist.
  * - Hides Categories and Q&A sections when no matches are found.
- * - Highlights search terms in Q&A answers with a pop-up effect.
+ * - Highlights search terms in Q&A answers without breaking layout.
  ********************************************/
 
 // Inject inline CSS for search styling
@@ -22,11 +22,12 @@ function injectSearchStyles() {
         overflow: hidden;
         transition: all 0.3s ease;
     }
-    /* Highlight for potential search term wrap (if needed later) */
+    /* Highlight for potential search term wrap */
     .search-highlight {
         background-color: #fff3d6;
         padding: 2px 5px;
         border-radius: 3px;
+        animation: pulseHighlight 1.5s ease-in-out;
     }
     /* Results counter style */
     .search-results-count {
@@ -47,23 +48,10 @@ function injectSearchStyles() {
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
     }
-    /* Highlight for potential search term wrap (if needed later) */
-    .search-highlight {
-        background-color: #fff3d6;
-        padding: 2px 5px;
-        border-radius: 3px;
-        animation: pulseHighlight 1.5s ease-in-out;
-    }
-
     @keyframes pulseHighlight {
         0% { transform: scale(1); background-color: #fff3d6; }
         50% { transform: scale(1.1); background-color: #ffef99; }
         100% { transform: scale(1); background-color: #fff3d6; }
-    }
-    /* Active category styling */
-    .active-category {
-        border-color: #007bff !important;
-        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
     }
   `;
     document.head.appendChild(style);
@@ -87,8 +75,8 @@ function handleSearch(generateCategoryLinkText) {
         let matchCount = 0;
 
         // --- Selectors for Categories and Q&A Sections ---
-        const categorySection = document.querySelector('.categories-container');
-        const qaContainer = document.querySelector('.bsb-faq-3 .row');
+        const categorySection = document.querySelector('.categories-container'); // Categories container
+        const qaContainer = document.querySelector('.bsb-faq-3 .row'); // Q&A container
 
         // --- Filter Category Navigation ---
         document.querySelectorAll('.category-group').forEach(group => {
@@ -113,19 +101,19 @@ function handleSearch(generateCategoryLinkText) {
 
             questions.forEach(item => {
                 const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-                const answerText = item.querySelector('.accordion-body')?.textContent || ''; // Get text content
+                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
+                let contentText = `${questionText} ${answerText}`;
 
-                // --- Highlight the search term in the content ---
-                let highlightedText = answerText; // Initialize with the original text
+                // Highlight the search term in the content safely
                 if (term && term.length > 0) {
-                    const regex = new RegExp(`(${term})`, 'gi');
-                    highlightedText = answerText.replace(regex, '<span class="search-highlight">$1</span>');
+                    const regex = new RegExp(`\\b(${term})\\b`, 'gi'); // Match whole words only
+                    contentText = contentText.replace(regex, '<span class="search-highlight">$1</span>');
                 }
 
-                item.querySelector('.accordion-body').innerHTML = highlightedText; // Set highlighted content
+                item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
 
-                const contentText = `${questionText} ${answerText.textContent.toLowerCase()}`; // Use textContent for matching
-                const isMatch = contentText.includes(term);
+                const isMatch =
+                    questionText.includes(term) || answerText.includes(term);
                 item.style.display = isMatch ? '' : 'none';
                 if (isMatch) sectionHasMatch = true;
 
@@ -139,7 +127,8 @@ function handleSearch(generateCategoryLinkText) {
             });
 
             // Show/hide entire section based on matches
-            section.style.display = sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
+            section.style.display =
+                sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
 
             if ((sectionHasMatch || sectionTitle.includes(term)) && term !== "") {
                 section.classList.remove('qa-hidden');
@@ -186,6 +175,7 @@ function handleSearch(generateCategoryLinkText) {
                 body.innerHTML = body.textContent; // Revert to original text
             });
         }
+
     }, 300);
 
     searchInput.addEventListener('input', function (e) {
