@@ -3,11 +3,11 @@
 /********************************************
  * File: /js/search.js
  * Description:
- * - Handles search functionality.
+ * - Handles search functionality with enhanced features.
  * - Filters categories and Q&A blocks based on the search term.
  * - Displays a styled "No results found" message when no matches exist.
  * - Hides Categories and Q&A sections when no matches are found.
- * - Highlights search terms in Q&A answers with a pop-up effect.
+ * - Highlights search terms in Q&A answers with a dynamic pop-up effect.
  ********************************************/
 
 // Inject inline CSS for search styling
@@ -52,6 +52,26 @@ function injectSearchStyles() {
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
     }
+    /* Dynamic Highlight Style (Feature 1) */
+    .search-highlight {
+        background-color: #ffef99; /* softer highlight */
+        padding: 2px 5px;
+        border-radius: 3px;
+        animation: pulseHighlight 1.5s ease-in-out;
+    }
+    @keyframes pulseHighlight {
+        0% { transform: scale(1); background-color: #ffef99; }
+        50% { transform: scale(1.1); background-color: #ffffcc; }
+        100% { transform: scale(1); background-color: #ffef99; }
+    }
+    /* Accessibility Improvements (Feature 2) */
+    .visually-hidden {
+        position: absolute !important;
+        height: 1px; width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+        white-space: nowrap; /* added line */
+    }
   `;
     document.head.appendChild(style);
 }
@@ -65,10 +85,13 @@ function debounce(func, wait) {
     };
 }
 
-// Highlight search terms in text content
+// Highlight search terms in text content (Feature 3: Enhanced Highlighting)
 function highlightText(content, term) {
-    if (!term) return content; // If no term, return original content
-    const regex = new RegExp(`(${term})`, 'gi'); // Match term case-insensitively
+    if (!term) return content;
+
+    // Enhanced Regex to avoid breaking HTML tags (Feature 4)
+    const regex = new RegExp(`(${term})(?!(?:(?!<\\w+).)*>)`, 'gi');
+
     return content.replace(regex, '<span class="search-highlight">$1</span>');
 }
 
@@ -109,35 +132,40 @@ function handleSearch(generateCategoryLinkText) {
                 const questionElement = item.querySelector('.btn-link');
                 const answerElement = item.querySelector('.accordion-body');
 
-                // Save original content to avoid duplication issues
+                 // Accessibility: Add aria-live region (Feature 5)
+                const liveRegion = document.createElement('div');
+                liveRegion.setAttribute('aria-live', 'polite');
+                liveRegion.className = 'visually-hidden';
+                answerElement.parentNode.insertBefore(liveRegion, answerElement.nextSibling);
+
+                // Preserve original content (Feature 6: Prevents data loss)
                 if (!answerElement.dataset.originalContent) {
                     answerElement.dataset.originalContent = answerElement.innerHTML.trim();
                 }
 
-                const originalQuestionText = questionElement.textContent.toLowerCase();
-                const originalAnswerText = answerElement.dataset.originalContent.toLowerCase();
+                // Highlight logic and set initial state
+                const originalQuestionText = questionElement.textContent;
+                const originalAnswerText = answerElement.dataset.originalContent;
 
-                // Check if term matches question or answer
                 const isMatch =
-                    originalQuestionText.includes(term) || originalAnswerText.includes(term);
+                    originalQuestionText.toLowerCase().includes(term) ||
+                    originalAnswerText.toLowerCase().includes(term);
 
                 if (isMatch && term.length > 0) {
-                    // Highlight matching terms
-                    questionElement.innerHTML = highlightText(questionElement.textContent, term);
-                    answerElement.innerHTML = highlightText(
-                        answerElement.dataset.originalContent,
-                        term
-                    );
+                    // Accessibility update (Feature 7)
+                   liveRegion.textContent = `Search term "${term}" found in this section.`;
+
+                    questionElement.innerHTML = highlightText(originalQuestionText, term);
+                    answerElement.innerHTML = highlightText(originalAnswerText, term);
                     sectionHasMatch = true;
-                } else if (term.length === 0) {
-                    // Reset to original content when term is cleared
-                    questionElement.innerHTML = questionElement.textContent;
-                    answerElement.innerHTML = answerElement.dataset.originalContent;
+                } else {
+                     // Clear accessibility announcement (Feature 8)
+                    liveRegion.textContent = '';
                 }
 
                 item.style.display = isMatch ? '' : 'none';
 
-                // Expand matching items
+                // Expand matching items (Feature 9: Enhanced UX)
                 if (isMatch && term.length > 0) {
                     const collapseElement = item.querySelector('.collapse');
                     if (collapseElement && !collapseElement.classList.contains('show')) {
@@ -146,7 +174,6 @@ function handleSearch(generateCategoryLinkText) {
                 }
             });
 
-            // Show/hide entire section based on matches
             section.style.display =
                 sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
 
@@ -154,8 +181,16 @@ function handleSearch(generateCategoryLinkText) {
                 section.classList.remove('qa-hidden');
                 matchCount++;
             } else if (term === '') {
-                // When search term is cleared, reset all blocks
                 section.classList.remove('qa-hidden');
+                // Clear highlighting (Feature 10: Clean slate)
+                  questions.forEach(item => {
+                    const questionElement = item.querySelector('.btn-link');
+                    const answerElement = item.querySelector('.accordion-body');
+
+                    questionElement.innerHTML = questionElement.textContent;
+                    answerElement.innerHTML = answerElement.dataset.originalContent;
+                  });
+
             } else {
                 section.classList.add('qa-hidden');
             }
@@ -188,10 +223,14 @@ function handleSearch(generateCategoryLinkText) {
             // Show Categories and Q&A sections when input is cleared
             if (categorySection) categorySection.style.display = 'block';
             if (qaContainer) qaContainer.style.display = 'block';
-            // Remove highlights when search term is cleared
-            document.querySelectorAll('.accordion-body').forEach(body => {
-                body.innerHTML = body.dataset.originalContent || body.textContent; // Revert to original text
-            });
+               // Clear all highlights (Feature 10)
+               questions.forEach(item => {
+                const questionElement = item.querySelector('.btn-link');
+                const answerElement = item.querySelector('.accordion-body');
+
+                questionElement.innerHTML = questionElement.textContent;
+                answerElement.innerHTML = answerElement.dataset.originalContent;
+              });
         }
     }, 300);
 
