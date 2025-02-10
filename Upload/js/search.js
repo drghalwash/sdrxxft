@@ -1,78 +1,16 @@
 // File: /js/search.js
-/********************************************
- * File: /js/search.js
- * Description: Handles search functionality:
- *  - Filters categories and Q&A blocks based on the search term.
- *  - Auto-labels each visible result (e.g., "Result 1").
- *  - Displays a custom message if no results are found.
- *  - Injects required CSS via JS.
- ********************************************/
-
-// Inject inline CSS for search styling
-function injectSearchStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-    /* Hide mismatched elements */
-    .category-hidden { display: none !important; }
-    .qa-hidden {
-        opacity: 0;
-        height: 0;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    /* Highlight for potential search term wrap (if needed later) */
-    .search-highlight {
-        background-color: #fff3d6; 
-        padding: 2px 5px;
-        border-radius: 3px;
-    }
-    /* Results counter style */
-    .search-results-count { 
-        color: #394464;
-        font-weight: bold;
-        margin: 15px 0;
-        display: none;
-    }
-    /* Label added to each found Q&A block */
-    .result-label {
-        background-color: #e7f3fe;
-        color: #31708f;
-        font-weight: bold;
-        padding: 5px 10px;
-        margin-bottom: 5px;
-        border-radius: 3px;
-    }
-    /* Custom no-results message styling */
-    .search-no-results {
-        color: #d9534f;
-        font-style: italic;
-    }
-    /* Active category styling */
-    .active-category {
-        border-color: #007bff !important;
-        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
-    }
-  `;
-    document.head.appendChild(style);
-}
-
-// Debounce function
-function debounce(func, wait) {
-    let timeout;
-    return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-}
-
-// Core search handler function. Pass in generateCategoryLinkText (from your categoryManager.js)
-// which maps a category id to its display text.
 function handleSearch(generateCategoryLinkText) {
     const searchInput = document.getElementById('categorySearch');
     if (!searchInput) return;
 
     const debouncedSearch = debounce(function (term) {
         let matchCount = 0;
+
+        // --- Selectors ---
+        const categorySection = document.querySelector('.categories-container');
+        const qaContainer = document.querySelector('.bsb-faq-3 .row');
+        const countElement = document.querySelector('.search-results-count');
+        const categoryWrapper = document.querySelector('[style="width: 85%;"]'); // Select the category wrapper
 
         // --- Filter Category Navigation ---
         document.querySelectorAll('.category-group').forEach(group => {
@@ -125,6 +63,45 @@ function handleSearch(generateCategoryLinkText) {
             }
         });
 
+        // --- Update the Search Results Counter and Hide Sections ---
+        if (term) {
+            if (matchCount > 0) {
+                countElement.textContent = `${matchCount} result${matchCount > 1 ? 's' : ''} found`;
+                countElement.classList.remove('search-no-results');
+                countElement.style.fontSize = ''; // Reset font size
+                countElement.style.textAlign = ''; // Reset text align
+                countElement.style.color = ''; // Reset color
+                countElement.style.padding = ''; // Reset padding
+                countElement.style.display = 'block';
+
+                if (categorySection) categorySection.style.display = 'block';
+                if (qaContainer) qaContainer.style.display = 'block';
+                if (categoryWrapper) categoryWrapper.style.display = 'block'; // Show category wrapper
+
+            } else {
+                countElement.textContent = `No results found for "${term}". Please try a different search.`;
+                countElement.classList.add('search-no-results');
+                countElement.style.fontSize = '3em'; // Larger font size
+                countElement.style.textAlign = 'center'; // Center align
+                countElement.style.color = '#d9534f'; // Error color
+                countElement.style.padding = '50px 0'; // Add vertical padding
+                countElement.style.display = 'block';
+
+                if (categorySection) categorySection.style.display = 'none';
+                if (qaContainer) qaContainer.style.display = 'none';
+                if (categoryWrapper) categoryWrapper.style.display = 'flex'; // Use flex to center the message
+                categoryWrapper.style.justifyContent = 'center'; // Center horizontally
+                categoryWrapper.style.alignItems = 'center'; // Center vertically
+            }
+        } else {
+            countElement.style.display = 'none';
+            if (categorySection) categorySection.style.display = 'block';
+            if (qaContainer) qaContainer.style.display = 'block';
+             if (categoryWrapper) categoryWrapper.style.display = 'block'; // Ensure wrapper is visible when clearing search
+             if (categoryWrapper) categoryWrapper.style.justifyContent = ''; // Ensure wrapper is visible when clearing search
+             if (categoryWrapper) categoryWrapper.style.alignItems = ''; // Ensure wrapper is visible when clearing search
+        }
+
         // --- Auto Labeling of Visible Q&A Results ---
         const visibleBlocks = document.querySelectorAll('.mb-8:not(.qa-hidden)');
         // Remove any existing result labels
@@ -144,27 +121,6 @@ function handleSearch(generateCategoryLinkText) {
                 block.insertBefore(label, block.firstChild);
             });
         }
-
-        // --- Update the Search Results Counter ---
-        const countElement = document.querySelector('.search-results-count');
-        if (term) {
-            if (matchCount > 0) {
-                countElement.textContent = `${matchCount} result${matchCount > 1 ? 's' : ''} found`;
-                countElement.classList.remove('search-no-results');
-            } else {
-                countElement.textContent = `No results found for "${term}". Please try a different search.`;
-                countElement.classList.add('search-no-results');
-            }
-            countElement.style.display = 'block';
-        } else {
-            countElement.style.display = 'none';
-        }
-
-        // Option: Hide the entire Q&A container if no matching results.
-        const qaContainer = document.querySelector('.bsb-faq-3 .row');
-        if (qaContainer) {
-            qaContainer.style.display = matchCount > 0 || term === '' ? 'block' : 'none';
-        }
     }, 300);
 
     searchInput.addEventListener('input', function (e) {
@@ -172,13 +128,3 @@ function handleSearch(generateCategoryLinkText) {
         debouncedSearch(term);
     });
 }
-
-// Initialize search functionality—inject styles and set up event handlers.
-// Make sure to pass generateCategoryLinkText from your categoryManager.js.
-function initializeSearch(generateCategoryLinkText) {
-    injectSearchStyles();
-    handleSearch(generateCategoryLinkText);
-}
-
-// Expose our initialization so categoryManager.js can invoke it on DOMContentLoaded.
-window.initializeSearch = initializeSearch;
