@@ -7,7 +7,7 @@
  * - Filters categories and Q&A blocks based on the search term.
  * - Displays a styled "No results found" message when no matches exist.
  * - Hides Categories and Q&A sections when no matches are found.
- * - Highlights search terms in Q&A answers without breaking layout.
+ * - Highlights search terms in Q&A answers with a pop-up effect.
  ********************************************/
 
 // Inject inline CSS for search styling
@@ -22,12 +22,11 @@ function injectSearchStyles() {
         overflow: hidden;
         transition: all 0.3s ease;
     }
-    /* Highlight for potential search term wrap */
+    /* Highlight for potential search term wrap (if needed later) */
     .search-highlight {
         background-color: #fff3d6;
         padding: 2px 5px;
         border-radius: 3px;
-        animation: pulseHighlight 1.5s ease-in-out;
     }
     /* Results counter style */
     .search-results-count {
@@ -48,10 +47,23 @@ function injectSearchStyles() {
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
     }
+    /* Highlight for potential search term wrap (if needed later) */
+    .search-highlight {
+        background-color: #fff3d6;
+        padding: 2px 5px;
+        border-radius: 3px;
+        animation: pulseHighlight 1.5s ease-in-out;
+    }
+
     @keyframes pulseHighlight {
         0% { transform: scale(1); background-color: #fff3d6; }
         50% { transform: scale(1.1); background-color: #ffef99; }
         100% { transform: scale(1); background-color: #fff3d6; }
+    }
+    /* Active category styling */
+    .active-category {
+        border-color: #007bff !important;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
     }
   `;
     document.head.appendChild(style);
@@ -104,16 +116,24 @@ function handleSearch(generateCategoryLinkText) {
                 const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
                 let contentText = `${questionText} ${answerText}`;
 
-                // Highlight the search term in the content safely
+                // --- Prevent Layout Breaking ---
+                // Only highlight if the term is a complete word or part of a tag
                 if (term && term.length > 0) {
-                    const regex = new RegExp(`\\b(${term})\\b`, 'gi'); // Match whole words only
-                    contentText = contentText.replace(regex, '<span class="search-highlight">$1</span>');
+                    // Split the content into words and highlight matching words
+                    const words = contentText.split(/\s+/);  // Split by whitespace
+                    const highlightedWords = words.map(word => {
+                        if (word.toLowerCase().includes(term)) {
+                            // Check if the word contains the search term
+                            return word.replace(new RegExp(term, 'gi'), `<span class="search-highlight">$&</span>`);  // Highlight matching word
+                        }
+                        return word;  // Return the original word if no match
+                    });
+                    contentText = highlightedWords.join(' ');  // Join the highlighted words
                 }
 
                 item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
 
-                const isMatch =
-                    questionText.includes(term) || answerText.includes(term);
+                const isMatch = contentText.toLowerCase().includes(term);
                 item.style.display = isMatch ? '' : 'none';
                 if (isMatch) sectionHasMatch = true;
 
@@ -127,8 +147,7 @@ function handleSearch(generateCategoryLinkText) {
             });
 
             // Show/hide entire section based on matches
-            section.style.display =
-                sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
+            section.style.display = sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
 
             if ((sectionHasMatch || sectionTitle.includes(term)) && term !== "") {
                 section.classList.remove('qa-hidden');
@@ -169,7 +188,6 @@ function handleSearch(generateCategoryLinkText) {
             // Show Categories and Q&A sections when input is cleared
             if (categorySection) categorySection.style.display = 'block';
             if (qaContainer) qaContainer.style.display = 'block';
-
             // Remove highlights when search term is cleared
             document.querySelectorAll('.accordion-body').forEach(body => {
                 body.innerHTML = body.textContent; // Revert to original text
