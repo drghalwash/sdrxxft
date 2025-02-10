@@ -87,8 +87,8 @@ function handleSearch(generateCategoryLinkText) {
         let matchCount = 0;
 
         // --- Selectors for Categories and Q&A Sections ---
-        const categorySection = document.querySelector('.categories-container'); // Categories container
-        const qaContainer = document.querySelector('.bsb-faq-3 .row'); // Q&A container
+        const categorySection = document.querySelector('.categories-container');
+        const qaContainer = document.querySelector('.bsb-faq-3 .row');
 
         // --- Filter Category Navigation ---
         document.querySelectorAll('.category-group').forEach(group => {
