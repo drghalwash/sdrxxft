@@ -826,61 +826,7 @@ font-family: Verdana, sans-serif;
   window.addEventListener("scroll", handleScroll);
 </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('categorySearch');
-    
-    searchInput.addEventListener('input', debounce(function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        
-        // Search in categories section
-        const categories = document.querySelectorAll('.categories-container .category-item');
-        categories.forEach(category => {
-            const categoryText = category.textContent.toLowerCase();
-            const isVisible = categoryText.includes(searchTerm);
-            category.style.display = isVisible ? '' : 'none';
-        });
-        
-        // Search in accordion sections
-        const accordionSections = document.querySelectorAll('.mb-8');
-        accordionSections.forEach(section => {
-            const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
-            const questions = section.querySelectorAll('.accordion-item');
-            let sectionHasMatch = false;
-            
-            questions.forEach(item => {
-                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
-                const contentText = `${questionText} ${answerText}`;
-                
-                const isMatch = contentText.includes(searchTerm);
-                item.style.display = isMatch ? '' : 'none';
-                if (isMatch) sectionHasMatch = true;
-                
-                // Expand matching items
-                if (isMatch && searchTerm.length > 0) {
-                    const collapseElement = item.querySelector('.collapse');
-                    if (collapseElement && !collapseElement.classList.contains('show')) {
-                        new bootstrap.Collapse(collapseElement, { show: true });
-                    }
-                }
-            });
-            
-            // Show/hide entire section based on matches
-            section.style.display = sectionHasMatch || sectionTitle.includes(searchTerm) ? '' : 'none';
-        });
-    }, 300));
-    
-    // Debounce function
-    function debounce(func, wait) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-});
-</script>
+
 
 	
 	</body>
