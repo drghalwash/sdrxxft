@@ -871,6 +871,23 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 });
+	// Add this code block here:
+document.addEventListener('DOMContentLoaded', function() {
+    // Select the container
+    const partialContainer = document.querySelector('.col-12');
+
+    // Function to fix div structure
+    function fixPartialStructure() {
+        const content = partialContainer.innerHTML;
+        const cleanedContent = content.replace(/(<\/div>(?:\s*<\/div>)+)/g, '</div>');
+        partialContainer.innerHTML = cleanedContent;
+        const qaContainers = partialContainer.querySelectorAll('.qa-container');
+        qaContainers.forEach(container => {
+            container.classList.add('w-100');
+        });
+    }
+    fixPartialStructure();
+});
 </script>
 
 	
