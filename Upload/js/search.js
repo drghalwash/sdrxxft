@@ -113,18 +113,19 @@ function handleSearch(generateCategoryLinkText) {
 
             questions.forEach(item => {
                 const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
-                let contentText = `${questionText} ${answerText}`;
+                const answerText = item.querySelector('.accordion-body')?.textContent || ''; // Get text content
 
-                // Highlight the search term in the content
+                // --- Highlight the search term in the content ---
+                let highlightedText = answerText; // Initialize with the original text
                 if (term && term.length > 0) {
                     const regex = new RegExp(`(${term})`, 'gi');
-                    contentText = contentText.replace(regex, '<span class="search-highlight">$1</span>');
+                    highlightedText = answerText.replace(regex, '<span class="search-highlight">$1</span>');
                 }
 
-                item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
+                item.querySelector('.accordion-body').innerHTML = highlightedText; // Set highlighted content
 
-                const isMatch = contentText.toLowerCase().includes(term);
+                const contentText = `${questionText} ${answerText.textContent.toLowerCase()}`; // Use textContent for matching
+                const isMatch = contentText.includes(term);
                 item.style.display = isMatch ? '' : 'none';
                 if (isMatch) sectionHasMatch = true;
 
@@ -179,12 +180,12 @@ function handleSearch(generateCategoryLinkText) {
             // Show Categories and Q&A sections when input is cleared
             if (categorySection) categorySection.style.display = 'block';
             if (qaContainer) qaContainer.style.display = 'block';
+
             // Remove highlights when search term is cleared
             document.querySelectorAll('.accordion-body').forEach(body => {
                 body.innerHTML = body.textContent; // Revert to original text
             });
         }
-
     }, 300);
 
     searchInput.addEventListener('input', function (e) {
