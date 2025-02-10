@@ -1,3 +1,27 @@
+// Define categoriesConfig with example groups
+const categoriesConfig = {
+    face: {
+        displayName: 'Face',
+        ids: ["rhinoplasty", "facelift", "eyelidlift"]
+    },
+    breast: {
+        displayName: 'Breast',
+        ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast"]
+    },
+    body: {
+        displayName: 'Body',
+        ids: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"]
+    },
+    minimally_invasive: {
+        displayName: 'Minimally Invasive',
+        ids: ["botoxfillers", "noninvasivecontouring"]
+    },
+    other: {
+        displayName: 'Other',
+        ids: ["hairtransplant", "skinresurfacing"]
+    }
+};
+
 /********************************************
  * File: /public/upload/js/qnaLoader.js
  * Description: Handles loading and processing of Q&A content from .txt files,
@@ -18,7 +42,9 @@ class QnALoader {
         try {
             const container = document.querySelector(this.containerSelector);
             if (!container) {
-                throw new Error('Q&A container not found.');
+                console.error('Q&A container not found.');
+                document.body.innerHTML += '<div class="error">Q&A container not found.</div>'; // Display error in body
+                return; // Stop execution if container is not found
             }
 
             // Clear any existing content
@@ -55,7 +81,7 @@ class QnALoader {
             const response = await fetch(`${this.partialsPath}/${groupKey}.txt`);
             if (!response.ok) {
                 console.warn(`Group file not found: ${groupKey}.txt`);
-                return null;
+                return `<div class="error">Group file not found: ${groupKey}.txt</div>`; // Return error message
             }
 
             const rawText = await response.text();
@@ -63,7 +89,7 @@ class QnALoader {
 
         } catch (error) {
             console.error(`Error loading group ${groupKey}:`, error);
-            return null;
+            return '<div class="error">Error loading group content.</div>'; // Return error message
         }
     }
 
@@ -76,19 +102,23 @@ class QnALoader {
             const lines = rawText.split('\n').map(line => line.trim()).filter(line => line !== '');
             
             let html = '';
-            
+            let openDivCount = 0; // Track open div tags
+            let currentQuestion = '';
+
             lines.forEach(line => {
                 if (line.startsWith('##CATEGORY_ID=')) {
                     const categoryId = line.split('=')[1].trim();
                     html += `<div class="mb-8" id="${categoryId}">\n`;
+                    openDivCount++;
                 } else if (line.startsWith('##TITLE=')) {
                     const title = line.split('=')[1].trim();
                     html += `<h3>${title}</h3>\n`;
                 } else if (/^\d+\.\s/.test(line)) { // Detect questions starting with "1. ", "2. ", etc.
+                    currentQuestion = line;
                     html += `<div class="accordion-item">\n`;
                     html += `<h2 class="accordion-header">\n`;
                     html += `<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${line}" aria-expanded="false" aria-controls="collapse_${line}">\n`;
-                    html += `${line}\n`;
+                    html += `${currentQuestion}\n`;
                     html += `</button>\n</h2>\n`;
                 } else { // Assume it's an answer or other content
                     html += `<div class="accordion-body">\n${line}\n</div>\n</div>\n`; // Close accordion-item
@@ -96,7 +126,6 @@ class QnALoader {
             });
 
             // Self-healing: Ensure all opened <div> tags are closed
-            const openDivCount = (html.match(/<div/g) || []).length;
             const closeDivCount = (html.match(/<\/div>/g) || []).length;
 
             if (openDivCount > closeDivCount) {
