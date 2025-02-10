@@ -7,6 +7,7 @@
  * - Filters categories and Q&A blocks based on the search term.
  * - Displays a styled "No results found" message when no matches exist.
  * - Hides Categories and Q&A sections when no matches are found.
+ * - Highlights search terms in Q&A sections
  ********************************************/
 
 // Inject inline CSS for search styling
@@ -45,6 +46,12 @@ function injectSearchStyles() {
         background-color: #f2dede; /* Light red background */
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
+    }
+    /* Highlighted search term style */
+    .highlighted {
+        background-color: yellow; /* Example: Yellow background */
+        font-weight: bold; /* Example: Bold text */
+        /* Add your "highly-online-reviewed" CSS here */
     }
     `;
     document.head.appendChild(style);
@@ -93,19 +100,42 @@ function handleSearch(generateCategoryLinkText) {
             let sectionHasMatch = false;
 
             questions.forEach(item => {
-                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
-                const contentText = `${questionText} ${answerText}`;
+                const questionTextElement = item.querySelector('.btn-link');
+                const answerTextElement = item.querySelector('.accordion-body');
 
-                const isMatch = contentText.includes(term);
-                item.style.display = isMatch ? '' : 'none';
-                if (isMatch) sectionHasMatch = true;
+                if (questionTextElement && answerTextElement) {
+                    let questionText = questionTextElement.textContent.toLowerCase();
+                    let answerText = answerTextElement.textContent.toLowerCase();
 
-                // Expand matching items
-                if (isMatch && term.length > 0) {
-                    const collapseElement = item.querySelector('.collapse');
-                    if (collapseElement && !collapseElement.classList.contains('show')) {
-                        new bootstrap.Collapse(collapseElement, { show: true });
+                    // Highlight search term in question
+                    if (term && questionText.includes(term)) {
+                        questionText = questionText.replace(new RegExp(term, 'gi'), (match) => `<span class="highlighted">${match}</span>`);
+                        questionTextElement.innerHTML = questionText;
+                    } else {
+                        // Reset highlighting if no term or no match
+                        questionTextElement.innerHTML = questionTextElement.textContent; // Revert to original text
+                    }
+
+                    // Highlight search term in answer
+                    if (term && answerText.includes(term)) {
+                        answerText = answerText.replace(new RegExp(term, 'gi'), (match) => `<span class="highlighted">${match}</span>`);
+                        answerTextElement.innerHTML = answerText;
+                    } else {
+                        // Reset highlighting if no term or no match
+                        answerTextElement.innerHTML = answerTextElement.textContent; // Revert to original text
+                    }
+
+                    const contentText = `${questionText} ${answerText}`;
+                    const isMatch = contentText.includes(term);
+                    item.style.display = isMatch ? '' : 'none';
+                    if (isMatch) sectionHasMatch = true;
+
+                    // Expand matching items
+                    if (isMatch && term.length > 0) {
+                        const collapseElement = item.querySelector('.collapse');
+                        if (collapseElement && !collapseElement.classList.contains('show')) {
+                            new bootstrap.Collapse(collapseElement, { show: true });
+                        }
                     }
                 }
             });
