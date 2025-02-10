@@ -1,3 +1,4 @@
+// File: /js/categoryManager.js
 /********************************************
  * File: /js/categoryManager.js
  * Description: Centralizes the categories configuration,
@@ -184,6 +185,71 @@ function groupQABlocks() {
   });
 }
 
+function injectSearchStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .category-hidden { display: none !important; }
+    .qa-hidden { opacity: 0; height: 0; overflow: hidden; transition: all 0.3s ease; }
+    .search-highlight { background-color: #fff3d6; padding: 2px 5px; border-radius: 3px; }
+    .search-results-count { 
+      color: #394464; 
+      font-weight: bold; 
+      margin: 15px 0; 
+      display: none; 
+    }
+    .active-category { border-color: #007bff !important; box-shadow: 0 2px 8px rgba(0,123,255,0.2); }
+  `;
+  document.head.appendChild(style);
+}
+
+function handleSearch() {
+  const searchInput = document.getElementById('categorySearch');
+  searchInput.addEventListener('input', function(e) {
+    const term = e.target.value.trim().toLowerCase();
+    let matchCount = 0;
+
+    // Filter category navigation
+    document.querySelectorAll('.category-group').forEach(group => {
+      const groupName = group.querySelector('h3').textContent.toLowerCase();
+      let hasVisibleItems = false;
+
+      group.querySelectorAll('.category-item').forEach(item => {
+        const itemText = item.textContent.toLowerCase();
+        const isMatch = itemText.includes(term) || groupName.includes(term);
+        item.style.display = isMatch ? 'block' : 'none';
+        if (isMatch) hasVisibleItems = true;
+      });
+
+      group.style.display = hasVisibleItems ? 'block' : 'none';
+    });
+
+    // Filter Q&A blocks
+    document.querySelectorAll('.mb-8').forEach(block => {
+      const categoryId = block.querySelector('h3').id;
+      const categoryMatch = generateCategoryLinkText(categoryId).toLowerCase().includes(term);
+      const contentMatch = block.textContent.toLowerCase().includes(term);
+      
+      if (categoryMatch || contentMatch) {
+        block.classList.remove('qa-hidden');
+        matchCount++;
+      } else {
+        block.classList.add('qa-hidden');
+      }
+    });
+
+    // Hide .bsb-faq-3 .row if no results
+    const qaContainer = document.querySelector('.bsb-faq-3 .row');
+    if (qaContainer) {
+        qaContainer.style.display = matchCount > 0 || term === '' ? 'block' : 'none';
+    }
+
+    // Update results counter
+    const countElement = document.querySelector('.search-results-count');
+    countElement.textContent = `${matchCount} results found`;
+    countElement.style.display = term ? 'block' : 'none';
+  });
+}
+
 // Initialize the navigation and grouping functions when the DOM is ready.
 function handleResponsiveDesign() {
   const categories = document.querySelector('.categories');
@@ -208,6 +274,8 @@ function handleResponsiveDesign() {
 
 // Initialize in DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
+  injectSearchStyles();
+  handleSearch();
   generateCategoryNav();
   groupQABlocks();
   handleResponsiveDesign(); // Add this line
