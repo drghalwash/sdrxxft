@@ -1,11 +1,12 @@
 // File: /js/categoryManager.js
 /********************************************
- * File: /js/categoryManager.js
- * Description: Centralizes the categories configuration,
- * dynamically builds the category navigation, and groups Q&A blocks.
+ * Centralizes category configuration and display logic
+ * Features:
+ * - Dynamic category navigation generation
+ * - Q&A block grouping by category
+ * - Responsive grid layout
  ********************************************/
 
-// Central configuration for categories.
 const categoriesConfig = {
   face: {
     displayName: 'Face',
@@ -29,9 +30,8 @@ const categoriesConfig = {
   }
 };
 
-// Helper function to get friendly display text for a category ID.
 function generateCategoryLinkText(id) {
-  const texts = {
+  const categoryMap = {
     rhinoplasty: "Rhinoplasty",
     facelift: "Facelift",
     eyelidlift: "Eyelid Lift",
@@ -50,27 +50,22 @@ function generateCategoryLinkText(id) {
     hairtransplant: "Hair Transplant",
     skinresurfacing: "LASER SKIN RESURFACING"
   };
-  return texts[id] || id;
+  return categoryMap[id] || id;
 }
 
-// Generate dynamic category navigation.
-// Generate dynamic category navigation with inline styling
 function generateCategoryNav() {
   const navContainer = document.querySelector('.categories-container .categories');
   if (!navContainer) return;
 
-  // Apply styles to the container (replaces CSS rules)
   navContainer.style.cssText = `
     display: grid;
     grid-template-columns: repeat(4, minmax(200px, 1fr));
     gap: 15px;
   `;
 
-  Object.keys(categoriesConfig).forEach(groupKey => {
-    const group = categoriesConfig[groupKey];
+  Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'category-group';
-    // Apply group styles
     groupDiv.style.cssText = `
       background-color: #ffffff;
       border: 2px solid #ffa500;
@@ -81,7 +76,6 @@ function generateCategoryNav() {
 
     const header = document.createElement('h3');
     header.textContent = group.displayName;
-    // Apply header styles
     header.style.cssText = `
       background-color: #394464;
       color: white;
@@ -97,30 +91,29 @@ function generateCategoryNav() {
     group.ids.forEach(id => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'category-item';
-      itemDiv.style.cssText = 'padding: 5px 0;'; // Item padding
+      itemDiv.style.cssText = 'padding: 5px 0;';
 
-      const aElem = document.createElement('a');
-      aElem.href = `#${id}`;
-      aElem.textContent = generateCategoryLinkText(id);
-      aElem.style.cssText = `
+      const link = document.createElement('a');
+      link.href = `#${id}`;
+      link.textContent = generateCategoryLinkText(id);
+      link.style.cssText = `
         color: #495057;
         text-decoration: none;
         font-family: Verdana, sans-serif;
         font-size: 0.95em;
         transition: color 0.3s ease;
       `;
-      
-      // Add hover effects via JavaScript instead of CSS
-      aElem.addEventListener('mouseenter', () => {
-        aElem.style.color = '#007bff';
-        aElem.style.fontWeight = 'bold';
+
+      link.addEventListener('mouseenter', () => {
+        link.style.color = '#007bff';
+        link.style.fontWeight = 'bold';
       });
-      aElem.addEventListener('mouseleave', () => {
-        aElem.style.color = '#495057';
-        aElem.style.fontWeight = 'normal';
+      link.addEventListener('mouseleave', () => {
+        link.style.color = '#495057';
+        link.style.fontWeight = 'normal';
       });
 
-      itemDiv.appendChild(aElem);
+      itemDiv.appendChild(link);
       groupDiv.appendChild(itemDiv);
     });
 
@@ -128,155 +121,62 @@ function generateCategoryNav() {
   });
 }
 
-
-// Group Q&A blocks based on category ID.
-// Assumes each Q&A block (partial) has the .mb-8 class and a child header with an id.
 function groupQABlocks() {
-  // Build a reverse mapping from category ID to its group key.
   const reverseMapping = {};
-  Object.keys(categoriesConfig).forEach(groupKey => {
-    categoriesConfig[groupKey].ids.forEach(id => {
-      reverseMapping[id] = groupKey;
-    });
+  Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
+    group.ids.forEach(id => reverseMapping[id] = groupKey);
   });
 
-  // Find all Q&A partial blocks.
   const qaBlocks = document.querySelectorAll('.mb-8');
-  // The container that wraps the Q&A blocks (adjust selector as needed).
   const qaContainer = document.querySelector('.bsb-faq-3 .row');
-  if (!qaContainer) {
-    console.error('Q&A container not found.');
-    return;
-  }
+  if (!qaContainer) return;
 
-  // Group blocks by their category (using the header id).
   const groupedQA = {};
   qaBlocks.forEach(block => {
     const header = block.querySelector('h3');
-    if (header && header.id) {
+    if (header?.id) {
       const groupKey = reverseMapping[header.id];
       if (groupKey) {
-        if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
+        groupedQA[groupKey] = groupedQA[groupKey] || [];
         groupedQA[groupKey].push(block);
-      } else {
-        console.warn(`No mapping found for block with header id "${header.id}".`);
       }
-    } else {
-      console.warn('Q&A block missing a header with an id.', block);
     }
   });
 
-  // Clear out the container before re-adding grouped content.
   qaContainer.innerHTML = '';
-  // Append grouped blocks following the order of the configuration.
   Object.keys(categoriesConfig).forEach(groupKey => {
-    if (groupedQA[groupKey] && groupedQA[groupKey].length) {
+    if (groupedQA[groupKey]?.length) {
       const groupHeader = document.createElement('h3');
       groupHeader.textContent = categoriesConfig[groupKey].displayName;
       qaContainer.appendChild(groupHeader);
-
-      groupedQA[groupKey].forEach(block => {
-        qaContainer.appendChild(block);
-      });
-      
-      // Optionally, add a separator.
+      groupedQA[groupKey].forEach(block => qaContainer.appendChild(block));
       qaContainer.appendChild(document.createElement('hr'));
     }
   });
 }
 
-function injectSearchStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-    .category-hidden { display: none !important; }
-    .qa-hidden { opacity: 0; height: 0; overflow: hidden; transition: all 0.3s ease; }
-    .search-highlight { background-color: #fff3d6; padding: 2px 5px; border-radius: 3px; }
-    .search-results-count { 
-      color: #394464; 
-      font-weight: bold; 
-      margin: 15px 0; 
-      display: none; 
-    }
-    .active-category { border-color: #007bff !important; box-shadow: 0 2px 8px rgba(0,123,255,0.2); }
-  `;
-  document.head.appendChild(style);
-}
-
-function handleSearch() {
-  const searchInput = document.getElementById('categorySearch');
-  searchInput.addEventListener('input', function(e) {
-    const term = e.target.value.trim().toLowerCase();
-    let matchCount = 0;
-
-    // Filter category navigation
-    document.querySelectorAll('.category-group').forEach(group => {
-      const groupName = group.querySelector('h3').textContent.toLowerCase();
-      let hasVisibleItems = false;
-
-      group.querySelectorAll('.category-item').forEach(item => {
-        const itemText = item.textContent.toLowerCase();
-        const isMatch = itemText.includes(term) || groupName.includes(term);
-        item.style.display = isMatch ? 'block' : 'none';
-        if (isMatch) hasVisibleItems = true;
-      });
-
-      group.style.display = hasVisibleItems ? 'block' : 'none';
-    });
-
-    // Filter Q&A blocks
-    document.querySelectorAll('.mb-8').forEach(block => {
-      const categoryId = block.querySelector('h3').id;
-      const categoryMatch = generateCategoryLinkText(categoryId).toLowerCase().includes(term);
-      const contentMatch = block.textContent.toLowerCase().includes(term);
-      
-      if (categoryMatch || contentMatch) {
-        block.classList.remove('qa-hidden');
-        matchCount++;
-      } else {
-        block.classList.add('qa-hidden');
-      }
-    });
-
-    // Hide .bsb-faq-3 .row if no results
-    const qaContainer = document.querySelector('.bsb-faq-3 .row');
-    if (qaContainer) {
-        qaContainer.style.display = matchCount > 0 || term === '' ? 'block' : 'none';
-    }
-
-    // Update results counter
-    const countElement = document.querySelector('.search-results-count');
-    countElement.textContent = `${matchCount} results found`;
-    countElement.style.display = term ? 'block' : 'none';
-  });
-}
-
-// Initialize the navigation and grouping functions when the DOM is ready.
 function handleResponsiveDesign() {
   const categories = document.querySelector('.categories');
   if (!categories) return;
 
   const updateGrid = () => {
     const width = window.innerWidth;
-    if (width <= 576) {
-      categories.style.gridTemplateColumns = 'repeat(1, minmax(200px, auto))';
-    } else if (width <= 768) {
-      categories.style.gridTemplateColumns = 'repeat(2, minmax(200px, auto))';
-    } else if (width <= 1200) {
-      categories.style.gridTemplateColumns = 'repeat(3, minmax(200px, auto))';
-    } else {
-      categories.style.gridTemplateColumns = 'repeat(4, minmax(200px, auto))';
-    }
+    categories.style.gridTemplateColumns = 
+      width <= 576 ? 'repeat(1, minmax(200px, auto))' :
+      width <= 768 ? 'repeat(2, minmax(200px, auto))' :
+      width <= 1200 ? 'repeat(3, minmax(200px, auto))' :
+      'repeat(4, minmax(200px, auto))';
   };
 
   updateGrid();
   window.addEventListener('resize', updateGrid);
 }
 
-// Initialize in DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-  injectSearchStyles();
-  handleSearch();
   generateCategoryNav();
   groupQABlocks();
-  handleResponsiveDesign(); // Add this line
+  handleResponsiveDesign();
+  if (window.initializeSearch) {
+    window.initializeSearch(generateCategoryLinkText);
+  }
 });
