@@ -1,14 +1,14 @@
 /********************************************
  * File: /public/upload/js/qnaLoader.js
- * Description: Handles loading and processing of Q&A content from Qapartials,
- * converting them into Bootstrap accordions and managing partial content states.
+ * Description: Handles loading and processing of Q&A content from .txt files,
+ * converting them into valid HTML partials with self-healing for mismatched tags.
  ********************************************/
 
 class QnALoader {
     constructor() {
-        this.partialsPath = '/Qapartials'; // Path to partials
-        this.containerSelector = '.bsb-faq-3 .row'; // Q&A container selector
-        this.loadedGroups = new Map(); // Store loaded group content
+        this.partialsPath = '/Qapartials'; // Path to Q&A partials
+        this.containerSelector = '.bsb-faq-3 .row'; // Selector for Q&A container
+        this.loadedGroups = new Map(); // Stores loaded group content
     }
 
     /**
@@ -18,40 +18,30 @@ class QnALoader {
         try {
             const container = document.querySelector(this.containerSelector);
             if (!container) {
-                throw new Error('Q&A container not found. Ensure your HTML includes: <div class="bsb-faq-3"><div class="row"></div></div>');
+                throw new Error('Q&A container not found.');
             }
 
-            // Show loading indicator
-            this.showLoadingState(container);
+            // Clear any existing content
+            container.innerHTML = '';
 
-            // Load all groups
+            // Load and process all groups
             await this.loadAllGroups();
 
-            // Render content after loading
+            // Render content
             this.renderContent(container);
-
-            // Initialize Bootstrap accordions
-            this.initializeAccordions();
 
         } catch (error) {
             console.error('QnA Loader initialization failed:', error);
-            this.handleError(error);
         }
     }
 
     /**
-     * Load content for all groups defined in categoriesConfig.
+     * Load all groups defined in categoriesConfig.
      */
     async loadAllGroups() {
         const loadPromises = Object.keys(categoriesConfig).map(async groupKey => {
-            try {
-                const groupContent = await this.loadGroupContent(groupKey);
-                if (groupContent) {
-                    this.loadedGroups.set(groupKey, groupContent);
-                }
-            } catch (error) {
-                console.warn(`Failed to load group "${groupKey}":`, error);
-            }
+            const groupContent = await this.loadGroupContent(groupKey);
+            this.loadedGroups.set(groupKey, groupContent);
         });
 
         await Promise.all(loadPromises);
@@ -61,112 +51,87 @@ class QnALoader {
      * Load content for a specific group.
      */
     async loadGroupContent(groupKey) {
-        const url = `${this.partialsPath}/${groupKey}.handlebars.txt`;
         try {
-            const response = await fetch(url);
+            const response = await fetch(`${this.partialsPath}/${groupKey}.txt`);
             if (!response.ok) {
-                throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+                console.warn(`Group file not found: ${groupKey}.txt`);
+                return null;
             }
-            const html = await response.text();
-            return this.parseHTML(html, groupKey);
+
+            const rawText = await response.text();
+            return this.convertToHTML(rawText);
+
         } catch (error) {
-            console.error(`Error loading group "${groupKey}":`, error);
+            console.error(`Error loading group ${groupKey}:`, error);
             return null;
         }
     }
 
     /**
-     * Parse HTML content for a group and extract relevant Q&A blocks.
+     * Convert raw text content into valid HTML.
      */
-    parseHTML(html, groupKey) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const categories = categoriesConfig[groupKey]?.ids || [];
+    convertToHTML(rawText) {
+        try {
+            // Parse the raw text into lines
+            const lines = rawText.split('\n').map(line => line.trim()).filter(line => line !== '');
+            
+            let html = '';
+            
+            lines.forEach(line => {
+                if (line.startsWith('##CATEGORY_ID=')) {
+                    const categoryId = line.split('=')[1].trim();
+                    html += `<div class="mb-8" id="${categoryId}">\n`;
+                } else if (line.startsWith('##TITLE=')) {
+                    const title = line.split('=')[1].trim();
+                    html += `<h3>${title}</h3>\n`;
+                } else if (/^\d+\.\s/.test(line)) { // Detect questions starting with "1. ", "2. ", etc.
+                    html += `<div class="accordion-item">\n`;
+                    html += `<h2 class="accordion-header">\n`;
+                    html += `<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${line}" aria-expanded="false" aria-controls="collapse_${line}">\n`;
+                    html += `${line}\n`;
+                    html += `</button>\n</h2>\n`;
+                } else { // Assume it's an answer or other content
+                    html += `<div class="accordion-body">\n${line}\n</div>\n</div>\n`; // Close accordion-item
+                }
+            });
 
-        return categories.map(categoryId => {
-            const categoryElement = doc.getElementById(categoryId);
-            return categoryElement ? categoryElement.outerHTML : null;
-        }).filter(Boolean); // Remove null entries
+            // Self-healing: Ensure all opened <div> tags are closed
+            const openDivCount = (html.match(/<div/g) || []).length;
+            const closeDivCount = (html.match(/<\/div>/g) || []).length;
+
+            if (openDivCount > closeDivCount) {
+                html += '</div>'.repeat(openDivCount - closeDivCount);
+                console.warn(`Self-healing applied: Closed ${openDivCount - closeDivCount} unclosed <div> tags.`);
+            }
+
+            return html;
+
+        } catch (error) {
+            console.error('Error converting raw text to HTML:', error);
+            return '<div class="error">Error processing content.</div>';
+        }
     }
 
     /**
-     * Render loaded Q&A content into the container.
+     * Render all loaded content into the container.
      */
     renderContent(container) {
-        const fragment = document.createDocumentFragment();
-
-        this.loadedGroups.forEach((categories, groupKey) => {
-            if (categories.length > 0) {
+        Object.keys(categoriesConfig).forEach(groupKey => {
+            const groupContent = this.loadedGroups.get(groupKey);
+            if (groupContent) {
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'qa-group';
-
-                // Add group header
-                const header = document.createElement('h3');
-                header.textContent = categoriesConfig[groupKey]?.displayName || groupKey;
-                groupDiv.appendChild(header);
-
-                // Append categories
-                categories.forEach(categoryHTML => {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = categoryHTML;
-                    groupDiv.appendChild(tempDiv.firstElementChild); // Append only the first child
-                });
-
-                fragment.appendChild(groupDiv);
-                fragment.appendChild(document.createElement('hr')); // Separator between groups
+                groupDiv.innerHTML = groupContent;
+                container.appendChild(groupDiv);
             }
         });
-
-        container.innerHTML = ''; // Clear existing content
-        container.appendChild(fragment); // Append all at once for better performance
-    }
-
-    /**
-     * Initialize Bootstrap accordions after rendering content.
-     */
-    initializeAccordions() {
-        document.querySelectorAll('.accordion').forEach(accordion => {
-            if (typeof bootstrap !== 'undefined') {
-                new bootstrap.Collapse(accordion.querySelector('.accordion-collapse.show'), { toggle: false });
-            } else {
-                console.warn('Bootstrap is not loaded. Accordions may not function correctly.');
-            }
-        });
-    }
-
-    /**
-     * Show a loading state in the container.
-     */
-    showLoadingState(container) {
-        container.innerHTML = `
-            <div class="loading-indicator">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p>Loading Q&A content...</p>
-            </div>
-        `;
-    }
-
-    /**
-     * Handle errors during initialization or loading.
-     */
-    handleError(error) {
-        const container = document.querySelector(this.containerSelector);
-        if (container) {
-            container.innerHTML = `
-                <div class="error-message alert alert-danger">
-                    <h4>Error Loading Content</h4>
-                    <p>${error.message}</p>
-                    <button class="btn btn-outline-danger btn-sm" onclick="window.location.reload()">Retry</button>
-                </div>
-            `;
-        }
     }
 }
 
 // Initialize the loader when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     const loader = new QnALoader();
-    loader.init().catch(error => console.error('Failed to initialize QnA Loader:', error));
+    loader.init().catch(error => {
+        console.error('Failed to initialize QnA Loader:', error);
+    });
 });
