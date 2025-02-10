@@ -8,23 +8,18 @@
 const categoriesConfig = {
   face: {
     displayName: 'Face',
-    ids: ["rhinoplasty", "facelift", "eyelidlift"]
   },
   breast: {
-    displayName: 'Breast',
-    ids: ["breastpsycho", "lollipoptechnique", "miniinvasivebreast", "breastaugmentation", "pocketlift"]
+    displayName: 'Breast'
   },
   body: {
-    displayName: 'Body',
-    ids: ["bodycontouring", "fatgrafting", "tummytuck", "brazilianbuttlift", "mommyMakeover"]
+    displayName: 'Body'
   },
   minimally_invasive: {
-    displayName: 'Minimally Invasive',
-    ids: ["botoxfillers", "noninvasivecontouring"]
+    displayName: 'Minimally Invasive'
   },
   other: {
-    displayName: 'Other',
-    ids: ["hairtransplant", "skinresurfacing"]
+    displayName: 'Other'
   }
 };
 
@@ -93,35 +88,6 @@ function generateCategoryNav() {
     `;
     groupDiv.appendChild(header);
 
-    group.ids.forEach(id => {
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'category-item';
-      itemDiv.style.cssText = 'padding: 5px 0;'; // Item padding
-
-      const aElem = document.createElement('a');
-      aElem.href = `#${id}`;
-      aElem.textContent = generateCategoryLinkText(id);
-      aElem.style.cssText = `
-        color: #495057;
-        text-decoration: none;
-        font-family: Verdana, sans-serif;
-        font-size: 0.95em;
-        transition: color 0.3s ease;
-      `;
-      
-      // Add hover effects via JavaScript instead of CSS
-      aElem.addEventListener('mouseenter', () => {
-        aElem.style.color = '#007bff';
-        aElem.style.fontWeight = 'bold';
-      });
-      aElem.addEventListener('mouseleave', () => {
-        aElem.style.color = '#495057';
-        aElem.style.fontWeight = 'normal';
-      });
-
-      itemDiv.appendChild(aElem);
-      groupDiv.appendChild(itemDiv);
-    });
 
     navContainer.appendChild(groupDiv);
   });
@@ -131,13 +97,6 @@ function generateCategoryNav() {
 // Group Q&A blocks based on category ID.
 // Assumes each Q&A block (partial) has the .mb-8 class and a child header with an id.
 function groupQABlocks() {
-  // Build a reverse mapping from category ID to its group key.
-  const reverseMapping = {};
-  Object.keys(categoriesConfig).forEach(groupKey => {
-    categoriesConfig[groupKey].ids.forEach(id => {
-      reverseMapping[id] = groupKey;
-    });
-  });
 
   // Find all Q&A partial blocks.
   const qaBlocks = document.querySelectorAll('.mb-8');
@@ -148,40 +107,9 @@ function groupQABlocks() {
     return;
   }
 
-  // Group blocks by their category (using the header id).
-  const groupedQA = {};
-  qaBlocks.forEach(block => {
-    const header = block.querySelector('h3');
-    if (header && header.id) {
-      const groupKey = reverseMapping[header.id];
-      if (groupKey) {
-        if (!groupedQA[groupKey]) groupedQA[groupKey] = [];
-        groupedQA[groupKey].push(block);
-      } else {
-        console.warn(`No mapping found for block with header id "${header.id}".`);
-      }
-    } else {
-      console.warn('Q&A block missing a header with an id.', block);
-    }
-  });
-
   // Clear out the container before re-adding grouped content.
   qaContainer.innerHTML = '';
-  // Append grouped blocks following the order of the configuration.
-  Object.keys(categoriesConfig).forEach(groupKey => {
-    if (groupedQA[groupKey] && groupedQA[groupKey].length) {
-      const groupHeader = document.createElement('h3');
-      groupHeader.textContent = categoriesConfig[groupKey].displayName;
-      qaContainer.appendChild(groupHeader);
 
-      groupedQA[groupKey].forEach(block => {
-        qaContainer.appendChild(block);
-      });
-      
-      // Optionally, add a separator.
-      qaContainer.appendChild(document.createElement('hr'));
-    }
-  });
 }
 
 // Initialize the navigation and grouping functions when the DOM is ready.
