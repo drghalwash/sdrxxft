@@ -12,8 +12,12 @@ class QnALoader {
         this.loadedGroups = new Map();
         this.contentValidationMap = new Map();
 
-        // Bind the method to the class instance
+        // Binding methods to the class instance
         this.createPlaceholderContent = this.createPlaceholderContent.bind(this);
+        this.processGroupContent = this.processGroupContent.bind(this);
+        this.extractQAItems = this.extractQAItems.bind(this);
+        this.createAccordionHTML = this.createAccordionHTML.bind(this);
+        this.createPendingCategoryHTML = this.createPendingCategoryHTML.bind(this);
     }
 
     /**
@@ -199,7 +203,7 @@ class QnALoader {
         `;
     }
 
-        /**
+    /**
      * Create placeholder content for a group
      */
     createPlaceholderContent(groupKey) {
