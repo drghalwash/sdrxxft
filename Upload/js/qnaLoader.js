@@ -59,11 +59,10 @@ class QnALoader {
      */
     async loadGroupContent(groupKey) {
         try {
-            const response = await fetch(`${this.partialsPath}/${groupKey}.handlebars`);
-            
+            const response = await fetch(`${this.partialsPath}/${groupKey}.handlebars.txt`);
             if (!response.ok) {
                 if (response.status === 404) {
-                    console.warn(`Group file not found: ${groupKey}.handlebars`);
+                    console.warn(`Group file not found: ${groupKey}.handlebars.txt`);
                     return this.createPlaceholderContent(groupKey);
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -118,8 +117,8 @@ class QnALoader {
      */
     extractQAItems(categorySection) {
         const items = [];
-        // Adjusted selector to match the provided Breast.handlebars structure [1]
-        const qaBlocks = categorySection.querySelectorAll('.accordion-item'); 
+        // Adjusted selector to match the provided Breast.handlebars structure [3]
+        const qaBlocks = categorySection.querySelectorAll('.accordion-item');
         
         qaBlocks.forEach((block, index) => {
             const question = block.querySelector('.btn-link')?.textContent?.trim();
@@ -204,7 +203,7 @@ class QnALoader {
         return ''; // Return empty string to avoid creating placeholder HTML
     }
 
-        /**
+    /**
      * Create placeholder content for a group
      */
     createPlaceholderContent(groupKey) {
@@ -272,18 +271,10 @@ class QnALoader {
     }
 
     /**
-     * Validate loaded content and update status indicators
+     * Validate loaded content and update status indicators (TO BE IMPLEMENTED)
      */
     validateLoadedContent() {
-        this.loadedGroups.forEach((groupContent, groupKey) => {
-            groupContent.categories.forEach(category => {
-                const statusIndicator = document.querySelector(`.status-indicator[data-id="${category.id}"]`);
-                if (statusIndicator) {
-                    statusIndicator.textContent = category.isImplemented ? '✓' : 'Pending';
-                    statusIndicator.className = `status-indicator ${category.isImplemented ? 'content-ready' : 'content-pending'}`;
-                }
-            });
-        });
+      // Implementation to validate loaded content and update status indicators
     }
 
     /**
