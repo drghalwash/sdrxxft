@@ -117,19 +117,10 @@ function handleSearch(generateCategoryLinkText) {
                 let contentText = `${questionText} ${answerText}`;
 
                 // --- Prevent Layout Breaking ---
-                // Highlight only complete words, excluding HTML tag attributes
                 if (term && term.length > 0) {
-                    const regex = new RegExp(`\\b(${term})\\b(?!(?:(?!<\\w+).)*>)|(<[^>]*${term}[^>]*>)`, 'gi');
-                    contentText = contentText.replace(regex, (match, group1, group2) => {
-                        if (group1) {
-                            return `<span class="search-highlight">${group1}</span>`;
-                        } else if (group2) {
-                            return group2; // Return the original HTML tag
-                        }
-                        return match;
-                    });
+                    const regex = new RegExp(term, 'gi');
+                    contentText = contentText.replace(regex, '<span class="search-highlight">$&</span>');
                 }
-
                 item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
 
                 const isMatch = contentText.toLowerCase().includes(term);
