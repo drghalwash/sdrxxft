@@ -817,76 +817,52 @@ font-family: Verdana, sans-serif;
   window.addEventListener("scroll", handleScroll);
 </script>
 
-	<script>
+<script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('categorySearch');
-
+    
     searchInput.addEventListener('input', debounce(function() {
         const searchTerm = this.value.toLowerCase().trim();
-
-        // -- Category Filtering --
+        
+        // Search in categories section
         const categories = document.querySelectorAll('.categories-container .category-item');
         categories.forEach(category => {
-            const categoryId = category.dataset.categoryId; // Assuming each category item has a data-category-id attribute
             const categoryText = category.textContent.toLowerCase();
             const isVisible = categoryText.includes(searchTerm);
-            category.style.display = searchTerm === "" || isVisible ? '' : 'none';
+            category.style.display = isVisible ? '' : 'none';
         });
-
-        // -- Q&A Block Filtering --
-        const qaBlocks = document.querySelectorAll('.bsb-faq-3 .accordion-item');
-        qaBlocks.forEach(block => {
-            const questionText = block.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-            const answerText = block.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
-            const contentText = `${questionText} ${answerText}`;
-            
-            // Check if the Q&A block belongs to a category that matches the search term
-            let isCategoryMatch = false;
-            for (const categoryId in categoryManager) {
-                if (categoryManager.hasOwnProperty(categoryId)) {
-                    const category = categoryManager[categoryId];
-                    if (category.name.toLowerCase().includes(searchTerm)) {
-                        if (category.items.some(item => block.contains(document.getElementById(item)))) {
-                            isCategoryMatch = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            const isContentMatch = contentText.includes(searchTerm);
-            
-            // Show the Q&A block if it matches the search term or belongs to a matching category
-            block.style.display = (searchTerm === "" || isContentMatch || isCategoryMatch) ? '' : 'none';
-
-            if ((isContentMatch || isCategoryMatch) && searchTerm.length > 0) {
-                const collapseElement = block.querySelector('.collapse');
-                if (collapseElement && !collapseElement.classList.contains('show')) {
-                    new bootstrap.Collapse(collapseElement, { show: true });
-                }
-            }
-        });
-
-        // -- Section Visibility --
-        const sections = document.querySelectorAll('.bsb-faq-3 .row > div');
-        sections.forEach(section => {
-            let sectionHasMatch = false;
+        
+        // Search in accordion sections
+        const accordionSections = document.querySelectorAll('.mb-8');
+        accordionSections.forEach(section => {
+            const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
             const questions = section.querySelectorAll('.accordion-item');
+            let sectionHasMatch = false;
             
             questions.forEach(item => {
                 const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
                 const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
                 const contentText = `${questionText} ${answerText}`;
-                if (contentText.includes(searchTerm) || isCategoryMatch) {
-                    sectionHasMatch = true;
+                
+                const isMatch = contentText.includes(searchTerm);
+                item.style.display = isMatch ? '' : 'none';
+                if (isMatch) sectionHasMatch = true;
+                
+                // Expand matching items
+                if (isMatch && searchTerm.length > 0) {
+                    const collapseElement = item.querySelector('.collapse');
+                    if (collapseElement && !collapseElement.classList.contains('show')) {
+                        new bootstrap.Collapse(collapseElement, { show: true });
+                    }
                 }
             });
-
-            section.style.display = searchTerm === "" || sectionHasMatch ? '' : 'none';
+            
+            // Show/hide entire section based on matches
+            section.style.display = sectionHasMatch || sectionTitle.includes(searchTerm) ? '' : 'none';
         });
     }, 300));
-
-    // -- Debounce function --
+    
+    // Debounce function
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -896,8 +872,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-
 
 	
 	</body>
