@@ -1,203 +1,242 @@
 // File: /js/search.js
 /********************************************
  * File: /js/search.js
- * Description: Handles enhanced search functionality.
- * Features:
- *   - Filters both category navigation and Q&A blocks as the user types.
- *   - Highlights matching words within the found content.
- *   - Auto‑labels each matching Q&A block (“Result 1”, “Result 2”, etc.).
- *   - When no match exists, completely hides the category navigation and Q&A zones,
- *     replacing them with a large, custom “No results found…” message.
- *   - All necessary styling is injected via JavaScript.
- *   - Uses debouncing for super‑fast, performance‑optimized operation.
+ * Description: Enhances search functionality by:
+ *  - Filtering categories and Q&A blocks based on search terms.
+ *  - Highlighting matching words dynamically in the results.
+ *  - Dynamically displays/hides sections based on search results, showing a "No results found" message when appropriate.
+ *  - Provides inline CSS injection for styling.
+ *  - Adds a loading indicator during search.
  ********************************************/
 
-/* Inject inline CSS styles */
+// Inject inline CSS to style search components
 function injectSearchStyles() {
   const style = document.createElement('style');
   style.textContent = `
-    /* Hide elements when not matching */
+    /* Category visibility control */
     .category-hidden { display: none !important; }
-    .qa-hidden { opacity: 0; height: 0; overflow: hidden; transition: all 0.3s ease; }
 
-    /* Highlight matching search terms */
+    /* Q&A block visibility and transition */
+    .qa-hidden {
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    /* Highlight style for search matches */
     .search-highlight {
       background-color: #fff3d6;
-      padding: 2px 5px;
+      padding: 2px;
       border-radius: 3px;
+      font-weight: bold; /* Ensures highlighted words stand out */
     }
-    
-    /* Normal search results counter style */
-    .search-results-count {
-      color: #394464;
-      font-weight: bold;
-      margin: 15px 0;
-      display: none;
-    }
-    
-    /* Auto-label on matching Q&A block */
-    .result-label {
-      background-color: #e7f3fe;
-      color: #31708f;
-      font-weight: bold;
-      padding: 5px 10px;
-      margin-bottom: 5px;
-      border-radius: 3px;
-    }
-    
-    /* “No results found” message styling */
-    .search-no-results {
-      font-size: 2rem;
+
+    /* Style for the loading indicator */
+    .search-loading {
       text-align: center;
-      color: #d9534f;
       font-style: italic;
+      color: #555;
+      margin: 10px 0;
+    }
+
+    /* Style for the "No Results Found" message */
+    .search-no-results {
+      color: #d9534f;
+      font-size: 1.5em;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Active category style */
+    .active-category {
+      border-color: #007bff !important;
+      box-shadow: 0 2px 8px rgba(0,123,255,0.2);
     }
   `;
   document.head.appendChild(style);
 }
 
-/* Helper: Debounce function for performance */
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
+// Utility function to sanitize HTML to prevent XSS attacks
+function sanitizeHTML(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
-/* Helper: Escape special regex characters in search term */
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Utility function to highlight search terms in text
+function highlightTerms(text, term) {
+  if (!term) return sanitizeHTML(text); // No term, no highlighting
+
+  // Safely escape special characters for regex
+  const safeTerm = term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const regex = new RegExp(`(${safeTerm})`, 'gi');
+  const highlightedText = text.replace(regex, '<span class="search-highlight">$1</span>');
+  return highlightedText;
 }
 
-/* Helper: For a given element, store its original HTML if not already done,
-   and highlight all occurrences of term (case-insensitive) */
-function highlightText(element, term) {
-  if (!element.dataset.originalContent) {
-    element.dataset.originalContent = element.innerHTML;
-  }
-  // If term is empty, revert to the original content.
-  if (!term) {
-    element.innerHTML = element.dataset.originalContent;
-    return;
-  }
-  const original = element.dataset.originalContent;
-  const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
-  element.innerHTML = original.replace(regex, '<span class="search-highlight">$1</span>');
-}
-
-/* Core search handler.
-   Expects generateCategoryLinkText (a helper from categoryManager.js) to be passed in */
+// Main search handler function that orchestrates the search functionality
 function handleSearch(generateCategoryLinkText) {
   const searchInput = document.getElementById('categorySearch');
-  if (!searchInput) return;
-  
-  // Cache selectors for the category nav and Q&A container
-  const categoryContainer = document.querySelector('.categories-container');
-  const qaContainer = document.querySelector('.bsb-faq-3');
-  const resultsCounter = document.querySelector('.search-results-count');
+  if (!searchInput) {
+    console.warn('Search input not found.');
+    return;
+  }
 
-  // Wrapped handler for debouncing
-  searchInput.addEventListener('input', debounce(function (e) {
+  searchInput.addEventListener('input', function(e) {
     const term = e.target.value.trim().toLowerCase();
-    let matchCount = 0;
-
-    // --- Filter Category Navigation Items ---
-    const categoryItems = document.querySelectorAll('.categories-container .category-item');
-    categoryItems.forEach(item => {
-      // Save original text if not already set.
-      if (!item.dataset.originalText) {
-        item.dataset.originalText = item.innerHTML;
-      }
-      // Remove previous highlights or restore original content.
-      if (!term) {
-        item.innerHTML = item.dataset.originalText;
-      }
-      const text = item.textContent.toLowerCase();
-      if (term === "" || text.indexOf(term) !== -1) {
-        item.style.display = 'block';
-        highlightText(item, term);
-      } else {
-        item.style.display = 'none';
-      }
-    });
-    
-    // --- Filter Q&A Blocks (assumed to have class "mb-8") ---
-    const qaBlocks = document.querySelectorAll('.mb-8');
-    qaBlocks.forEach(block => {
-      // For each block, if it has a header with an id use that too.
-      const header = block.querySelector('h3');
-      let headerText = "";
-      if (header && header.id) {
-        headerText = generateCategoryLinkText(header.id).toLowerCase();
-      }
-      // Consider entire block text.
-      const blockText = block.textContent.toLowerCase();
-      // Determine if block matches if it contains the search term in header or content.
-      const isMatch = term === "" || headerText.indexOf(term) !== -1 || blockText.indexOf(term) !== -1;
-      if (isMatch) {
-        block.classList.remove('qa-hidden');
-        // Highlight the matching text inside the block.
-        highlightText(block, term);
-        matchCount++;
-      } else {
-        block.classList.add('qa-hidden');
-      }
-    });
-    
-    // --- Auto-label each visible Q&A block ---
-    const visibleQABlocks = document.querySelectorAll('.mb-8:not(.qa-hidden)');
-    // First remove any previous labels.
-    visibleQABlocks.forEach(block => {
-      const existingLabel = block.querySelector('.result-label');
-      if (existingLabel) existingLabel.remove();
-    });
-    if (term && visibleQABlocks.length > 0) {
-      let count = 1;
-      visibleQABlocks.forEach(block => {
-        const label = document.createElement('div');
-        label.className = 'result-label';
-        label.textContent = 'Result ' + count++;
-        block.insertBefore(label, block.firstChild);
-      });
-    }
-    
-    // --- Update results counter and zones display ---
-    if (term) {
-      if (matchCount > 0) {
-        resultsCounter.textContent = `${matchCount} result${matchCount > 1 ? 's' : ''} found`;
-        resultsCounter.classList.remove('search-no-results');
-        // Show both categories and Q&A zones if there are results.
-        if (categoryContainer) categoryContainer.style.display = 'block';
-        if (qaContainer) qaContainer.style.display = 'block';
-      } else {
-        resultsCounter.textContent = `No results found for "${term}"`;
-        resultsCounter.classList.add('search-no-results');
-        // Hide both the category navigation and Q&A zones entirely.
-        if (categoryContainer) categoryContainer.style.display = 'none';
-        if (qaContainer) qaContainer.style.display = 'none';
-      }
-      resultsCounter.style.display = 'block';
-    } else {
-      resultsCounter.style.display = 'none';
-      // Reset: show both zones and remove highlighting.
-      if (categoryContainer) categoryContainer.style.display = 'block';
-      if (qaContainer) qaContainer.style.display = 'block';
-      // Restore original content for Q&A blocks.
-      qaBlocks.forEach(block => {
-        highlightText(block, "");
-      });
-    }
-    
-  }, 200)); // 200ms debounce for speed
+    performSearch(term, generateCategoryLinkText);
+  });
 }
 
-/* Initialize search functionality.
-   Must be called from your main initialization (after DOMContentLoaded) */
+// Function to encapsulate and manage the search process
+function performSearch(term, generateCategoryLinkText) {
+  // Display loading indicator immediately
+  showLoadingIndicator();
+  
+  // Use a timeout to simulate a loading delay and ensure smooth UI updates
+  setTimeout(() => {
+    try {
+      // Reset and perform search
+      resetSearchResults(term);
+      const matchCount = executeSearch(term, generateCategoryLinkText);
+
+      // Handle visibility based on search results
+      handleVisibility(matchCount, term);
+    } finally {
+      // Always hide loading indicator after search completes
+      hideLoadingIndicator();
+    }
+  }, 100); // Delay of 100ms for smoother UX
+}
+
+// Resets search results by removing highlighting and QA classes
+function resetSearchResults(term) {
+  document.querySelectorAll('.mb-8').forEach(block => {
+    block.classList.remove('qa-hidden');
+    // Restore original text by removing any search highlights
+    block.innerHTML = block.innerHTML.replace(/<span class="search-highlight">(.*?)<\/span>/g, '$1');
+  });
+}
+
+// Executes the search and filtering logic
+function executeSearch(term, generateCategoryLinkText) {
+  let matchCount = 0;
+
+  // Filter category navigation
+  document.querySelectorAll('.category-group').forEach(group => {
+    const groupName = group.querySelector('h3').textContent.toLowerCase();
+    let hasVisibleItems = false;
+
+    group.querySelectorAll('.category-item').forEach(item => {
+      const itemText = item.textContent.toLowerCase();
+      const isMatch = itemText.includes(term) || groupName.includes(term);
+      item.style.display = isMatch ? 'block' : 'none';
+      if (isMatch) hasVisibleItems = true;
+    });
+
+    group.style.display = hasVisibleItems ? 'block' : 'none';
+  });
+
+  // Filter Q&A Blocks and highlight search terms
+  document.querySelectorAll('.mb-8').forEach(block => {
+    let categoryMatch = false;
+    const header = block.querySelector('h3');
+    if (header && header.id) {
+      categoryMatch = generateCategoryLinkText(header.id).toLowerCase().includes(term);
+    }
+    const contentMatch = block.textContent.toLowerCase().includes(term);
+
+    if ((categoryMatch || contentMatch) && term !== "") {
+      block.classList.remove('qa-hidden');
+      block.innerHTML = highlightTerms(block.innerHTML, term); // Highlight the search term
+      matchCount++;
+    } else if (term === "") {
+      block.classList.remove('qa-hidden'); // Reset state if search term is cleared
+    } else {
+      block.classList.add('qa-hidden');
+    }
+  });
+
+  return matchCount;
+}
+
+// Handles displaying/hiding elements based on search results
+function handleVisibility(matchCount, term) {
+  const categoriesContainer = document.querySelector('.categories-container');
+  const faqContainer = document.querySelector('.bsb-faq-3'); // Q&A Section
+
+  if (matchCount === 0 && term !== "") {
+    // Hide Categories and Q&A sections
+    if (categoriesContainer) categoriesContainer.style.display = 'none';
+    if (faqContainer) faqContainer.style.display = 'none';
+
+    // Display "No Results Found" message
+    displayNoResultsMessage(term);
+  } else {
+    // Restore Categories and Q&A sections
+    if (categoriesContainer) categoriesContainer.style.display = '';
+    if (faqContainer) faqContainer.style.display = '';
+
+    // Remove "No Results Found" message
+    removeNoResultsMessage();
+  }
+}
+
+// Displays the loading indicator
+function showLoadingIndicator() {
+  const categoriesContainer = document.querySelector('.categories-container');
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.className = 'search-loading';
+  loadingIndicator.textContent = 'Loading...';
+
+  // Attempt to add the loading message before the categories container
+  if (categoriesContainer && categoriesContainer.parentNode) {
+    categoriesContainer.parentNode.insertBefore(loadingIndicator, categoriesContainer);
+  } else {
+    // Fallback to adding it to the body if the categories container is not found
+    document.body.appendChild(loadingIndicator);
+  }
+}
+
+// Hides the loading indicator
+function hideLoadingIndicator() {
+  const loadingIndicator = document.querySelector('.search-loading');
+  if (loadingIndicator) {
+    loadingIndicator.remove();
+  }
+}
+
+// Displays the "No Results Found" message
+function displayNoResultsMessage(term) {
+  const categoriesContainer = document.querySelector('.categories-container');
+  const noResultsMessage = document.createElement('div');
+  noResultsMessage.className = 'search-no-results';
+  noResultsMessage.innerHTML = `No results found for "<span class="search-highlight">${sanitizeHTML(term)}</span>". Please try a different search.`;
+
+  // Attempt to insert the message before the categories container
+  if (categoriesContainer && categoriesContainer.parentNode) {
+    categoriesContainer.parentNode.insertBefore(noResultsMessage, categoriesContainer);
+  } else {
+    // Fallback to adding it to the body if categories container is not found
+    document.body.appendChild(noResultsMessage);
+  }
+}
+
+// Removes the "No Results Found" message
+function removeNoResultsMessage() {
+  const noResultsMessage = document.querySelector('.search-no-results');
+  if (noResultsMessage) {
+    noResultsMessage.remove();
+  }
+}
+
+// Initializes search functionality—inject styles and set up event handlers.
 function initializeSearch(generateCategoryLinkText) {
   injectSearchStyles();
   handleSearch(generateCategoryLinkText);
 }
 
-/* Expose initializeSearch so that it can be invoked from categoryManager.js */
+// Assign to window for external access
 window.initializeSearch = initializeSearch;
