@@ -22,11 +22,17 @@ function injectSearchStyles() {
         overflow: hidden;
         transition: all 0.3s ease;
     }
-    /* Highlight for potential search term wrap (if needed later) */
+    /* Highlight for potential search term wrap */
     .search-highlight {
         background-color: #fff3d6;
         padding: 2px 5px;
         border-radius: 3px;
+        animation: pulseHighlight 1.5s ease-in-out;
+    }
+    @keyframes pulseHighlight {
+        0% { transform: scale(1); background-color: #fff3d6; }
+        50% { transform: scale(1.1); background-color: #ffef99; }
+        100% { transform: scale(1); background-color: #fff3d6; }
     }
     /* Results counter style */
     .search-results-count {
@@ -35,7 +41,6 @@ function injectSearchStyles() {
         margin: 15px 0;
         display: none; /* Hidden by default */
     }
-    /* Custom no-results message styling */
     .search-results-count.search-no-results {
         color: #d9534f;
         font-style: italic;
@@ -46,24 +51,6 @@ function injectSearchStyles() {
         background-color: #f2dede; /* Light red background */
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
-    }
-    /* Highlight for potential search term wrap (if needed later) */
-    .search-highlight {
-        background-color: #fff3d6;
-        padding: 2px 5px;
-        border-radius: 3px;
-        animation: pulseHighlight 1.5s ease-in-out;
-    }
-
-    @keyframes pulseHighlight {
-        0% { transform: scale(1); background-color: #fff3d6; }
-        50% { transform: scale(1.1); background-color: #ffef99; }
-        100% { transform: scale(1); background-color: #fff3d6; }
-    }
-    /* Active category styling */
-    .active-category {
-        border-color: #007bff !important;
-        box-shadow: 0 2px 8px rgba(0,123,255,0.2);
     }
   `;
     document.head.appendChild(style);
@@ -76,6 +63,13 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
+}
+
+// Highlight search terms in text content
+function highlightText(content, term) {
+    if (!term) return content; // If no term, return original content
+    const regex = new RegExp(`(${term})`, 'gi'); // Match term case-insensitively
+    return content.replace(regex, '<span class="search-highlight">$1</span>');
 }
 
 // Core search handler function
@@ -112,20 +106,36 @@ function handleSearch(generateCategoryLinkText) {
             let sectionHasMatch = false;
 
             questions.forEach(item => {
-                const questionText = item.querySelector('.btn-link')?.textContent.toLowerCase() || '';
-                const answerText = item.querySelector('.accordion-body')?.textContent.toLowerCase() || '';
-                let contentText = `${questionText} ${answerText}`;
+                const questionElement = item.querySelector('.btn-link');
+                const answerElement = item.querySelector('.accordion-body');
 
-                // --- Prevent Layout Breaking ---
-                if (term && term.length > 0) {
-                    const regex = new RegExp(term, 'gi');
-                    contentText = contentText.replace(regex, '<span class="search-highlight">$&</span>');
+                // Save original content to avoid duplication issues
+                if (!answerElement.dataset.originalContent) {
+                    answerElement.dataset.originalContent = answerElement.innerHTML.trim();
                 }
-                item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
 
-                const isMatch = contentText.toLowerCase().includes(term);
+                const originalQuestionText = questionElement.textContent.toLowerCase();
+                const originalAnswerText = answerElement.dataset.originalContent.toLowerCase();
+
+                // Check if term matches question or answer
+                const isMatch =
+                    originalQuestionText.includes(term) || originalAnswerText.includes(term);
+
+                if (isMatch && term.length > 0) {
+                    // Highlight matching terms
+                    questionElement.innerHTML = highlightText(questionElement.textContent, term);
+                    answerElement.innerHTML = highlightText(
+                        answerElement.dataset.originalContent,
+                        term
+                    );
+                    sectionHasMatch = true;
+                } else if (term.length === 0) {
+                    // Reset to original content when term is cleared
+                    questionElement.innerHTML = questionElement.textContent;
+                    answerElement.innerHTML = answerElement.dataset.originalContent;
+                }
+
                 item.style.display = isMatch ? '' : 'none';
-                if (isMatch) sectionHasMatch = true;
 
                 // Expand matching items
                 if (isMatch && term.length > 0) {
@@ -137,12 +147,13 @@ function handleSearch(generateCategoryLinkText) {
             });
 
             // Show/hide entire section based on matches
-            section.style.display = sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
+            section.style.display =
+                sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
 
-            if ((sectionHasMatch || sectionTitle.includes(term)) && term !== "") {
+            if ((sectionHasMatch || sectionTitle.includes(term)) && term !== '') {
                 section.classList.remove('qa-hidden');
                 matchCount++;
-            } else if (term === "") {
+            } else if (term === '') {
                 // When search term is cleared, reset all blocks
                 section.classList.remove('qa-hidden');
             } else {
@@ -161,7 +172,6 @@ function handleSearch(generateCategoryLinkText) {
                 // Show Categories and Q&A sections
                 if (categorySection) categorySection.style.display = 'block';
                 if (qaContainer) qaContainer.style.display = 'block';
-
             } else {
                 countElement.textContent = `No results found for "${term}". Please try a different search.`;
                 countElement.classList.add('search-no-results');
@@ -180,10 +190,9 @@ function handleSearch(generateCategoryLinkText) {
             if (qaContainer) qaContainer.style.display = 'block';
             // Remove highlights when search term is cleared
             document.querySelectorAll('.accordion-body').forEach(body => {
-                body.innerHTML = body.textContent; // Revert to original text
+                body.innerHTML = body.dataset.originalContent || body.textContent; // Revert to original text
             });
         }
-
     }, 300);
 
     searchInput.addEventListener('input', function (e) {
