@@ -12,12 +12,11 @@ class QnALoader {
         this.loadedGroups = new Map();
         this.contentValidationMap = new Map();
 
-        // Binding methods to the class instance
+        // Bind methods to the class instance
         this.createPlaceholderContent = this.createPlaceholderContent.bind(this);
         this.processGroupContent = this.processGroupContent.bind(this);
         this.extractQAItems = this.extractQAItems.bind(this);
         this.createAccordionHTML = this.createAccordionHTML.bind(this);
-        this.createPendingCategoryHTML = this.createPendingCategoryHTML.bind(this);
     }
 
     /**
@@ -119,11 +118,12 @@ class QnALoader {
      */
     extractQAItems(categorySection) {
         const items = [];
-        const qaBlocks = categorySection.querySelectorAll('.qa-block');
+        // Adjusted selector to match the provided Breast.handlebars structure [1]
+        const qaBlocks = categorySection.querySelectorAll('.accordion-item'); 
         
         qaBlocks.forEach((block, index) => {
-            const question = block.querySelector('.question')?.textContent?.trim();
-            const answer = block.querySelector('.answer')?.innerHTML?.trim();
+            const question = block.querySelector('.btn-link')?.textContent?.trim();
+            const answer = block.querySelector('.accordion-body')?.innerHTML?.trim();
             
             if (question && answer) {
                 items.push({
@@ -142,22 +142,30 @@ class QnALoader {
      * Create accordion HTML for a category
      */
     createAccordionHTML(category) {
-        if (!category.isImplemented || category.items.length === 0) {
-            return this.createPendingCategoryHTML(category);
+       if (!category.isImplemented || category.items.length === 0) {
+            return ''; // Return empty string if category is not implemented
         }
-
+    
         const accordionId = `accordion_${category.id}`;
         let html = `
             <div class="mb-8">
-                <h3 id="${category.id}">${category.title}</h3>
-                <div class="accordion" id="${accordionId}">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-11 col-xl-10">
+                            <div class="d-flex align-items-end mb-5">
+                                <h3 class="m-0" id="${category.id}">${category.title}</h3>
+                            </div>
+                        </div>
+                        <div class="col-11 col-xl-10">
+                            <div class="col-lg-5 mt-4 mt-lg-0" data-aos="fade-up" data-aos-delay="100" style="width: 100% !important;">
+                                <div class="custom-accordion" id="${accordionId}">
         `;
-
+    
         category.items.forEach((item, index) => {
             html += `
                 <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button ${item.isExpanded ? '' : 'collapsed'}"
+                    <h2 class="mb-0">
+                        <button class="btn btn-link ${item.isExpanded ? '' : 'collapsed'}"
                                 type="button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#${item.id}"
@@ -176,12 +184,16 @@ class QnALoader {
                 </div>
             `;
         });
-
+    
         html += `
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
-
+    
         return html;
     }
 
@@ -189,21 +201,10 @@ class QnALoader {
      * Create HTML for a pending/unimplemented category
      */
     createPendingCategoryHTML(category) {
-        return `
-            <div class="mb-8">
-                <h3 id="${category.id}">${category.title}</h3>
-                <div class="pending-content-placeholder">
-                    <div class="placeholder-message">
-                        <i class="fas fa-clock"></i>
-                        <p>Content for this category is under development.</p>
-                        <small>Check back soon for updates!</small>
-                    </div>
-                </div>
-            </div>
-        `;
+        return ''; // Return empty string to avoid creating placeholder HTML
     }
 
-    /**
+        /**
      * Create placeholder content for a group
      */
     createPlaceholderContent(groupKey) {
@@ -237,14 +238,21 @@ class QnALoader {
         Object.keys(categoriesConfig).forEach(groupKey => {
             const groupContent = this.loadedGroups.get(groupKey);
             if (groupContent) {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'qa-group';
-                
+                let hasContent = false;
                 groupContent.categories.forEach(category => {
-                    groupDiv.innerHTML += this.createAccordionHTML(category);
+                    if(category.isImplemented && category.items.length > 0) {
+                        hasContent = true;
+                    }
                 });
+                if(hasContent) {
+                  const groupDiv = document.createElement('div');
+                  groupDiv.className = 'qa-group';
+                  groupContent.categories.forEach(category => {
+                      groupDiv.innerHTML += this.createAccordionHTML(category);
+                  });
 
-                container.appendChild(groupDiv);
+                  container.appendChild(groupDiv);
+                }
             }
         });
     }
