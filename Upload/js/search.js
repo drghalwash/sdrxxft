@@ -117,18 +117,17 @@ function handleSearch(generateCategoryLinkText) {
                 let contentText = `${questionText} ${answerText}`;
 
                 // --- Prevent Layout Breaking ---
-                // Only highlight if the term is a complete word or part of a tag
+                // Highlight only complete words, excluding HTML tag attributes
                 if (term && term.length > 0) {
-                    // Split the content into words and highlight matching words
-                    const words = contentText.split(/\s+/);  // Split by whitespace
-                    const highlightedWords = words.map(word => {
-                        if (word.toLowerCase().includes(term)) {
-                            // Check if the word contains the search term
-                            return word.replace(new RegExp(term, 'gi'), `<span class="search-highlight">$&</span>`);  // Highlight matching word
+                    const regex = new RegExp(`\\b(${term})\\b(?!(?:(?!<\\w+).)*>)|(<[^>]*${term}[^>]*>)`, 'gi');
+                    contentText = contentText.replace(regex, (match, group1, group2) => {
+                        if (group1) {
+                            return `<span class="search-highlight">${group1}</span>`;
+                        } else if (group2) {
+                            return group2; // Return the original HTML tag
                         }
-                        return word;  // Return the original word if no match
+                        return match;
                     });
-                    contentText = highlightedWords.join(' ');  // Join the highlighted words
                 }
 
                 item.querySelector('.accordion-body').innerHTML = contentText; // Update HTML
