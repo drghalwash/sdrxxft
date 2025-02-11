@@ -539,20 +539,19 @@ font-family: Verdana, sans-serif;
 </div>
 
 <script src="/js/categoryManager.js"></script>
-
 	
-
 {{!-- File: Views/Pages/Questions_And_Answer.handlebars --}}
+
 <div style="width: 85%;">
     <div class="categories-container">
         <h2>Categories</h2>
         <div class="categories">
-            {{#each categories}}
+            {{#each categoriesWithContent}}
                 <div class="category-group">
                     <h3>{{this.displayName}}</h3>
-                    {{#each this.items}}
+                    {{#each this.linkText}}
                         <div class="category-item">
-                            <a href="#{{this.id}}">{{this.displayName}}</a>
+                            <a href="#{{../groupKey}}">{{this}}</a>
                         </div>
                     {{/each}}
                 </div>
@@ -560,7 +559,6 @@ font-family: Verdana, sans-serif;
         </div>
     </div>
 </div>
-
 
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
     <div class="container">
@@ -571,8 +569,14 @@ font-family: Verdana, sans-serif;
         </div>
         <div class="row justify-content-md-center">
             <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-                {{#each qaContent}}
-                    {{{this}}}
+                {{#each categoriesWithContent}}
+                    {{#if this.content}}
+                        <div id="{{this.groupKey}}" class="qa-item">
+                            {{{this.content}}}
+                        </div>
+                    {{else}}
+                        <p>No content available for {{this.displayName}}.</p>
+                    {{/if}}
                 {{/each}}
             </div>
         </div>
