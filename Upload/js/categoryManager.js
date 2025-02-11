@@ -136,7 +136,7 @@ function generateCategoryNav() {
  * Injects partials into Questions_And_Answer.handlebars.
  */
 function injectPartials() {
-    const qaContainer = $('.bsb-faq-3 .row .col-12'); // Use jQuery selector
+    const qaContainer = $('.bsb-faq-3 .row'); // Corrected jQuery selector
     if (!qaContainer.length) {
         console.error('Partial insertion point not found in Questions_And_Answer.handlebars');
         return;
@@ -217,13 +217,27 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initializeAll() {
     generateCategoryNav();
     groupQABlocks();
     handleResponsiveDesign();
     injectPartials(); // Call the dynamic partial injector
+
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
         window.initializeSearch(generateCategoryLinkText);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if jQuery is loaded
+    if (window.jQuery) {
+        initializeAll();
+    } else {
+        // If jQuery is not loaded, wait for it
+        const script = document.createElement("script");
+        script.src = "https://code.jquery.com/jquery-3.6.0.min.js";
+        script.onload = initializeAll;
+        document.head.appendChild(script);
     }
 });
