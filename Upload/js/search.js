@@ -1,13 +1,13 @@
 // File: /js/search.js
+
 /********************************************
  * File: /js/search.js
  * Description:
- * - Handles search functionality.
+ * - Handles search functionality with enhanced features.
  * - Filters categories and Q&A blocks based on the search term.
  * - Displays a styled "No results found" message when no matches exist.
  * - Hides Categories and Q&A sections when no matches are found.
- * - Highlights search terms in Q&A answers with a pop-up effect.
- * - Integrates with DeepSeek-R1 via OpenRouter for enhanced search.
+ * - Highlights search terms in Q&A answers with a dynamic pop-up effect.
  ********************************************/
 
 // Inject inline CSS for search styling
@@ -52,10 +52,25 @@ function injectSearchStyles() {
         border: 1px solid #ebccd1; /* Red border */
         border-radius: 5px; /* Rounded corners */
     }
-     /* Loading indicator */
-    .search-loading {
-      color: #007bff;
-      font-style: italic;
+    /* Dynamic Highlight Style (Feature 1) */
+    .search-highlight {
+        background-color: #ffef99; /* softer highlight */
+        padding: 2px 5px;
+        border-radius: 3px;
+        animation: pulseHighlight 1.5s ease-in-out;
+    }
+    @keyframes pulseHighlight {
+        0% { transform: scale(1); background-color: #ffef99; }
+        50% { transform: scale(1.1); background-color: #ffffcc; }
+        100% { transform: scale(1); background-color: #ffef99; }
+    }
+    /* Accessibility Improvements (Feature 2) */
+    .visually-hidden {
+        position: absolute !important;
+        height: 1px; width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+        white-space: nowrap; /* added line */
     }
   `;
     document.head.appendChild(style);
@@ -70,90 +85,22 @@ function debounce(func, wait) {
     };
 }
 
-// Highlight search terms in text content
-function highlightText(content, term, deepSeekResponse = null) {
-    let searchTerm = term;
-    if (deepSeekResponse) {
-        searchTerm = deepSeekResponse;
-    }
-    if (!searchTerm) return content; // If no term, return original content
+// Highlight search terms in text content (Feature 3: Enhanced Highlighting)
+function highlightText(content, term) {
+    if (!term) return content;
 
-    const regex = new RegExp(`(${searchTerm})`, 'gi'); // Match term case-insensitively
+    // Enhanced Regex to avoid breaking HTML tags (Feature 4)
+    const regex = new RegExp(`(${term})(?!(?:(?!<\\w+).)*>)`, 'gi');
+
     return content.replace(regex, '<span class="search-highlight">$1</span>');
 }
 
-// DeepSeek-R1 API interaction (OpenRouter)
-    async function queryDeepSeek(searchTerm) {
-    const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
-    const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';  // Correct OpenRouter endpoint
-    const model = 'deepseek/deepseek-r1:free'; // Specify the DeepSeek model
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json`,
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a medical search assistant specialized in helping patients understand healthcare information. 
-                        Analyze the search query for:
-                        1. Potential medical conditions/symptoms
-                        2. Treatment options
-                        3. Medication questions
-                        4. Procedure explanations
-                        5. Recovery guidance
-                        Always prioritize:
-                        - Patient safety
-                        - Clear layman explanations
-                        - Credible sources (WHO, CDC, peer-reviewed journals)
-                        - Red flag symptom identification
-                        Format responses with relevant medical keywords for Q&A matching.`
-                    },
-                    { 
-                        role: "user", 
-                        content: `Patient query: "${searchTerm}". 
-                        Provide medical-context search terms and related Q&A topics. 
-                        Highlight urgent care recommendations if needed.` 
-                    }
-                ],
-                temperature: 0.3,
-                max_tokens: 150,
-                top_p: 0.9
-            }),
-        });
-
-        if (!response.ok) {
-            console.error('DeepSeek API error:', response.status, response.statusText);
-            return null;
-        }
-
-        const data = await response.json();
-        // Assuming the response structure has a 'choices' array, and the first choice has a 'message' with 'content'
-        if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
-            return data.choices[0].message.content.trim();
-        } else {
-            console.warn('Unexpected DeepSeek API response structure:', data);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error querying DeepSeek API:', error);
-        return null;
-    }
-}
-
 // Core search handler function
-async function handleSearch(generateCategoryLinkText) {
+function handleSearch(generateCategoryLinkText) {
     const searchInput = document.getElementById('categorySearch');
     if (!searchInput) return;
 
-    const countElement = document.querySelector('.search-results-count');
-
-    const debouncedSearch = debounce(async function (term) {
+    const debouncedSearch = debounce(function (term) {
         let matchCount = 0;
 
         // --- Selectors for Categories and Q&A Sections ---
@@ -176,94 +123,82 @@ async function handleSearch(generateCategoryLinkText) {
         });
 
         // --- Filter Q&A Blocks ---
-        if (term) {
-            //Loading indicator
-            countElement.textContent = 'Searching...';
-            countElement.classList.add('search-loading');
-            countElement.style.display = 'block';
+        document.querySelectorAll('.mb-8').forEach(section => {
+            const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
+            const questions = section.querySelectorAll('.accordion-item');
+            let sectionHasMatch = false;
 
-            const deepSeekResponse = await queryDeepSeek(term);
-            countElement.classList.remove('search-loading');
+            questions.forEach(item => {
+                const questionElement = item.querySelector('.btn-link');
+                const answerElement = item.querySelector('.accordion-body');
 
-            document.querySelectorAll('.mb-8').forEach(section => {
-                const sectionTitle = section.querySelector('h3')?.textContent.toLowerCase() || '';
-                const questions = section.querySelectorAll('.accordion-item');
-                let sectionHasMatch = false;
+                 // Accessibility: Add aria-live region (Feature 5)
+                const liveRegion = document.createElement('div');
+                liveRegion.setAttribute('aria-live', 'polite');
+                liveRegion.className = 'visually-hidden';
+                answerElement.parentNode.insertBefore(liveRegion, answerElement.nextSibling);
 
-                questions.forEach(item => {
+                // Preserve original content (Feature 6: Prevents data loss)
+                if (!answerElement.dataset.originalContent) {
+                    answerElement.dataset.originalContent = answerElement.innerHTML.trim();
+                }
+
+                // Highlight logic and set initial state
+                const originalQuestionText = questionElement.textContent;
+                const originalAnswerText = answerElement.dataset.originalContent;
+
+                const isMatch =
+                    originalQuestionText.toLowerCase().includes(term) ||
+                    originalAnswerText.toLowerCase().includes(term);
+
+                if (isMatch && term.length > 0) {
+                    // Accessibility update (Feature 7)
+                   liveRegion.textContent = `Search term "${term}" found in this section.`;
+
+                    questionElement.innerHTML = highlightText(originalQuestionText, term);
+                    answerElement.innerHTML = highlightText(originalAnswerText, term);
+                    sectionHasMatch = true;
+                } else {
+                     // Clear accessibility announcement (Feature 8)
+                    liveRegion.textContent = '';
+                }
+
+                item.style.display = isMatch ? '' : 'none';
+
+                // Expand matching items (Feature 9: Enhanced UX)
+                if (isMatch && term.length > 0) {
+                    const collapseElement = item.querySelector('.collapse');
+                    if (collapseElement && !collapseElement.classList.contains('show')) {
+                        new bootstrap.Collapse(collapseElement, { show: true });
+                    }
+                }
+            });
+
+            section.style.display =
+                sectionHasMatch || sectionTitle.includes(term) ? '' : 'none';
+
+            if ((sectionHasMatch || sectionTitle.includes(term)) && term !== '') {
+                section.classList.remove('qa-hidden');
+                matchCount++;
+            } else if (term === '') {
+                section.classList.remove('qa-hidden');
+                // Clear highlighting (Feature 10: Clean slate)
+                  questions.forEach(item => {
                     const questionElement = item.querySelector('.btn-link');
                     const answerElement = item.querySelector('.accordion-body');
 
-                    // Save original content to avoid duplication issues
-                    if (!answerElement.dataset.originalContent) {
-                        answerElement.dataset.originalContent = answerElement.innerHTML.trim();
-                    }
+                    questionElement.innerHTML = questionElement.textContent;
+                    answerElement.innerHTML = answerElement.dataset.originalContent;
+                  });
 
-                    const originalQuestionText = questionElement.textContent.toLowerCase();
-                    const originalAnswerText = answerElement.dataset.originalContent.toLowerCase();
-
-                    let isMatch = false;
-                    if (deepSeekResponse) {
-                        isMatch = originalQuestionText.includes(deepSeekResponse) || originalAnswerText.includes(deepSeekResponse);
-                    }
-                    if (!deepSeekResponse || !isMatch) {
-                        // Fallback to original term if DeepSeek fails or doesn't match
-                        isMatch = originalQuestionText.includes(term) || originalAnswerText.includes(term);
-                    }
-
-                    if (isMatch && term.length > 0) {
-                        // Highlight matching terms
-                        questionElement.innerHTML = highlightText(questionElement.textContent, term, deepSeekResponse);
-                        answerElement.innerHTML = highlightText(
-                            answerElement.dataset.originalContent,
-                            term,
-                            deepSeekResponse
-                        );
-                        sectionHasMatch = true;
-                    } else if (term.length === 0) {
-                        // Reset to original content when term is cleared
-                        questionElement.innerHTML = questionElement.textContent;
-                        answerElement.innerHTML = answerElement.dataset.originalContent;
-                    }
-
-                    item.style.display = isMatch ? '' : 'none';
-
-                    // Expand matching items
-                    if (isMatch && term.length > 0) {
-                        const collapseElement = item.querySelector('.collapse');
-                        if (collapseElement && !collapseElement.classList.contains('show')) {
-                            new bootstrap.Collapse(collapseElement, { show: true });
-                        }
-                    }
-                });
-
-                // Show/hide entire section based on matches
-                section.style.display = questions.some(item => item.style.display !== 'none') ? '' : 'none';
-
-                if ((sectionHasMatch || sectionTitle.includes(term)) && term !== '') {
-                    section.classList.remove('qa-hidden');
-                    matchCount++;
-                } else if (term === '') {
-                    // When search term is cleared, reset all blocks
-                    section.classList.remove('qa-hidden');
-                } else {
-                    section.classList.add('qa-hidden');
-                }
-            });
-        } else {
-            //When the search term is cleared.
-            countElement.style.display = 'none';
-
-            // Show Categories and Q&A sections when input is cleared
-            if (categorySection) categorySection.style.display = 'block';
-            if (qaContainer) qaContainer.style.display = 'block';
-            // Remove highlights when search term is cleared
-            document.querySelectorAll('.accordion-body').forEach(body => {
-                body.innerHTML = body.dataset.originalContent || body.textContent; // Revert to original text
-            });
-        }
+            } else {
+                section.classList.add('qa-hidden');
+            }
+        });
 
         // --- Update the Search Results Counter and Hide Sections ---
+        const countElement = document.querySelector('.search-results-count');
+
         if (term) {
             if (matchCount > 0) {
                 countElement.textContent = `${matchCount} result${matchCount > 1 ? 's' : ''} found`;
@@ -288,10 +223,14 @@ async function handleSearch(generateCategoryLinkText) {
             // Show Categories and Q&A sections when input is cleared
             if (categorySection) categorySection.style.display = 'block';
             if (qaContainer) qaContainer.style.display = 'block';
-            // Remove highlights when search term is cleared
-            document.querySelectorAll('.accordion-body').forEach(body => {
-                body.innerHTML = body.dataset.originalContent || body.textContent; // Revert to original text
-            });
+               // Clear all highlights (Feature 10)
+               questions.forEach(item => {
+                const questionElement = item.querySelector('.btn-link');
+                const answerElement = item.querySelector('.accordion-body');
+
+                questionElement.innerHTML = questionElement.textContent;
+                answerElement.innerHTML = answerElement.dataset.originalContent;
+              });
         }
     }, 300);
 
