@@ -522,7 +522,11 @@ font-family: Verdana, sans-serif;
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="/js/search.js"></script>
-	
+
+	<script src="/js/categoryManager.js"></script>
+
+
+
 <div class="search-container">
     <div class="search-wrapper">
         <div class="search-box">
@@ -538,10 +542,10 @@ font-family: Verdana, sans-serif;
     <div class="search-results-count"></div>
 </div>
 
-<script src="/js/categoryManager.js"></script>
 
 	
 
+{{!-- File: Views/Pages/Questions_And_Answer.handlebars --}}
 {{!-- File: Views/Pages/Questions_And_Answer.handlebars --}}
 <div style="width: 85%;">
     <div class="categories-container">
@@ -554,7 +558,7 @@ font-family: Verdana, sans-serif;
                         <h3>{{this.displayName}}</h3>
                         {{#each this.ids}}
                             <div class="category-item">
-                                <a href="#{{this}}">{{lookup ../qaContent this}}</a>
+                                <a href="#{{this}}">{{> (lookup ../qaContent this) }}</a>
                             </div>
                         {{/each}}
                     </div>
@@ -563,7 +567,6 @@ font-family: Verdana, sans-serif;
         </div>
     </div>
 </div>
-
 
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
     <div class="container">
@@ -575,12 +578,15 @@ font-family: Verdana, sans-serif;
         <div class="row justify-content-md-center">
             <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
                 {{#each qaContent}}
+                    <div id="{{@key}}">
                     {{{this}}}
+                    </div>
                 {{/each}}
             </div>
         </div>
     </div>
 </section>
+
 </div>
 
 	
