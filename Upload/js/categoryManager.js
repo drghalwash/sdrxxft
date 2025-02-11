@@ -10,28 +10,7 @@
  *   - Graceful handling of missing content
  ***********************************************************************/
 
-const categoriesConfig = {
-    face: {
-        displayName: 'Face',
-        ids: ['rhinoplasty', 'facelift', 'eyelidlift']
-    },
-    breast: {
-        displayName: 'Breast',
-        ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation', 'pocketlift']
-    },
-    body: {
-        displayName: 'Body',
-        ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
-    },
-    minimallyinvasive: {
-        displayName: 'Minimally Invasive',
-        ids: ['botoxfillers', 'noninvasivecontouring']
-    },
-    other: {
-        displayName: 'Other',
-        ids: ['hairtransplant', 'skinresurfacing']
-    }
-};
+
 
 /**
  * Generates human-readable category link text from category IDs.
