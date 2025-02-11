@@ -131,34 +131,52 @@ function generateCategoryNav() {
     });
 }
 
-**
- * Renders a group of QA blocks by including the appropriate partial.
- * @param {string} groupKey - The key of the group in categoriesConfig.
+/**
+ * Groups QA blocks under category headings.
  */
-function renderQAGroup(groupKey) {
+function groupQABlocks() {
+     
+const reverseMapping = {};
+    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
+        group.ids.forEach(id => {
+            reverseMapping[id] = groupKey;
+        });
+    });
+
+    const qaBlocks = document.querySelectorAll('.mb-8');
     const qaContainer = document.querySelector('.bsb-faq-3 .row');
     if (!qaContainer) return;
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', `/Qapartials/${groupKey}.handlebars`, true); // Path to partial
-
-    xhr.onload = function () {
-        if (xhr.status >= 200 && xhr.status < 300) {
-            // Success: Inject the partial's content into the container
-            qaContainer.innerHTML = xhr.responseText;
-        } else {
-            // Handle error: Log it, display a message, etc.
-            console.error(`Failed to load partial ${groupKey}.handlebars`);
-            qaContainer.innerHTML = `<p>Failed to load content for ${categoriesConfig[groupKey].displayName}.</p>`;
+    const groupedQA = {};
+    qaBlocks.forEach(block => {
+        const header = block.querySelector('h3');
+        if (header?.id) {
+            const groupKey = reverseMapping[header.id];
+            if (groupKey) {
+                if (!groupedQA[groupKey]) {
+                    groupedQA[groupKey] = [];
+                }
+                groupedQA[groupKey].push(block);
+            }
         }
-    };
+    });
 
-    xhr.onerror = function () {
-        console.error(`Error loading partial ${groupKey}.handlebars`);
-        qaContainer.innerHTML = `<p>Error loading content for ${categoriesConfig[groupKey].displayName}.</p>`;
-    };
+    qaContainer.innerHTML = ''; // Clear existing content
 
-    xhr.send();
+    Object.keys(categoriesConfig).forEach(groupKey => {
+        if (groupedQA[groupKey]?.length) {
+            const groupHeader = document.createElement('h2'); // Changed to H2 for hierarchy
+            groupHeader.textContent = categoriesConfig[groupKey].displayName;
+            groupHeader.id = groupKey; // Add an ID to the header for linking
+            qaContainer.appendChild(groupHeader);
+
+            groupedQA[groupKey].forEach(block => {
+                qaContainer.appendChild(block);
+            });
+
+            qaContainer.appendChild(document.createElement('hr')); // Add a separator
+        }
+    });
 }
 
 /**
