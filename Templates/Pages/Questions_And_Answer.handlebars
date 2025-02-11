@@ -521,7 +521,13 @@ font-family: Verdana, sans-serif;
 </div> --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<script src="/js/categoryManager.js"></script>
 <script src="/js/search.js"></script>
+<script>
+   if (window.initializeSearch) {
+       window.initializeSearch(generateCategoryLinkText);
+   }
+</script>
 	
 <div class="search-container">
     <div class="search-wrapper">
@@ -538,20 +544,21 @@ font-family: Verdana, sans-serif;
     <div class="search-results-count"></div>
 </div>
 
-<script src="/js/categoryManager.js"></script>
 	
+{{!-- File: Views/Pages/Questions_And_Answer.handlebars --}}
+
 {{!-- File: Views/Pages/Questions_And_Answer.handlebars --}}
 
 <div style="width: 85%;">
     <div class="categories-container">
         <h2>Categories</h2>
         <div class="categories">
-            {{#each categoriesWithContent}}
+            {{#each categoriesConfig}}
                 <div class="category-group">
                     <h3>{{this.displayName}}</h3>
-                    {{#each this.linkText}}
+                    {{#each this.ids}}
                         <div class="category-item">
-                            <a href="#{{../groupKey}}">{{this}}</a>
+                            <a href="#{{this}}">{{this}}</a>
                         </div>
                     {{/each}}
                 </div>
@@ -569,14 +576,10 @@ font-family: Verdana, sans-serif;
         </div>
         <div class="row justify-content-md-center">
             <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-                {{#each categoriesWithContent}}
-                    {{#if this.content}}
-                        <div id="{{this.groupKey}}" class="qa-item">
-                            {{{this.content}}}
-                        </div>
-                    {{else}}
-                        <p>No content available for {{this.displayName}}.</p>
-                    {{/if}}
+                {{#each categoriesConfig}}
+                    {{#with (lookup ../qaContent @key)}}
+                        {{{this}}}
+                    {{/with}}
                 {{/each}}
             </div>
         </div>
