@@ -5,9 +5,8 @@
  * Description: Centralizes category configuration and display logic.
  * Features:
  *   - Dynamic category navigation generation
- *   - Group-based display logic
+ *   - Single partial include
  *   - Responsive grid layout
- *   - Dynamic injection of Handlebars partials
  *   - Graceful handling of missing content
  ***********************************************************************/
 
@@ -133,68 +132,39 @@ function generateCategoryNav() {
 }
 
 /**
- * Injects partials into Questions_And_Answer.handlebars.
+ * Loads content into the groupContent partial based on the category.
  */
-function injectPartials() {
-    const qaContainer = $('.bsb-faq-3 .row'); // Corrected jQuery selector
-    if (!qaContainer.length) {
-        console.error('Partial insertion point not found in Questions_And_Answer.handlebars');
+function loadGroupContent() {
+    const qaContainer = document.querySelector('.bsb-faq-3 .row .col-12');
+    if (!qaContainer) {
+        console.error('QA container not found.');
         return;
     }
 
-    let partialsHTML = '';
-    for (const groupKey in categoriesConfig) {
-        partialsHTML += `{{> ${categoriesConfig[groupKey].displayName} }}\n`;
-    }
-
-    qaContainer.html(partialsHTML); // Use jQuery to set HTML content
-}
-
-/**
- * Groups QA blocks under category headings.
- */
-function groupQABlocks() {
-    const reverseMapping = {};
-    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
-        group.ids.forEach(id => {
-            reverseMapping[id] = groupKey;
-        });
-    });
-
-    const qaBlocks = document.querySelectorAll('.mb-8');
-    const qaContainer = document.querySelector('.bsb-faq-3 .row');
-    if (!qaContainer) return;
-
-    const groupedQA = {};
-    qaBlocks.forEach(block => {
-        const header = block.querySelector('h3');
-        if (header?.id) {
-            const groupKey = reverseMapping[header.id];
-            if (groupKey) {
-                if (!groupedQA[groupKey]) {
-                    groupedQA[groupKey] = [];
+    // Function to fetch and insert content
+    const fetchAndInsert = (category) => {
+        fetch(`/Qapartials/${category}.handlebars`) // Construct the path
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load partial: ${category}`);
                 }
-                groupedQA[groupKey].push(block);
-            }
-        }
-    });
-
-    qaContainer.innerHTML = ''; // Clear existing content
-
-    Object.keys(categoriesConfig).forEach(groupKey => {
-        if (groupedQA[groupKey]?.length) {
-            const groupHeader = document.createElement('h2'); // Changed to H2 for hierarchy
-            groupHeader.textContent = categoriesConfig[groupKey].displayName;
-            groupHeader.id = groupKey; // Add an ID to the header for linking
-            qaContainer.appendChild(groupHeader);
-
-            groupedQA[groupKey].forEach(block => {
-                qaContainer.appendChild(block);
+                return response.text();
+            })
+            .then(data => {
+                qaContainer.innerHTML = data; // Insert content
+            })
+            .catch(error => {
+                console.error(error);
+                qaContainer.innerHTML = `<p>Failed to load content for ${category}.</p>`; // Graceful error
             });
+    };
 
-            qaContainer.appendChild(document.createElement('hr')); // Add a separator
-        }
-    });
+    // Get category from URL
+    const path = window.location.pathname;
+    const category = path.split('/')[1] || 'breast'; // Adjust based on your routing
+
+    // Load content for the category
+    fetchAndInsert(category);
 }
 
 /**
@@ -217,27 +187,12 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
-function initializeAll() {
+document.addEventListener('DOMContentLoaded', () => {
     generateCategoryNav();
-    groupQABlocks();
     handleResponsiveDesign();
-    injectPartials(); // Call the dynamic partial injector
-
+    loadGroupContent();
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
         window.initializeSearch(generateCategoryLinkText);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if jQuery is loaded
-    if (window.jQuery) {
-        initializeAll();
-    } else {
-        // If jQuery is not loaded, wait for it
-        const script = document.createElement("script");
-        script.src = "https://code.jquery.com/jquery-3.6.0.min.js";
-        script.onload = initializeAll;
-        document.head.appendChild(script);
     }
 });
