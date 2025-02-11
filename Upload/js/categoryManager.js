@@ -10,28 +10,7 @@
  *   - Graceful handling of missing content
  ***********************************************************************/
 
-function generateCategoryLinkText(id) {
-    const categoryMap = {
-        rhinoplasty: 'Rhinoplasty',
-        facelift: 'Facelift',
-        eyelidlift: 'Eyelid Lift',
-        breastpsycho: 'Breast Thinking all night',
-        lollipoptechnique: 'Breast Reduction Lollipop technique',
-        miniinvasivebreast: 'Thinking about mini invasive',
-        breastaugmentation: 'Breast Augmentation',
-        pocketlift: 'Pocket Lift Breast Reduction',
-        bodycontouring: 'Body Contouring',
-        fatgrafting: 'Fat Grafting',
-        tummytuck: 'Tummy Tuck Abdominoplasty',
-        brazilianbuttlift: 'Brazilian Butt Lift BBL',
-        mommyMakeover: 'Mommy Makeover',
-        botoxfillers: 'Botox Dermal Fillers',
-        noninvasivecontouring: 'Non-Invasive Body Contouring',
-        hairtransplant: 'Hair Transplant',
-        skinresurfacing: 'LASER SKIN RESURFACING'
-    };
-    return categoryMap[id] || id; // Returns id if display name not found
-}
+
 
 /**
  * Generates category navigation links based on the categoriesConfig.
