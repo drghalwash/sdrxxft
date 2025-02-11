@@ -560,7 +560,11 @@ font-family: Verdana, sans-serif;
         </div>
         <div class="row justify-content-md-center">
             <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-                <!-- The Q&A content will be loaded here dynamically -->
+                {{! Iterate through the categoriesConfig object }}
+                {{#each categoriesConfig}}
+                    {{! Include the partial based on the group's display name }}
+                    {{> (this.displayName)}}
+                {{/each}}
             </div>
         </div>
     </div>
