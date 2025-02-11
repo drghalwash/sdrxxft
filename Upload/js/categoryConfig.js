@@ -1,4 +1,4 @@
-// File: categoryConfig.js
+// File: /config/categoryConfig.js
 
 export const categoriesConfig = {
     face: {
@@ -23,7 +23,7 @@ export const categoriesConfig = {
     }
 };
 
-export const categoryMap = {
+export const categoryDisplayNames = {
     rhinoplasty: 'Rhinoplasty',
     facelift: 'Facelift',
     eyelidlift: 'Eyelid Lift',
