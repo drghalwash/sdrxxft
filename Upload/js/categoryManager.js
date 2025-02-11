@@ -1,6 +1,6 @@
 // File: /public/js/categoryManager.js
 
-import { categoriesConfig, categoryDisplayNames } from '../../config/categoryConfig.js';
+import { categoriesConfig, categoryDisplayNames } from '../upload/js/categoryConfig.js';
 
 function generateCategoryLinkText(id) {
     return categoryDisplayNames[id] || id;
