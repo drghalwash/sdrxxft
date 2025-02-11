@@ -541,21 +541,22 @@ font-family: Verdana, sans-serif;
 <script src="/js/categoryManager.js"></script>
 
 	
-
 {{!-- File: Views/Pages/Questions_And_Answer.handlebars --}}
 <div style="width: 85%;">
     <div class="categories-container">
         <h2>Categories</h2>
         <div class="categories">
             {{#each categories}}
-                <div class="category-group">
-                    <h3>{{this.displayName}}</h3>
-                    {{#each this.ids}}
-                        <div class="category-item">
-                            <a href="#{{this}}">{{lookup ../qaContent this}}</a>
-                        </div>
-                    {{/each}}
-                </div>
+                {{#if this.ids.length}}
+                    <div class="category-group">
+                        <h3>{{this.displayName}}</h3>
+                        {{#each this.ids}}
+                            <div class="category-item">
+                                <a href="#{{this}}">{{generateCategoryLinkText this}}</a>
+                            </div>
+                        {{/each}}
+                    </div>
+                {{/if}}
             {{/each}}
         </div>
     </div>
@@ -565,23 +566,26 @@ font-family: Verdana, sans-serif;
     <div class="container">
         <div class="row justify-content-md-center">
             <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-                <div class="search-results-count"></div>
-            </div>
-        </div>
-        <div class="row justify-content-md-center">
-            <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-                {{#each qaContent}}
-                    {{{this}}}
+                {{#each categories}}
+                    {{#if this.ids.length}}
+                        <div class="category-content" id="{{this.key}}">
+                            <h2>{{this.displayName}}</h2>
+                            {{#each this.ids}}
+                                {{#if (lookup ../qaContent this)}}
+                                    <div id="{{this}}" class="mb-8">
+                                        {{{lookup ../qaContent this}}}
+                                    </div>
+                                {{/if}}
+                            {{/each}}
+                        </div>
+                    {{/if}}
                 {{/each}}
             </div>
         </div>
     </div>
 </section>
-</div>
+ </div>
 
-	
-		
-   
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
     <button id="scrollTopBtn">⬆ </button>

@@ -40,25 +40,27 @@ export const index = async (req, res) => {
         const qaContent = {};
         for (const file of partialFiles) {
             if (file.endsWith('.handlebars')) {
-                const groupName = file.replace('.handlebars', '');
+                const categoryId = file.replace('.handlebars', '');
                 const filePath = join(partialsDir, file);
                 try {
                     const content = await readFile(filePath, 'utf-8');
-                    qaContent[groupName] = content;
+                    qaContent[categoryId] = content;
                 } catch (err) {
                     console.warn(`Warning: Could not read partial ${file}:`, err);
-                    // Continue with other files if one fails
                 }
             }
         }
 
-        // Map categories to their display names and available content
-        const categories = Object.entries(categoriesConfig).map(([key, category]) => ({
-            key,
-            displayName: category.displayName,
-            ids: category.ids,
-            hasContent: !!qaContent[category.displayName.toLowerCase()]
-        }));
+        // Map categories and check for actual content
+        const categories = Object.entries(categoriesConfig).map(([key, category]) => {
+            const hasContent = category.ids.some(id => qaContent[id]);
+            return {
+                key,
+                displayName: category.displayName,
+                ids: category.ids.filter(id => qaContent[id]), // Only include IDs with content
+                hasContent
+            };
+        }).filter(category => category.hasContent); // Only include categories with content
 
         // Render the template with all necessary data
         res.render('Pages/Questions_And_Answer', {
