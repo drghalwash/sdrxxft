@@ -64,9 +64,7 @@ function generateCategoryLinkText(id) {
 /**
  * Generates category navigation links based on the categoriesConfig.
  */
-function generateCategoryNav() {
-    const navContainer = document.querySelector('.categories-container .categories');
-    if (!navContainer) return;
+
 
     navContainer.style.cssText = `
         display: grid;
