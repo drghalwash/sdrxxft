@@ -3,7 +3,7 @@
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
-import { categoriesConfig } from '../js/categoryConfig.js';
+import { categoriesConfig } from '../upload/js/categoryConfig.js';
 
 export const index = async (req, res) => {
     try {
