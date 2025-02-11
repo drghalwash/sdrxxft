@@ -5,8 +5,10 @@
  * Description: Centralizes category configuration and display logic.
  * Features:
  *   - Dynamic category navigation generation
- *   - Handles group display based on partials
+ *   - Group-based display logic
  *   - Responsive grid layout
+ *   - Dynamic injection of Handlebars partials
+ *   - Graceful handling of missing content
  ***********************************************************************/
 
 const categoriesConfig = {
@@ -131,23 +133,67 @@ function generateCategoryNav() {
 }
 
 /**
- * Dynamically includes partials for Q&A blocks based on categoriesConfig.
+ * Injects partials into Questions_And_Answer.handlebars.
  */
-function includeQAPartials() {
+function injectPartials() {
+    const qaContainer = document.querySelector('.bsb-faq-3 .row .partials-insertion-point');
+    if (!qaContainer) {
+        console.error('Partial insertion point not found in Questions_And_Answer.handlebars');
+        return;
+    }
+
+    let partialsHTML = '';
+    for (const groupKey in categoriesConfig) {
+        partialsHTML += `{{> ${categoriesConfig[groupKey].displayName} }}\n`;
+    }
+
+    qaContainer.innerHTML = partialsHTML;
+}
+
+/**
+ * Groups QA blocks under category headings.
+ */
+function groupQABlocks() {
+    const reverseMapping = {};
+    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
+        group.ids.forEach(id => {
+            reverseMapping[id] = groupKey;
+        });
+    });
+
+    const qaBlocks = document.querySelectorAll('.mb-8');
     const qaContainer = document.querySelector('.bsb-faq-3 .row');
     if (!qaContainer) return;
+
+    const groupedQA = {};
+    qaBlocks.forEach(block => {
+        const header = block.querySelector('h3');
+        if (header?.id) {
+            const groupKey = reverseMapping[header.id];
+            if (groupKey) {
+                if (!groupedQA[groupKey]) {
+                    groupedQA[groupKey] = [];
+                }
+                groupedQA[groupKey].push(block);
+            }
+        }
+    });
 
     qaContainer.innerHTML = ''; // Clear existing content
 
     Object.keys(categoriesConfig).forEach(groupKey => {
-        const group = categoriesConfig[groupKey];
-        const partialName = group.displayName; // Use displayName for partial name
+        if (groupedQA[groupKey]?.length) {
+            const groupHeader = document.createElement('h2'); // Changed to H2 for hierarchy
+            groupHeader.textContent = categoriesConfig[groupKey].displayName;
+            groupHeader.id = groupKey; // Add an ID to the header for linking
+            qaContainer.appendChild(groupHeader);
 
-        // Create a div to hold the partial content
-        const partialDiv = document.createElement('div');
-        partialDiv.innerHTML = `{{> ${partialName} }}`; // Template literal to insert partial
+            groupedQA[groupKey].forEach(block => {
+                qaContainer.appendChild(block);
+            });
 
-        qaContainer.appendChild(partialDiv);
+            qaContainer.appendChild(document.createElement('hr')); // Add a separator
+        }
     });
 }
 
@@ -173,9 +219,9 @@ function handleResponsiveDesign() {
 
 document.addEventListener('DOMContentLoaded', () => {
     generateCategoryNav();
-    includeQAPartials();
+    groupQABlocks();
     handleResponsiveDesign();
-
+    injectPartials(); // Call the dynamic partial injector
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
         window.initializeSearch(generateCategoryLinkText);
