@@ -548,18 +548,22 @@ font-family: Verdana, sans-serif;
         <h2>Categories</h2>
         <div class="categories">
             {{#each categories}}
-                <div class="category-group">
-                    <h3>{{this.displayName}}</h3>
-                    {{#each this.ids}}
-                        <div class="category-item">
-                            <a href="#{{this}}">{{lookup ../qaContent this}}</a>
-                        </div>
-                    {{/each}}
-                </div>
+                <!-- Only render if the category has content -->
+                {{#if this.hasContent}}
+                    <div class="category-group">
+                        <h3>{{this.displayName}}</h3>
+                        {{#each this.ids}}
+                            <div class="category-item">
+                                <a href="#{{this}}">{{lookup ../qaContent this}}</a>
+                            </div>
+                        {{/each}}
+                    </div>
+                {{/if}}
             {{/each}}
         </div>
     </div>
 </div>
+
 
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
     <div class="container">
