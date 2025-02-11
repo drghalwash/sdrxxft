@@ -1,5 +1,5 @@
 // File: /js/categoryManager.js
- 
+
 /***********************************************************************
  * File: /js/categoryManager.js
  * Description: Centralizes category configuration and display logic.
@@ -10,7 +10,28 @@
  *   - Graceful handling of missing content
  ***********************************************************************/
 
-
+const categoriesConfig = {
+    face: {
+        displayName: 'Face',
+        ids: ['rhinoplasty', 'facelift', 'eyelidlift']
+    },
+    breast: {
+        displayName: 'Breast',
+        ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation', 'pocketlift']
+    },
+    body: {
+        displayName: 'Body',
+        ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
+    },
+    minimallyinvasive: {
+        displayName: 'Minimally Invasive',
+        ids: ['botoxfillers', 'noninvasivecontouring']
+    },
+    other: {
+        displayName: 'Other',
+        ids: ['hairtransplant', 'skinresurfacing']
+    }
+};
 
 /**
  * Generates human-readable category link text from category IDs.
@@ -43,7 +64,9 @@ function generateCategoryLinkText(id) {
 /**
  * Generates category navigation links based on the categoriesConfig.
  */
-
+function generateCategoryNav() {
+    const navContainer = document.querySelector('.categories-container .categories');
+    if (!navContainer) return;
 
     navContainer.style.cssText = `
         display: grid;
@@ -176,7 +199,7 @@ function handleResponsiveDesign() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
- generateCategoryNav()
+    generateCategoryNav();
     groupQABlocks();
     handleResponsiveDesign();
 
