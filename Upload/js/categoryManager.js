@@ -5,7 +5,7 @@
  * Description: Centralizes category configuration and display logic.
  * Features:
  *   - Dynamic category navigation generation
- *   - Single partial include
+ *   - Group-based display logic
  *   - Responsive grid layout
  *   - Graceful handling of missing content
  ***********************************************************************/
@@ -107,7 +107,7 @@ function generateCategoryNav() {
             `;
 
             const link = document.createElement('a');
-            link.href = `/${groupKey}`; // Use the groupKey as the URL
+            link.href = `#${id}`; // Use the id as the anchor
             link.textContent = generateCategoryLinkText(id);
             link.style.cssText = `
                 color: #495057;
@@ -132,26 +132,49 @@ function generateCategoryNav() {
 }
 
 /**
- * Loads content into the groupContent partial based on the category.
+ * Groups QA blocks under category headings.
  */
-function loadGroupContent(group) {
-    const qaContainer = $('.bsb-faq-3 .row .col-12');
-    if (!qaContainer.length) {
-        console.error('QA container not found.');
-        return;
-    }
+function groupQABlocks() {
+    const reverseMapping = {};
+    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
+        group.ids.forEach(id => {
+            reverseMapping[id] = groupKey;
+        });
+    });
 
-    // Sanitize group name to prevent path injection (Feature 1)
-    const sanitizedGroup = encodeURIComponent(group);
-    const partialPath = `/Qapartials/${sanitizedGroup}.handlebars`;
+    const qaBlocks = document.querySelectorAll('.mb-8');
+    const qaContainer = document.querySelector('.bsb-faq-3 .row');
+    if (!qaContainer) return;
 
-    $.get(partialPath)
-    .done(function (data) {
-        qaContainer.html(data);
-    })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-        console.error('Failed to load content for ' + sanitizedGroup + ': ' + textStatus + ' - ' + errorThrown);
-        qaContainer.html('<p>Failed to load content for ' + sanitizedGroup + '.</p>');
+    const groupedQA = {};
+    qaBlocks.forEach(block => {
+        const header = block.querySelector('h3');
+        if (header?.id) {
+            const groupKey = reverseMapping[header.id];
+            if (groupKey) {
+                if (!groupedQA[groupKey]) {
+                    groupedQA[groupKey] = [];
+                }
+                groupedQA[groupKey].push(block);
+            }
+        }
+    });
+
+    qaContainer.innerHTML = ''; // Clear existing content
+
+    Object.keys(categoriesConfig).forEach(groupKey => {
+        if (groupedQA[groupKey]?.length) {
+            const groupHeader = document.createElement('h2'); // Changed to H2 for hierarchy
+            groupHeader.textContent = categoriesConfig[groupKey].displayName;
+            groupHeader.id = groupKey; // Add an ID to the header for linking
+            qaContainer.appendChild(groupHeader);
+
+            groupedQA[groupKey].forEach(block => {
+                qaContainer.appendChild(block);
+            });
+
+            qaContainer.appendChild(document.createElement('hr')); // Add a separator
+        }
     });
 }
 
@@ -175,21 +198,10 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
-$(document).ready(() => {
+document.addEventListener('DOMContentLoaded', () => {
     generateCategoryNav();
+    groupQABlocks();
     handleResponsiveDesign();
-
-    // Extract group from URL and load content on page load (Feature 2)
-    const path = window.location.pathname;
-    const group = path.split('/')[1] || 'breast'; // Default to 'breast' if no path
-    loadGroupContent(group);
-
-    // Handle navigation clicks (Feature 3)
-    $('.categories-container .categories').on('click', 'a', function (e) {
-        e.preventDefault(); // Prevent the default link behavior
-        const group = this.getAttribute('href').substring(1); // Extract group from href
-        loadGroupContent(group); // Load the new group content
-    });
 
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
