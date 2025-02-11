@@ -552,22 +552,19 @@ font-family: Verdana, sans-serif;
 
 {{! File: Questions_And_Answer.handlebars }}
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
-  <div class="container">
-    <div class="row justify-content-md-center">
-      <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-        <div class="search-results-count"></div>
-      </div>
+    <div class="container">
+        <div class="row justify-content-md-center">
+            <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
+                <div class="search-results-count"></div>
+            </div>
+        </div>
+        <div class="row justify-content-md-center">
+            <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
+                <!-- The Q&A content will be loaded here dynamically -->
+            </div>
+        </div>
     </div>
-    <div class="row justify-content-md-center">
-      <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-        {{#each (Object.keys categoriesConfig)}}
-          {{> (lookup categoriesConfig @key 'displayName')}}
-        {{/each}}
-      </div>
-    </div>
-  </div>
 </section>
-
 </div>
 
 	
