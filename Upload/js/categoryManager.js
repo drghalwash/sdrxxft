@@ -14,25 +14,37 @@
 const categoriesConfig = {
     face: {
         displayName: 'Face',
+        PartialName: 'Face',
         ids: ['rhinoplasty', 'facelift', 'eyelidlift']
     },
     breast: {
         displayName: 'Breast',
+        PartialName: 'Breast',
         ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation', 'pocketlift']
     },
     body: {
         displayName: 'Body',
+        PartialName: 'Body',
         ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
     },
     minimallyinvasive: {
         displayName: 'Minimally Invasive',
+        PartialName: 'Minimally Invasive',
         ids: ['botoxfillers', 'noninvasivecontouring']
     },
     other: {
         displayName: 'Other',
+        PartialName: 'Other',
         ids: ['hairtransplant', 'skinresurfacing']
     }
 };
+// Helper to convert categoriesConfig to array format
+Handlebars.registerHelper('getGroups', (config) => {
+    return Object.values(config).map(group => ({
+        ...group,
+        partialName: group.partialName || group.displayName // Fallback
+    }));
+});
 
 /**
  * Generates human-readable category link text from category IDs.
