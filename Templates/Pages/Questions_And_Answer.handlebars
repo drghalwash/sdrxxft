@@ -550,9 +550,9 @@ font-family: Verdana, sans-serif;
             {{#each categories}}
                 <div class="category-group">
                     <h3>{{this.displayName}}</h3>
-                    {{#each this.ids}}
+                    {{#each this.items}}
                         <div class="category-item">
-                            <a href="#{{this}}">{{lookup ../qaContent this}}</a>
+                            <a href="#{{this.id}}">{{this.displayName}}</a>
                         </div>
                     {{/each}}
                 </div>
@@ -560,6 +560,7 @@ font-family: Verdana, sans-serif;
         </div>
     </div>
 </div>
+
 
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
     <div class="container">
