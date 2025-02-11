@@ -83,8 +83,8 @@ function highlightText(content, term, deepSeekResponse = null) {
 }
 
 // DeepSeek-R1 API interaction (OpenRouter)
-async function queryDeepSeek(searchTerm) {
-    const apiKey = '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'; // Replace with your actual API key
+    async function queryDeepSeek(searchTerm) {
+    const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
     const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';  // Correct OpenRouter endpoint
     const model = 'deepseek/deepseek-r1:free'; // Specify the DeepSeek model
 
