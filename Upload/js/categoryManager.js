@@ -136,8 +136,8 @@ function generateCategoryNav() {
  * Injects partials into Questions_And_Answer.handlebars.
  */
 function injectPartials() {
-    const qaContainer = document.querySelector('.bsb-faq-3 .row .partials-insertion-point');
-    if (!qaContainer) {
+    const qaContainer = $('.bsb-faq-3 .row .col-12'); // Use jQuery selector
+    if (!qaContainer.length) {
         console.error('Partial insertion point not found in Questions_And_Answer.handlebars');
         return;
     }
@@ -147,7 +147,7 @@ function injectPartials() {
         partialsHTML += `{{> ${categoriesConfig[groupKey].displayName} }}\n`;
     }
 
-    qaContainer.innerHTML = partialsHTML;
+    qaContainer.html(partialsHTML); // Use jQuery to set HTML content
 }
 
 /**
