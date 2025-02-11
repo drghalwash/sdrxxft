@@ -80,21 +80,19 @@ export const index = async (req, res) => {
             }
         }
 
-        // Map categories to their display names and available content
-        const categories = Object.entries(categoriesConfig).map(([key, category]) => ({
-            key,
-            displayName: category.displayName,
-            ids: category.ids,
-            hasContent: !!qaContent[category.displayName.toLowerCase()]
-        }));
+        const categoriesWithContent = Object.entries(categoriesConfig).map(([groupKey, group]) => {
+            return {
+                ...group,
+                groupKey,
+                content: qaContent[group.displayName] || null,
+                linkText: group.ids.map(id => generateCategoryLinkText(id)) // Get all category names
+            };
+        });
 
         // Pass necessary data to the template
         res.render('Pages/Questions_And_Answer', {
             Photo_Gallary,
-            qaContent,
-            categories,
-            generateCategoryLinkText, // Pass the function
-            categoriesConfig, //Pass the config object to use
+            categoriesWithContent,
             title: 'Q&As',
             layout: 'main'
         });
@@ -104,3 +102,4 @@ export const index = async (req, res) => {
         res.status(500).render("Pages/404", { error });
     }
 };
+
