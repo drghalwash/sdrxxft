@@ -107,7 +107,7 @@ function generateCategoryNav() {
             `;
 
             const link = document.createElement('a');
-            link.href = `#${id}`; // Use the id as the anchor
+            link.href = `/${groupKey}`; // Use the groupKey as the URL
             link.textContent = generateCategoryLinkText(id);
             link.style.cssText = `
                 color: #495057;
@@ -134,37 +134,25 @@ function generateCategoryNav() {
 /**
  * Loads content into the groupContent partial based on the category.
  */
-function loadGroupContent() {
-    const qaContainer = document.querySelector('.bsb-faq-3 .row .col-12');
-    if (!qaContainer) {
+function loadGroupContent(group) {
+    const qaContainer = $('.bsb-faq-3 .row .col-12');
+    if (!qaContainer.length) {
         console.error('QA container not found.');
         return;
     }
 
-    // Function to fetch and insert content
-    const fetchAndInsert = (category) => {
-        fetch(`/Qapartials/${category}.handlebars`) // Construct the path
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to load partial: ${category}`);
-                }
-                return response.text();
-            })
-            .then(data => {
-                qaContainer.innerHTML = data; // Insert content
-            })
-            .catch(error => {
-                console.error(error);
-                qaContainer.innerHTML = `<p>Failed to load content for ${category}.</p>`; // Graceful error
-            });
-    };
+    // Sanitize group name to prevent path injection (Feature 1)
+    const sanitizedGroup = encodeURIComponent(group);
+    const partialPath = `/Qapartials/${sanitizedGroup}.handlebars`;
 
-    // Get category from URL
-    const path = window.location.pathname;
-    const category = path.split('/')[1] || 'breast'; // Adjust based on your routing
-
-    // Load content for the category
-    fetchAndInsert(category);
+    $.get(partialPath)
+    .done(function (data) {
+        qaContainer.html(data);
+    })
+    .fail(function (jqXHR, textStatus, errorThrown) {
+        console.error('Failed to load content for ' + sanitizedGroup + ': ' + textStatus + ' - ' + errorThrown);
+        qaContainer.html('<p>Failed to load content for ' + sanitizedGroup + '.</p>');
+    });
 }
 
 /**
@@ -187,10 +175,22 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+$(document).ready(() => {
     generateCategoryNav();
     handleResponsiveDesign();
-    loadGroupContent();
+
+    // Extract group from URL and load content on page load (Feature 2)
+    const path = window.location.pathname;
+    const group = path.split('/')[1] || 'breast'; // Default to 'breast' if no path
+    loadGroupContent(group);
+
+    // Handle navigation clicks (Feature 3)
+    $('.categories-container .categories').on('click', 'a', function (e) {
+        e.preventDefault(); // Prevent the default link behavior
+        const group = this.getAttribute('href').substring(1); // Extract group from href
+        loadGroupContent(group); // Load the new group content
+    });
+
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
         window.initializeSearch(generateCategoryLinkText);
