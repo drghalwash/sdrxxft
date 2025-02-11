@@ -27,6 +27,34 @@ const categoriesConfig = {
     }
 };
 
+/**
+ * Generates human-readable category link text from category IDs.
+ * @param {string} id - The category ID.
+ * @returns {string} - The corresponding category display name.
+ */
+function generateCategoryLinkText(id) {
+    const categoryMap = {
+        rhinoplasty: 'Rhinoplasty',
+        facelift: 'Facelift',
+        eyelidlift: 'Eyelid Lift',
+        breastpsycho: 'Breast Thinking all night',
+        lollipoptechnique: 'Breast Reduction Lollipop technique',
+        miniinvasivebreast: 'Thinking about mini invasive',
+        breastaugmentation: 'Breast Augmentation',
+        pocketlift: 'Pocket Lift Breast Reduction',
+        bodycontouring: 'Body Contouring',
+        fatgrafting: 'Fat Grafting',
+        tummytuck: 'Tummy Tuck Abdominoplasty',
+        brazilianbuttlift: 'Brazilian Butt Lift BBL',
+        mommyMakeover: 'Mommy Makeover',
+        botoxfillers: 'Botox Dermal Fillers',
+        noninvasivecontouring: 'Non-Invasive Body Contouring',
+        hairtransplant: 'Hair Transplant',
+        skinresurfacing: 'LASER SKIN RESURFACING'
+    };
+    return categoryMap[id] || id; // Returns id if display name not found
+}
+
 export const index = async (req, res) => {
     try {
         // Get photo gallery data
@@ -60,23 +88,16 @@ export const index = async (req, res) => {
             hasContent: !!qaContent[category.displayName.toLowerCase()]
         }));
 
-        // Render the template with all necessary data
-        // In Controller/Questions_And_Answer.js
-res.render('Pages/Questions_And_Answer', {
-    Photo_Gallary,
-    qaContent,
-    categories: Object.entries(categoriesConfig).map(([key, group]) => ({
-        ...group,
-        key,
-        items: group.ids.map(id => ({
-            id,
-            displayName: generateCategoryLinkText(id)
-        }))
-    })),
-    title: 'Q&As',
-    layout: 'main'
-});
-
+        // Pass necessary data to the template
+        res.render('Pages/Questions_And_Answer', {
+            Photo_Gallary,
+            qaContent,
+            categories,
+            generateCategoryLinkText, // Pass the function
+            categoriesConfig, //Pass the config object to use
+            title: 'Q&As',
+            layout: 'main'
+        });
 
     } catch (error) {
         console.error('Error loading Q&A content:', error);
