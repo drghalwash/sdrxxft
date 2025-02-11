@@ -1,5 +1,5 @@
 // File: /js/categoryManager.js
-
+ 
 /***********************************************************************
  * File: /js/categoryManager.js
  * Description: Centralizes category configuration and display logic.
