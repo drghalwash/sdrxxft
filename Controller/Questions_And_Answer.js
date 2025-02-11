@@ -3,29 +3,7 @@
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
-
-const categoriesConfig = {
-    face: {
-        displayName: 'Face',
-        ids: ['rhinoplasty', 'facelift', 'eyelidlift']
-    },
-    breast: {
-        displayName: 'Breast',
-        ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation', 'pocketlift']
-    },
-    body: {
-        displayName: 'Body',
-        ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
-    },
-    minimallyinvasive: {
-        displayName: 'Minimally Invasive',
-        ids: ['botoxfillers', 'noninvasivecontouring']
-    },
-    other: {
-        displayName: 'Other',
-        ids: ['hairtransplant', 'skinresurfacing']
-    }
-};
+import { categoriesConfig, categoryMap } from '../categoryConfig.js';
 
 export const index = async (req, res) => {
     try {
@@ -60,7 +38,53 @@ export const index = async (req, res) => {
                 ids: category.ids.filter(id => qaContent[id]), // Only include IDs with content
                 hasContent
             };
-        }).filter(category => category.hasContent); // Only include categories with content
+        }).filter(category => category.hasContent);
+
+        // CSS for catnav
+        const catnavCSS = `
+            .categories-container {
+                background-color: #ffffff;
+                border-radius: 10px;
+                padding: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                max-height: 300px;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+            .categories {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            .category-group {
+                background-color: #ffffff;
+                border: 2px solid #ffa500;
+                border-radius: 8px;
+                padding: 15px;
+                break-inside: avoid;
+            }
+            .category-group h3 {
+                background-color: #394464;
+                color: white;
+                font-family: Verdana, sans-serif;
+                font-weight: bold;
+                font-size: 1.1em;
+                padding: 8px 15px;
+                margin-bottom: 15px;
+                border-radius: 0 20px 20px 0;
+            }
+            .category-item a {
+                color: #495057;
+                text-decoration: none;
+                font-family: Verdana, sans-serif;
+                font-size: 0.95em;
+                transition: color 0.3s ease;
+            }
+            .category-item a:hover {
+                color: #007bff;
+                font-weight: bold;
+            }
+        `;
 
         // Render the template with all necessary data
         res.render('Pages/Questions_And_Answer', {
@@ -68,7 +92,8 @@ export const index = async (req, res) => {
             qaContent,
             categories,
             title: 'Q&As',
-            layout: 'main'
+            layout: 'main',
+            catnavCSS
         });
 
     } catch (error) {
