@@ -61,13 +61,22 @@ export const index = async (req, res) => {
         }));
 
         // Render the template with all necessary data
-        res.render('Pages/Questions_And_Answer', {
-            Photo_Gallary,
-            qaContent,
-            categories,
-            title: 'Q&As',
-            layout: 'main'
-        });
+        // In Controller/Questions_And_Answer.js
+res.render('Pages/Questions_And_Answer', {
+    Photo_Gallary,
+    qaContent,
+    categories: Object.entries(categoriesConfig).map(([key, group]) => ({
+        ...group,
+        key,
+        items: group.ids.map(id => ({
+            id,
+            displayName: generateCategoryLinkText(id)
+        }))
+    })),
+    title: 'Q&As',
+    layout: 'main'
+});
+
 
     } catch (error) {
         console.error('Error loading Q&A content:', error);
