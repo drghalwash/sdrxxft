@@ -197,7 +197,6 @@ function handleResponsiveDesign() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    generateCategoryNav();
     groupQABlocks();
     handleResponsiveDesign();
 
