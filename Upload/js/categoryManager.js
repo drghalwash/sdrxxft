@@ -5,46 +5,32 @@
  * Description: Centralizes category configuration and display logic.
  * Features:
  *   - Dynamic category navigation generation
- *   - Group-based display logic
+ *   - Handles group display based on partials
  *   - Responsive grid layout
- *   - Graceful handling of missing content
- *   - Dynamic partial inclusion
  ***********************************************************************/
 
 const categoriesConfig = {
     face: {
         displayName: 'Face',
-        PartialName: 'Face',
         ids: ['rhinoplasty', 'facelift', 'eyelidlift']
     },
     breast: {
         displayName: 'Breast',
-        PartialName: 'Breast',
         ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation', 'pocketlift']
     },
     body: {
         displayName: 'Body',
-        PartialName: 'Body',
         ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
     },
     minimallyinvasive: {
         displayName: 'Minimally Invasive',
-        PartialName: 'Minimally Invasive',
         ids: ['botoxfillers', 'noninvasivecontouring']
     },
     other: {
         displayName: 'Other',
-        PartialName: 'Other',
         ids: ['hairtransplant', 'skinresurfacing']
     }
 };
-// Helper to convert categoriesConfig to array format
-Handlebars.registerHelper('getGroups', (config) => {
-    return Object.values(config).map(group => ({
-        ...group,
-        partialName: group.partialName || group.displayName // Fallback
-    }));
-});
 
 /**
  * Generates human-readable category link text from category IDs.
@@ -145,49 +131,23 @@ function generateCategoryNav() {
 }
 
 /**
- * Groups QA blocks under category headings.
+ * Dynamically includes partials for Q&A blocks based on categoriesConfig.
  */
-function groupQABlocks() {
-    const reverseMapping = {};
-    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
-        group.ids.forEach(id => {
-            reverseMapping[id] = groupKey;
-        });
-    });
-
-    const qaBlocks = document.querySelectorAll('.mb-8');
+function includeQAPartials() {
     const qaContainer = document.querySelector('.bsb-faq-3 .row');
     if (!qaContainer) return;
-
-    const groupedQA = {};
-    qaBlocks.forEach(block => {
-        const header = block.querySelector('h3');
-        if (header?.id) {
-            const groupKey = reverseMapping[header.id];
-            if (groupKey) {
-                if (!groupedQA[groupKey]) {
-                    groupedQA[groupKey] = [];
-                }
-                groupedQA[groupKey].push(block);
-            }
-        }
-    });
 
     qaContainer.innerHTML = ''; // Clear existing content
 
     Object.keys(categoriesConfig).forEach(groupKey => {
-        if (groupedQA[groupKey]?.length) {
-            const groupHeader = document.createElement('h2'); // Changed to H2 for hierarchy
-            groupHeader.textContent = categoriesConfig[groupKey].displayName;
-            groupHeader.id = groupKey; // Add an ID to the header for linking
-            qaContainer.appendChild(groupHeader);
+        const group = categoriesConfig[groupKey];
+        const partialName = group.displayName; // Use displayName for partial name
 
-            groupedQA[groupKey].forEach(block => {
-                qaContainer.appendChild(block);
-            });
+        // Create a div to hold the partial content
+        const partialDiv = document.createElement('div');
+        partialDiv.innerHTML = `{{> ${partialName} }}`; // Template literal to insert partial
 
-            qaContainer.appendChild(document.createElement('hr')); // Add a separator
-        }
+        qaContainer.appendChild(partialDiv);
     });
 }
 
@@ -211,33 +171,10 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
-/**
- * Dynamically includes partials based on categoriesConfig.
- */
-function includePartials() {
-    const qaContainer = document.querySelector('.bsb-faq-3 .row');
-    if (!qaContainer) return;
-
-    Object.keys(categoriesConfig).forEach(groupKey => {
-        const partialName = categoriesConfig[groupKey].displayName;
-        try {
-            const partialContent = Handlebars.partials[partialName];
-            if (partialContent) {
-                const partialElement = document.createElement('div');
-                partialElement.innerHTML = partialContent();
-                qaContainer.appendChild(partialElement);
-            }
-        } catch (error) {
-            console.warn(`Partial for ${partialName} not found or failed to load:`, error);
-        }
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     generateCategoryNav();
-    groupQABlocks();
+    includeQAPartials();
     handleResponsiveDesign();
-    includePartials();
 
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
