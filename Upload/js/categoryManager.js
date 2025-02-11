@@ -8,6 +8,7 @@
  *   - Group-based display logic
  *   - Responsive grid layout
  *   - Graceful handling of missing content
+ *   - Dynamic partial inclusion
  ***********************************************************************/
 
 const categoriesConfig = {
@@ -135,8 +136,7 @@ function generateCategoryNav() {
  * Groups QA blocks under category headings.
  */
 function groupQABlocks() {
-     
-const reverseMapping = {};
+    const reverseMapping = {};
     Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
         group.ids.forEach(id => {
             reverseMapping[id] = groupKey;
@@ -199,10 +199,33 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
+/**
+ * Dynamically includes partials based on categoriesConfig.
+ */
+function includePartials() {
+    const qaContainer = document.querySelector('.bsb-faq-3 .row');
+    if (!qaContainer) return;
+
+    Object.keys(categoriesConfig).forEach(groupKey => {
+        const partialName = categoriesConfig[groupKey].displayName;
+        try {
+            const partialContent = Handlebars.partials[partialName];
+            if (partialContent) {
+                const partialElement = document.createElement('div');
+                partialElement.innerHTML = partialContent();
+                qaContainer.appendChild(partialElement);
+            }
+        } catch (error) {
+            console.warn(`Partial for ${partialName} not found or failed to load:`, error);
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     generateCategoryNav();
     groupQABlocks();
     handleResponsiveDesign();
+    includePartials();
 
     // Initialize search functionality if available (safe to call even if not defined)
     if (window.initializeSearch) {
