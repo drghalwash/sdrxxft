@@ -1,0 +1,14 @@
+[build]
+  command = "npm run start"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[functions]
+  directory = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/server.js"
+  status = 200
