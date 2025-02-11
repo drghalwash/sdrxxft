@@ -135,7 +135,8 @@ function generateCategoryNav() {
  * Groups QA blocks under category headings.
  */
 function groupQABlocks() {
-    const reverseMapping = {};
+     window.templateContext = { categoriesConfig };
+const reverseMapping = {};
     Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
         group.ids.forEach(id => {
             reverseMapping[id] = groupKey;
