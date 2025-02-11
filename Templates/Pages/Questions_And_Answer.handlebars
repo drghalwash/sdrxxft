@@ -550,20 +550,22 @@ font-family: Verdana, sans-serif;
   </div>
 </div>
 
+{{! File: Questions_And_Answer.handlebars }}
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-         <div class="search-results-count"></div>
+        <div class="search-results-count"></div>
       </div>
     </div>
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-          {{> Breast}}
-          
-    </div>
+        {{#each (Object.keys categoriesConfig)}}
+          {{> (lookup categoriesConfig @key 'displayName')}}
+        {{/each}}
       </div>
     </div>
+  </div>
 </section>
 
 </div>
