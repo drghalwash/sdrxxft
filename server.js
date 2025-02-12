@@ -34,7 +34,6 @@ app.use(methodOverride('_method'));
 
 // Configure Handlebars with partials directory
 app.engine('handlebars', engine({
-    // Use partialsDirs instead of partialsDir (partialsDir is deprecated)
     partialsDir: [
         join(__dirname, 'Qapartials'),
         join(__dirname, 'Templates', 'partials')
@@ -43,12 +42,26 @@ app.engine('handlebars', engine({
     defaultLayout: 'main',
     layoutsDir: join(__dirname, 'Templates', 'layouts'),
     helpers: {
-        add: function(a, b) {
-            return a + b;
-        },
+        add: (a, b) => a + b,
+        dynamicPartial: (name) => {
+            if (!name || typeof name !== 'string') {
+                console.warn('dynamicPartial helper called with invalid name:', name);
+                return '<!-- Dynamic partial: missing or invalid name -->';
+            }
+            const partial = Handlebars.partials[name];
+            if (!partial) {
+                console.warn(`Partial "${name}" not found`);
+                return `<!-- Dynamic partial "${name}" not found -->`;
+            }
+            try {
+                return new Handlebars.SafeString(partial());
+            } catch (e) {
+                console.error(`Error rendering partial "${name}":`, e);
+                return `<!-- Error rendering partial "${name}" -->`;
+            }
+        }
     }
 }));
-
 
 app.set('view engine', 'handlebars');
 const viewsPath = join(__dirname, 'Templates');
