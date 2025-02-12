@@ -1,33 +1,31 @@
-import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
-import { readdir } from 'fs/promises';
-import { join } from 'path';
 
-export const index = async (req, res) => {
-    try {
-        // Get photo gallery data
-        const Photo_Gallary = await Photo_Gallaries.find({}).lean();
-                                    
-        // Read Q&A partial files
-        const partialsDir = join(process.cwd(), 'Qapartials');
-        const partialFiles = await readdir(partialsDir);
-        
-// File: /Controller/Questions_And_Answer.js (Modification)
-// After line 11 (where qaPartials is created)
-const qaPartials = partialFiles
-    .filter(file => file.endsWith('.handlebars'))
-        .map(file => file.replace('.handlebars', ''));  // Change from object to array
+	<nav class="unique-navbar">
+		<div class="distinct-logo"><a href="/Home"><img src="/images/new-logo.png"> </a></div>
+		<div class="menu-toggle" id="toggle-button">
+			<div class="toggle-lines">
+				<span style=" width: 15px; "></span>
+				<span style=" width: 20px;"></span>
+				<span style=" width: 15px;"></span>
+			</div>
+			<span class="menu-text">Menu</span>
+		</div>
+		<div class="rare-menu" id="menu">
+			<a href="/Home" class="uncommon-link">HOME</a>
+			<div class="dropdown">
+				<a id="about" href="#" class="uncommon-link">ABOUT US <span class="dropdown-arrow">&#9662;</span></a>
+				<ul class="dropdown-menu">
+					<li><a href="/About_Us/Dr_Khaled" class="dropdown-link">Meet Dr.Khaled</a></li>
+					<li><a href="/About_Us/Dr_Mohamed" class="dropdown-link">Meet Dr.Mohammed</a></li>
+					<li><a href="/Choose" class="dropdown-link">How to Choose A Plastic Surgeon</a></li>
+				</ul>
+			</div>
 
-        // Then modify the render call to pass as array instead of object
-        res.render('Pages/Questions_And_Answer', {
-            Photo_Gallary,
-                qaPartials,  // Now an array of partial names
-                    title: 'Q&As',
-                        layout: 'main'
-                        });
-
-
-    } catch (error) {
-        console.error('Error loading Q&A content:', error);
-        res.status(500).render("Pages/404", { error });
-    }
-};
+			<div class="dropdown">
+				<a href="#" class="uncommon-link">PHOTO GALLERY <span class="dropdown-arrow">&#9662;</span></a>
+				<ul class="dropdown-menu">
+					{{#each Photo_Gallary}}
+					<li><a href="/Photo_Gallary/{{_id}}" class="dropdown-link">{{name}}</a></li>
+					{{/each}}
+					<li><a href="/Guidelines" class="dropdown-link">Photography Guidelines</a></li>
+				</ul>
+			</div>
