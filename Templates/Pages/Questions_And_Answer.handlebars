@@ -568,24 +568,6 @@ font-family: Verdana, sans-serif;
   </div>
 </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        function fixPartialStructure(container) {
-            const cleanedContent = container.innerHTML.replace(/<div><\/div>/g, '');
-            container.innerHTML = cleanedContent;
-
-            const qaContainers = container.querySelectorAll('.qa-container');
-            qaContainers.forEach(container => {
-                container.classList.add('w-100');
-            });
-        }
-
-        const partialContainer = document.querySelector('.col-12');
-        if (partialContainer) {
-            fixPartialStructure(partialContainer);
-        }
-    });
-</script>
 
 	
 		
