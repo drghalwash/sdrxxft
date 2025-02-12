@@ -6,27 +6,25 @@ export const index = async (req, res) => {
     try {
         // Get photo gallery data
         const Photo_Gallary = await Photo_Gallaries.find({}).lean();
-        
+                                    
         // Read Q&A partial files
         const partialsDir = join(process.cwd(), 'Qapartials');
         const partialFiles = await readdir(partialsDir);
         
-        // Create an object of available partials
-        const qaPartials = partialFiles
-            .filter(file => file.endsWith('.handlebars'))
-            .reduce((acc, file) => {
-                const partialName = file.replace('.handlebars', '');
-                acc[partialName] = true;
-                return acc;
-            }, {});
+// File: /Controller/Questions_And_Answer.js (Modification)
+// After line 11 (where qaPartials is created)
+const qaPartials = partialFiles
+    .filter(file => file.endsWith('.handlebars'))
+        .map(file => file.replace('.handlebars', ''));  // Change from object to array
 
-        // Render the template with both photo gallery and Q&A data
+        // Then modify the render call to pass as array instead of object
         res.render('Pages/Questions_And_Answer', {
             Photo_Gallary,
-            qaPartials,
-            title: 'Q&As',
-            layout: 'main'
-        });
+                qaPartials,  // Now an array of partial names
+                    title: 'Q&As',
+                        layout: 'main'
+                        });
+
 
     } catch (error) {
         console.error('Error loading Q&A content:', error);
