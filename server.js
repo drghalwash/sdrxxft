@@ -43,21 +43,22 @@ app.engine('handlebars', engine({
     layoutsDir: join(__dirname, 'Templates', 'layouts'),
     helpers: {
         add: (a, b) => a + b,
-        dynamicPartial: (name) => {
+               dynamicPartial: (name) => {
             if (!name || typeof name !== 'string') {
                 console.warn('dynamicPartial helper called with invalid name:', name);
                 return '<!-- Dynamic partial: missing or invalid name -->';
             }
-            const partial = Handlebars.partials[name];
+            // Change this line to use the correct path for partials
+            const partial = Handlebars.partials[`Qapartials/${name}`];
             if (!partial) {
-                console.warn(`Partial "${name}" not found`);
-                return `<!-- Dynamic partial "${name}" not found -->`;
+                console.warn(`Partial "Qapartials/${name}" not found`);
+                return `<!-- Dynamic partial "Qapartials/${name}" not found -->`;
             }
             try {
                 return new Handlebars.SafeString(partial());
             } catch (e) {
-                console.error(`Error rendering partial "${name}":`, e);
-                return `<!-- Error rendering partial "${name}" -->`;
+                console.error(`Error rendering partial "Qapartials/${name}":`, e);
+                return `<!-- Error rendering partial "Qapartials/${name}" -->`;
             }
         }
     }
