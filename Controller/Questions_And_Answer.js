@@ -1,8 +1,12 @@
 // Import MongoDB model
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
 
-// Import Supabase client
-import { getZones, getCategories, getQuestions } from "../supabase/qa.js";
+// Import Supabase functions
+import {
+  getZones,
+  getCategories,
+  getQuestions,
+} from "../supabase/qa.js";
 
 export const index = async (req, res) => {
   try {
@@ -14,15 +18,29 @@ export const index = async (req, res) => {
     const categories = await getCategories();
     const questions = await getQuestions();
 
+    // Organize categories under their respective zones
+    const organizedZones = zones.map((zone) => ({
+      ...zone,
+      categories: categories.filter((category) => category.zone_id === zone.id),
+    }));
+
+    // Organize questions under their respective categories
+    const organizedCategories = categories.map((category) => ({
+      ...category,
+      questions: questions.filter(
+        (question) => question.category_id === category.id
+      ),
+    }));
+
     // Render the Handlebars template with fetched data
     res.render("Pages/Questions_And_Answer", {
-      Photo_Gallary, // MongoDB data for photo galleries
-      zones,         // Supabase zones
-      categories,    // Supabase categories
-      questions,     // Supabase questions
+      Photo_Gallary, // MongoDB photo gallery data
+      zones: organizedZones, // Zones with nested categories
+      categories: organizedCategories, // Categories with nested questions
+      questions, // Flat list of questions (if needed elsewhere)
     });
   } catch (error) {
-    console.error("Error fetching Q&A data:", error.message);
+    console.error("Error in Qacontroller:", error.message);
     res.status(500).render("Pages/404", { error });
   }
 };
