@@ -1,41 +1,28 @@
 // Import MongoDB model
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
 
-// Import Supabase client
-import { createClient } from "@supabase/supabase-js";
+// Import Supabase functions
+import { getZones, getCategories, getQuestions } from "../supabase/qa.js";
 
-// Supabase client setup
-const supabaseUrl = "https://drwismqxtzpptshsqphb.supabase.co";
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Controller function to fetch data
 export const index = async (req, res) => {
   try {
     // Fetch data from MongoDB
     const Photo_Gallary = await Photo_Gallaries.find({}).lean();
 
-    // Fetch zones from Supabase
-    const { data: zones, error: zonesError } = await supabase.from("zones").select("*");
-    if (zonesError) throw zonesError;
+    // Fetch data from Supabase
+    const zones = await getZones();
+    const categories = await getCategories();
+    const questions = await getQuestions();
 
-    // Fetch categories from Supabase
-    const { data: categories, error: categoriesError } = await supabase.from("categories").select("*");
-    if (categoriesError) throw categoriesError;
-
-    // Fetch questions from Supabase
-    const { data: questions, error: questionsError } = await supabase.from("questions").select("*");
-    if (questionsError) throw questionsError;
-
-    // Render the Handlebars template with data from both databases
+    // Render the Handlebars template with fetched data
     res.render("Pages/Questions_And_Answer", {
-      Photo_Gallary, // MongoDB data
-      zones,         // Supabase zones
-      categories,    // Supabase categories
-      questions,     // Supabase questions
+      Photo_Gallary, // MongoDB data for navbar/footer
+      zones,         // Supabase zones for category navigation
+      categories,    // Supabase categories for grouping questions
+      questions,     // Supabase questions for collapsible sections
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in Qacontroller:", error.message);
     res.status(500).render("Pages/404", { error });
   }
 };
