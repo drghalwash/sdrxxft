@@ -1,7 +1,7 @@
 // Import MongoDB model
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
 
-// Import Supabase functions
+// Import Supabase client
 import { getZones, getCategories, getQuestions } from "../supabase/qa.js";
 
 export const index = async (req, res) => {
@@ -16,13 +16,13 @@ export const index = async (req, res) => {
 
     // Render the Handlebars template with fetched data
     res.render("Pages/Questions_And_Answer", {
-      Photo_Gallary, // MongoDB data for navbar/footer
-      zones,         // Supabase zones for category navigation
-      categories,    // Supabase categories for grouping questions
-      questions,     // Supabase questions for collapsible sections
+      Photo_Gallary, // MongoDB data for photo galleries
+      zones,         // Supabase zones
+      categories,    // Supabase categories
+      questions,     // Supabase questions
     });
   } catch (error) {
-    console.error("Error in Qacontroller:", error.message);
+    console.error("Error fetching Q&A data:", error.message);
     res.status(500).render("Pages/404", { error });
   }
 };
