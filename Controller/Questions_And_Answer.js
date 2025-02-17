@@ -1,35 +1,41 @@
+// Import MongoDB model
 import Photo_Gallaries from "../DB Models/Photo_Gallary.js";
-import { readdir } from 'fs/promises';
-import { join } from 'path';
 
+// Import Supabase client
+import { createClient } from "@supabase/supabase-js";
+
+// Supabase client setup
+const supabaseUrl = "https://drwismqxtzpptshsqphb.supabase.co";
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Controller function to fetch data
 export const index = async (req, res) => {
-    try {
-        // Get photo gallery data
-        const Photo_Gallary = await Photo_Gallaries.find({}).lean();
-        
-        // Read Q&A partial files
-        const partialsDir = join(process.cwd(), 'Qapartials');
-        const partialFiles = await readdir(partialsDir);
-        
-        // Create an object of available partials
-        const qaPartials = partialFiles
-            .filter(file => file.endsWith('.handlebars'))
-            .reduce((acc, file) => {
-                const partialName = file.replace('.handlebars', '');
-                acc[partialName] = true;
-                return acc;
-            }, {});
+  try {
+    // Fetch data from MongoDB
+    const Photo_Gallary = await Photo_Gallaries.find({}).lean();
 
-        // Render the template with both photo gallery and Q&A data
-        res.render('Pages/Questions_And_Answer', {
-            Photo_Gallary,
-            qaPartials,
-            title: 'Q&As',
-            layout: 'main'
-        });
+    // Fetch zones from Supabase
+    const { data: zones, error: zonesError } = await supabase.from("zones").select("*");
+    if (zonesError) throw zonesError;
 
-    } catch (error) {
-        console.error('Error loading Q&A content:', error);
-        res.status(500).render("Pages/404", { error });
-    }
+    // Fetch categories from Supabase
+    const { data: categories, error: categoriesError } = await supabase.from("categories").select("*");
+    if (categoriesError) throw categoriesError;
+
+    // Fetch questions from Supabase
+    const { data: questions, error: questionsError } = await supabase.from("questions").select("*");
+    if (questionsError) throw questionsError;
+
+    // Render the Handlebars template with data from both databases
+    res.render("Pages/Questions_And_Answer", {
+      Photo_Gallary, // MongoDB data
+      zones,         // Supabase zones
+      categories,    // Supabase categories
+      questions,     // Supabase questions
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).render("Pages/404", { error });
+  }
 };
