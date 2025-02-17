@@ -38,7 +38,7 @@ const getZonesWithDetails = async () => {
         })),
     }));
 
-    console.log("Organized Zones:", organizedZones);
+    console.log("Organized Zones:", JSON.stringify(organizedZones, null, 2));
     return organizedZones;
   } catch (error) {
     console.error(error);
@@ -70,3 +70,4 @@ export const index = async (req, res) => {
     res.status(500).render("Pages/404", { error });
   }
 };
+
