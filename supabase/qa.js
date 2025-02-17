@@ -1,162 +1,152 @@
-// qa.js
+// supabase/qa.js
 import { createClient } from '@supabase/supabase-js';
 
-// Environment validation
+// ===================
+//  Setup Supabase Client
+// ===================
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase credentials in environment variables');
+    throw new Error('Supabase URL and Key are required. Check your environment variables.');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// ===================
+//  Data Fetching Functions
+// ===================
+
 /**
- * Fetches zones with error handling and timeout
- * @returns {Promise<Array>} Array of zones
+ * @function getZones
+ * @description Fetches all zones from the database.
+ * @returns {Promise<Array|Error>} A promise that resolves with an array of zones or rejects with an error.
  */
 export const getZones = async () => {
     try {
         const { data, error } = await supabase
             .from('zones')
-            .select('*')
-            .timeout(5000);
+            .select('*');
 
-        if (error) throw error;
-        return data || [];
+        if (error) {
+            throw new Error(`Error fetching zones: ${error.message}`);
+        }
+
+        return data;
     } catch (error) {
-        console.error('Failed to fetch zones:', error.message);
-        throw error;
+        console.error(error);
+        throw error; // Re-throw to handle it in the calling function
     }
 };
 
 /**
- * Fetches categories with related zone information
- * @param {number} [zoneId] Optional zone ID to filter categories
- * @returns {Promise<Array>} Array of categories with zone info
+ * @function getCategories
+ * @description Fetches all categories from the database.
+ * @returns {Promise<Array|Error>} A promise that resolves with an array of categories or rejects with an error.
  */
-export const getCategories = async (zoneId = null) => {
+export const getCategories = async () => {
     try {
-        let query = supabase
+        const { data, error } = await supabase
             .from('categories')
-            .select(`
-                *,
-                zones:zone_id (
-                    name,
-                    technical_id
-                )
-            `)
-            .timeout(5000);
+            .select('*');
 
-        if (zoneId) {
-            query = query.eq('zone_id', zoneId);
+        if (error) {
+            throw new Error(`Error fetching categories: ${error.message}`);
         }
 
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
+        return data;
     } catch (error) {
-        console.error('Failed to fetch categories:', error.message);
+        console.error(error);
         throw error;
     }
 };
 
 /**
- * Fetches questions with category information
- * @param {string} [categoryTechnicalId] Optional category technical ID
- * @returns {Promise<Array>} Array of questions with category info
+ * @function getQuestions
+ * @description Fetches all questions from the database.
+ * @returns {Promise<Array|Error>} A promise that resolves with an array of questions or rejects with an error.
  */
-export const getQuestions = async (categoryTechnicalId = null) => {
+export const getQuestions = async () => {
     try {
-        let query = supabase
+        const { data, error } = await supabase
             .from('questions')
-            .select(`
-                *,
-                categories:category_technical_id (
-                    display_name,
-                    technical_id,
-                    zone_id
-                )
-            `)
-            .order('sort_order', { ascending: true })
-            .timeout(5000);
+            .select('*');
 
-        if (categoryTechnicalId) {
-            query = query.eq('category_technical_id', categoryTechnicalId);
+        if (error) {
+            throw new Error(`Error fetching questions: ${error.message}`);
         }
 
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
+        return data;
     } catch (error) {
-        console.error('Failed to fetch questions:', error.message);
+        console.error(error);
         throw error;
     }
 };
 
 /**
- * Fetches popular questions from the view
- * @returns {Promise<Array>} Array of popular questions with category info
+ * @function getPopularQuestions
+ * @description Fetches popular questions from the database view.
+ * @returns {Promise<Array|Error>} A promise that resolves with an array of popular questions or rejects with an error.
  */
 export const getPopularQuestions = async () => {
     try {
         const { data, error } = await supabase
-            .from('popular_questions')
-            .select('*')
-            .timeout(5000);
+            .from('popular_questions') // Accessing the VIEW, not a table
+            .select('*');
 
-        if (error) throw error;
-        return data || [];
+        if (error) {
+            throw new Error(`Error fetching popular questions: ${error.message}`);
+        }
+
+        return data;
     } catch (error) {
-        console.error('Failed to fetch popular questions:', error.message);
+        console.error(error);
         throw error;
     }
 };
 
 /**
- * Fetches recently added categories from the view
- * @returns {Promise<Array>} Array of recent categories
+ * @function getRecentlyAddedCategories
+ * @description Fetches recently added categories from the database view.
+ * @returns {Promise<Array|Error>} A promise that resolves with an array of recently added categories or rejects with an error.
  */
 export const getRecentlyAddedCategories = async () => {
     try {
         const { data, error } = await supabase
-            .from('recently_added_categories')
-            .select('*')
-            .timeout(5000);
+            .from('recently_added_categories') // Accessing the VIEW, not a table
+            .select('*');
 
-        if (error) throw error;
-        return data || [];
+        if (error) {
+            throw new Error(`Error fetching recently added categories: ${error.message}`);
+        }
+
+        return data;
     } catch (error) {
-        console.error('Failed to fetch recent categories:', error.message);
+        console.error(error);
         throw error;
     }
 };
 
 /**
- * Fetches a single question by its ID
- * @param {number} questionId The question ID
- * @returns {Promise<Object>} Question object with category info
+ * @function getQuestionsByCategory
+ * @description Fetches questions for a specific category.
+ * @param {string} categoryTechnicalId - The technical ID of the category.
+ * @returns {Promise<Array|Error>} A promise that resolves with an array of questions or rejects with an error.
  */
-export const getQuestionById = async (questionId) => {
+export const getQuestionsByCategory = async (categoryTechnicalId) => {
     try {
         const { data, error } = await supabase
             .from('questions')
-            .select(`
-                *,
-                categories:category_technical_id (
-                    display_name,
-                    technical_id,
-                    zone_id
-                )
-            `)
-            .eq('id', questionId)
-            .single()
-            .timeout(5000);
+            .select('*')
+            .eq('category_technical_id', categoryTechnicalId);
 
-        if (error) throw error;
+        if (error) {
+            throw new Error(`Error fetching questions for category ${categoryTechnicalId}: ${error.message}`);
+        }
+
         return data;
     } catch (error) {
-        console.error(`Failed to fetch question ${questionId}:`, error.message);
+        console.error(error);
         throw error;
     }
 };
