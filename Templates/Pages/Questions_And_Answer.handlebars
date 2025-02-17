@@ -520,8 +520,10 @@ font-family: Verdana, sans-serif;
   </div>
 </div> --}}
 
+<!-- Include search.js for search functionality -->
 <script src="/js/search.js"></script>
 	
+<!-- Search Bar -->
 <div class="search-container">
     <div class="search-wrapper">
         <div class="search-box">
@@ -537,38 +539,57 @@ font-family: Verdana, sans-serif;
     <div class="search-results-count"></div>
 </div>
 
+<!-- Include categoryManager.js for dynamic category generation -->
 <script src="/js/categoryManager.js"></script>
 
-	
-
+<!-- Category Navigation Container -->
 <div style="width: 85%;">
   <div class="categories-container">
     <h2>Categories</h2>
     <div class="categories">
-      <!-- Empty container: the external JS will generate and insert category items here -->
+      <!-- This container will be populated dynamically by categoryManager.js -->
     </div>
   </div>
 </div>
 
+<!-- Q&A Section -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
   <div class="container">
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-         <div class="search-results-count"></div>
+         <!-- Search results count (optional) -->
+         <!-- <div class="search-results-count"></div> -->
       </div>
     </div>
     <div class="row justify-content-md-center">
       <div class="col-12 col-md-10 col-lg-8 col-xl-7 col-xxl-6">
-          {{> Breast}}
-          
-    </div>
+          {{#each zones}}
+            <h3 id="{{this.id}}">{{this.name}}</h3> <!-- Zone name -->
+            {{#each this.categories}}
+              <h4 id="{{this.id}}">{{this.name}}</h4> <!-- Category name -->
+              <div class="custom-accordion" id="accordion_{{this.id}}">
+                {{#each this.questions}}
+                  <div class="accordion-item">
+                    <h2 class="mb-0">
+                      <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{this.id}}">
+                        {{this.question_text}}
+                      </button>
+                    </h2>
+                    <div id="collapse{{this.id}}" class="collapse show">
+                      <div class="accordion-body">{{this.answer_text}}</div>
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            {{/each}}
+          {{/each}}
       </div>
     </div>
+  </div>
 </section>
 
-</div>
 
-	
+
 		
    
 <!-- Back to Top and Bottom Button -->
