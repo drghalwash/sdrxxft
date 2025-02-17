@@ -519,7 +519,11 @@ font-family: Verdana, sans-serif;
     </div>
   </div>
 </div> --}}
-
+<!-- Expose zones data for the categoryManager to use -->
+  <script>
+    // Use triple curly braces to output unescaped JSON.
+    window.zonesData = {{{json zones}}};
+  </script>
 <!-- Include search.js for search functionality -->
 <script src="/js/search.js"></script>
 	
