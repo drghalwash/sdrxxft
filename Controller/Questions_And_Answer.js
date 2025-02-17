@@ -70,4 +70,3 @@ export const index = async (req, res) => {
     res.status(500).render("Pages/404", { error });
   }
 };
-
