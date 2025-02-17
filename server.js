@@ -88,6 +88,14 @@ app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
 
 
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = 'https://drwismqxtzpptshsqphb.supabase.co'
+
+const supabaseKey = process.env.SUPABASE_KEY
+
+const supabase = createClient(supabaseUrl, supabaseKey)
+
 
 // Error handlers
 app.use('/Qapartials/*', (req, res, next) => {
