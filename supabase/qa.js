@@ -1,18 +1,10 @@
 // supabase/qa.js
-import { createClient } from '@supabase/supabase-js';
 
-// ===================
-//  Setup Supabase Client
-// ===================
-const supabaseUrl = 'https://drwismqxtzpptshsqphb.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY;
+import { createClient } from '@supabase/supabase-js'
 
-if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase URL and Key are required. Check your environment variables.');
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+const supabaseUrl = 'https://drwismqxtzpptshsqphb.supabase.co'
+const supabaseKey = process.env.SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 // ===================
 //  Data Fetching Functions
 // ===================
