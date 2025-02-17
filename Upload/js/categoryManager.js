@@ -1,80 +1,26 @@
-// File: /js/categoryManager.js
-
 /***********************************************************************
- * File: /js/categoryManager.js
- * Description: Centralizes category configuration and display logic.
- * Features:
- *   - Dynamic category navigation generation
- *   - Group-based display logic
- *   - Responsive grid layout
- *   - Graceful handling of missing content
+ * File: /upload/js/categoryManager.js
+ * Description: Dynamically generates category navigation and handles 
+ * responsive grid layout for categories based on Supabase data.
  ***********************************************************************/
 
-const categoriesConfig = {
-    face: {
-        displayName: 'Face',
-        ids: ['rhinoplasty', 'facelift', 'eyelidlift']
-    },
-    breast: {
-        displayName: 'Breast',
-        ids: ['breastpsycho', 'lollipoptechnique', 'miniinvasivebreast', 'breastaugmentation', 'pocketlift']
-    },
-    body: {
-        displayName: 'Body',
-        ids: ['bodycontouring', 'fatgrafting', 'tummytuck', 'brazilianbuttlift', 'mommyMakeover']
-    },
-    minimallyinvasive: {
-        displayName: 'Minimally Invasive',
-        ids: ['botoxfillers', 'noninvasivecontouring']
-    },
-    other: {
-        displayName: 'Other',
-        ids: ['hairtransplant', 'skinresurfacing']
-    }
-};
-
 /**
- * Generates human-readable category link text from category IDs.
- * @param {string} id - The category ID.
- * @returns {string} - The corresponding category display name.
+ * Generates the category navigation dynamically based on zones and categories.
+ * @param {Array} zones - Array of zones with nested categories.
  */
-function generateCategoryLinkText(id) {
-    const categoryMap = {
-        rhinoplasty: 'Rhinoplasty',
-        facelift: 'Facelift',
-        eyelidlift: 'Eyelid Lift',
-        breastpsycho: 'Breast Thinking all night',
-        lollipoptechnique: 'Breast Reduction Lollipop technique',
-        miniinvasivebreast: 'Thinking about mini invasive',
-        breastaugmentation: 'Breast Augmentation',
-        pocketlift: 'Pocket Lift Breast Reduction',
-        bodycontouring: 'Body Contouring',
-        fatgrafting: 'Fat Grafting',
-        tummytuck: 'Tummy Tuck Abdominoplasty',
-        brazilianbuttlift: 'Brazilian Butt Lift BBL',
-        mommyMakeover: 'Mommy Makeover',
-        botoxfillers: 'Botox Dermal Fillers',
-        noninvasivecontouring: 'Non-Invasive Body Contouring',
-        hairtransplant: 'Hair Transplant',
-        skinresurfacing: 'LASER SKIN RESURFACING'
-    };
-    return categoryMap[id] || id; // Returns id if display name not found
-}
-
-/**
- * Generates category navigation links based on the categoriesConfig.
- */
-function generateCategoryNav() {
+function generateCategoryNav(zones) {
     const navContainer = document.querySelector('.categories-container .categories');
     if (!navContainer) return;
 
+    // Apply grid layout styles
     navContainer.style.cssText = `
         display: grid;
         grid-template-columns: repeat(4, minmax(200px, 1fr));
         gap: 15px;
     `;
 
-    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
+    // Loop through zones to create category groups
+    zones.forEach(zone => {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'category-group';
         groupDiv.style.cssText = `
@@ -85,8 +31,9 @@ function generateCategoryNav() {
             break-inside: avoid;
         `;
 
+        // Create zone header
         const header = document.createElement('h3');
-        header.textContent = group.displayName;
+        header.textContent = zone.name; // Zone name
         header.style.cssText = `
             background-color: #394464;
             color: white;
@@ -99,82 +46,53 @@ function generateCategoryNav() {
         `;
         groupDiv.appendChild(header);
 
-        group.ids.forEach(id => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'category-item';
-            itemDiv.style.cssText = `
-                padding: 5px 0;
-            `;
+        // Create category links within each zone
+        if (zone.categories.length > 0) {
+            zone.categories.forEach(category => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'category-item';
+                itemDiv.style.cssText = `
+                    padding: 5px 0;
+                `;
 
-            const link = document.createElement('a');
-            link.href = `#${id}`; // Use the id as the anchor
-            link.textContent = generateCategoryLinkText(id);
-            link.style.cssText = `
-                color: #495057;
-                text-decoration: none;
-                font-family: Verdana, sans-serif;
-                font-size: 0.95em;
-                transition: color 0.3s ease;
+                const link = document.createElement('a');
+                link.href = `#${category.id}`; // Use category ID as anchor
+                link.textContent = category.name; // Category name
+                link.style.cssText = `
+                    color: #495057;
+                    text-decoration: none;
+                    font-family: Verdana, sans-serif;
+                    font-size: 0.95em;
+                    transition: color 0.3s ease;
+                `;
+                
+                link.addEventListener('mouseenter', () => {
+                    link.style.color = '#007bff';
+                    link.style.fontWeight = 'bold';
+                });
+                
+                link.addEventListener('mouseleave', () => {
+                    link.style.color = '#495057';
+                    link.style.fontWeight = 'normal';
+                });
+
+                itemDiv.appendChild(link);
+                groupDiv.appendChild(itemDiv);
+            });
+        } else {
+            // If no categories exist, show a placeholder message
+            const placeholder = document.createElement('div');
+            placeholder.textContent = "No categories available";
+            placeholder.style.cssText = `
+                color: #6c757d;
+                font-style: italic;
+                font-size: 0.9em;
+                padding-top: 5px;
             `;
-            link.addEventListener('mouseenter', () => {
-                link.style.color = '#007bff';
-                link.style.fontWeight = 'bold';
-            });
-            link.addEventListener('mouseleave', () => {
-                link.style.color = '#495057';
-                link.style.fontWeight = 'normal';
-            });
-            itemDiv.appendChild(link);
-            groupDiv.appendChild(itemDiv);
-        });
+            groupDiv.appendChild(placeholder);
+        }
+
         navContainer.appendChild(groupDiv);
-    });
-}
-
-/**
- * Groups QA blocks under category headings.
- */
-function groupQABlocks() {
-    const reverseMapping = {};
-    Object.entries(categoriesConfig).forEach(([groupKey, group]) => {
-        group.ids.forEach(id => {
-            reverseMapping[id] = groupKey;
-        });
-    });
-
-    const qaBlocks = document.querySelectorAll('.mb-8');
-    const qaContainer = document.querySelector('.bsb-faq-3 .row');
-    if (!qaContainer) return;
-
-    const groupedQA = {};
-    qaBlocks.forEach(block => {
-        const header = block.querySelector('h3');
-        if (header?.id) {
-            const groupKey = reverseMapping[header.id];
-            if (groupKey) {
-                if (!groupedQA[groupKey]) {
-                    groupedQA[groupKey] = [];
-                }
-                groupedQA[groupKey].push(block);
-            }
-        }
-    });
-
-    qaContainer.innerHTML = ''; // Clear existing content
-
-    Object.keys(categoriesConfig).forEach(groupKey => {
-        if (groupedQA[groupKey]?.length) {
-            const groupHeader = document.createElement('h2'); // Changed to H2 for hierarchy
-            groupHeader.textContent = categoriesConfig[groupKey].displayName;
-            groupHeader.id = groupKey; // Add an ID to the header for linking
-            qaContainer.appendChild(groupHeader);
-
-            groupedQA[groupKey].forEach(block => {
-                qaContainer.appendChild(block);
-            });
-
-            qaContainer.appendChild(document.createElement('hr')); // Add a separator
-        }
     });
 }
 
@@ -199,12 +117,15 @@ function handleResponsiveDesign() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    generateCategoryNav();
-    groupQABlocks();
+    // Fetch zones data from a global variable set by Qacontroller
+    if (window.zonesData) {
+        generateCategoryNav(window.zonesData);
+    }
+
     handleResponsiveDesign();
 
-    // Initialize search functionality if available (safe to call even if not defined)
+    // Initialize search functionality if available
     if (window.initializeSearch) {
-        window.initializeSearch(generateCategoryLinkText);
+        window.initializeSearch();
     }
 });
