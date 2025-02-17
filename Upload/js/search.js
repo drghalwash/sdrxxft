@@ -64,16 +64,7 @@ function handleSearch() {
 
             item.style.display = isMatch ? '' : 'none';
             
-            if (isMatch) {
-                // Highlight matching terms in question and answer
-                const originalQuestionText = item.querySelector('.btn-link').textContent;
-                const originalAnswerText = item.querySelector('.accordion-body').textContent;
-
-                item.querySelector('.btn-link').innerHTML = highlightText(originalQuestionText, term);
-                item.querySelector('.accordion-body').innerHTML = highlightText(originalAnswerText, term);
-
-                matchCount++;
-            }
+            if (isMatch) matchCount++;
         });
 
         // Update results count
