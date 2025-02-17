@@ -1,5 +1,5 @@
 /***********************************************************************
- * File: /upload/js/categoryManager.js
+ * File: /js/categoryManager.js
  * Description: Dynamically generates category navigation and handles 
  * responsive grid layout for categories based on Supabase data.
  ***********************************************************************/
@@ -57,7 +57,7 @@ function generateCategoryNav(zones) {
 
                 const link = document.createElement('a');
                 link.href = `#${category.id}`; // Use category ID as anchor
-                link.textContent = category.name; // Category name
+                link.textContent = category.display_name; // Category display name
                 link.style.cssText = `
                     color: #495057;
                     text-decoration: none;
@@ -117,11 +117,9 @@ function handleResponsiveDesign() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Fetch zones data from a global variable set by Qacontroller
     if (window.zonesData) {
         generateCategoryNav(window.zonesData);
     }
-
     handleResponsiveDesign();
 
     // Initialize search functionality if available
