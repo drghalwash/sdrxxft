@@ -130,39 +130,3 @@ connectToDatabase().then(() => {
         res.status(500).render('Dashboard/404', { error });
     });
 });
-
-// Import required modules
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase configuration
-const supabaseUrl = 'https://drwismqxtzpptshsqphb.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY; // Ensure this is set in your .env file
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Example route to fetch data from Supabase
-app.get('/questions', async (req, res) => {
-  try {
-    // Fetch zones, categories, and questions from Supabase
-    const { data: zones, error: zonesError } = await supabase.from('zones').select('*');
-    if (zonesError) throw zonesError;
-
-    const { data: categories, error: categoriesError } = await supabase.from('categories').select('*');
-    if (categoriesError) throw categoriesError;
-
-    const { data: questions, error: questionsError } = await supabase.from('questions').select('*');
-    if (questionsError) throw questionsError;
-
-    // Render the Handlebars template with the fetched data
-    res.render('Questions_And_Answer', {
-      zones,
-      categories,
-      questions,
-    });
-  } catch (error) {
-    console.error('Error fetching data from Supabase:', error.message);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-// Export Supabase client for use in other files (optional)
-export default supabase;
