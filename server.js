@@ -32,6 +32,11 @@ const app = express();
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 
+
+Handlebars.registerHelper("json", function (context) {
+  return JSON.stringify(context);
+});
+
 // Configure Handlebars with partials directory
 app.engine('handlebars', engine({
     // Use partialsDirs instead of partialsDir (partialsDir is deprecated)
