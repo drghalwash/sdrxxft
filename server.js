@@ -133,14 +133,3 @@ async function connectToDatabase() {
 
 
 
-connectToDatabase().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Started the application on http://localhost:${PORT}`);
-    });
-}).catch(error => {
-    console.error('Failed to start the application:', error);
-    app.use((req, res) => {
-        res.status(500).render('Dashboard/404', { error });
-    });
-});
-
