@@ -98,6 +98,10 @@ app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
 
 
+if (!process.env.MONGO_CONNECTION_URL) {
+  console.warn('MONGO_CONNECTION_URL is missing. Skipping database connection.');
+  // Skip database-dependent features
+}
 
 
 // Error handlers
