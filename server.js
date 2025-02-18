@@ -130,10 +130,11 @@ async function connectToDatabase() {
     }
 }
 
-// Connect to MongoDB, then start the server
+const PORT = 5000; // Hardcode the port to 5000
+
 connectToDatabase().then(() => {
-    app.listen(process.env.port, () => {
-        console.log('Started the application on http://localhost:5000' );
+    app.listen(PORT, () => {
+        console.log(`Started the application on http://localhost:${PORT}`);
     });
 }).catch(error => {
     console.error('Failed to start the application:', error);
@@ -141,3 +142,4 @@ connectToDatabase().then(() => {
         res.status(500).render('Dashboard/404', { error });
     });
 });
+
