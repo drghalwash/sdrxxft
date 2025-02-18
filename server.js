@@ -98,10 +98,7 @@ app.use('/Photo_Gallary',Photo_Gallary_route);
 app.use('/Out_of_town',Out_of_town_route);
 
 
-if (!process.env.MONGO_CONNECTION_URL) {
-  console.warn('MONGO_CONNECTION_URL is missing. Skipping database connection.');
-  // Skip database-dependent features
-}
+
 
 
 // Error handlers
@@ -115,33 +112,4 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { error: err }); // Render error page instead of plain text
 });
 
-async function connectToDatabase() {
-    try {
-        await mongoose.connect(process.env.mongooconectionurl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            connectTimeoutMS: 60000, // 60 seconds
-            socketTimeoutMS: 120000, // 120 seconds
-            bufferCommands: true,   // Allow Mongoose to buffer commands until connection is established
-        });
 
-        console.log('Connected to MongoDB');
-    } catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-        app.use((req, res) => {
-            res.status(500).render('Dashboard/404', { error });
-        });
-    }
-}
-
-// Connect to MongoDB, then start the server
-connectToDatabase().then(() => {
-    app.listen(process.env.port, () => {
-        console.log('Started the application on http://localhost:' + process.env.port);
-    });
-}).catch(error => {
-    console.error('Failed to start the application:', error);
-    app.use((req, res) => {
-        res.status(500).render('Dashboard/404', { error });
-    });
-});
