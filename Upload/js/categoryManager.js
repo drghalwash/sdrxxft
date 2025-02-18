@@ -116,6 +116,17 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
+document.querySelectorAll('.category-item a').forEach(link => {
+    link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const targetId = link.getAttribute('href').substring(1); // Get the ID without #
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.zonesData) {
         generateCategoryNav(window.zonesData);
