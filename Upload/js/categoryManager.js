@@ -47,50 +47,37 @@ function generateCategoryNav(zones) {
         groupDiv.appendChild(header);
 
         // Create category links within each zone
-        if (zone.categories.length > 0) {
-            zone.categories.forEach(category => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'category-item';
-                itemDiv.style.cssText = `
-                    padding: 5px 0;
-                `;
-
-                const link = document.createElement('a');
-                link.href = `#${category.id}`; // Use category ID as anchor
-                link.textContent = category.display_name; // Category display name
-                link.style.cssText = `
-                    color: #495057;
-                    text-decoration: none;
-                    font-family: Verdana, sans-serif;
-                    font-size: 0.95em;
-                    transition: color 0.3s ease;
-                `;
-                
-                link.addEventListener('mouseenter', () => {
-                    link.style.color = '#007bff';
-                    link.style.fontWeight = 'bold';
-                });
-                
-                link.addEventListener('mouseleave', () => {
-                    link.style.color = '#495057';
-                    link.style.fontWeight = 'normal';
-                });
-
-                itemDiv.appendChild(link);
-                groupDiv.appendChild(itemDiv);
-            });
-        } else {
-            // If no categories exist, show a placeholder message
-            const placeholder = document.createElement('div');
-            placeholder.textContent = "No categories available";
-            placeholder.style.cssText = `
-                color: #6c757d;
-                font-style: italic;
-                font-size: 0.9em;
-                padding-top: 5px;
+        zone.categories.forEach(category => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'category-item';
+            itemDiv.style.cssText = `
+                padding: 5px 0;
             `;
-            groupDiv.appendChild(placeholder);
-        }
+
+            const link = document.createElement('a');
+            link.href = `#${category.technical_id}`; // Use category technical ID as anchor
+            link.textContent = category.display_name; // Category display name
+            link.style.cssText = `
+                color: #495057;
+                text-decoration: none;
+                font-family: Verdana, sans-serif;
+                font-size: 0.95em;
+                transition: color 0.3s ease;
+            `;
+            
+            link.addEventListener('mouseenter', () => {
+                link.style.color = '#007bff';
+                link.style.fontWeight = 'bold';
+            });
+            
+            link.addEventListener('mouseleave', () => {
+                link.style.color = '#495057';
+                link.style.fontWeight = 'normal';
+            });
+
+            itemDiv.appendChild(link);
+            groupDiv.appendChild(itemDiv);
+        });
 
         navContainer.appendChild(groupDiv);
     });
@@ -116,25 +103,30 @@ function handleResponsiveDesign() {
     window.addEventListener('resize', updateGrid);
 }
 
-document.querySelectorAll('.category-item a').forEach(link => {
-    link.addEventListener('click', (event) => {
-        event.preventDefault();
-        const targetId = link.getAttribute('href').substring(1); // Get the ID without #
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth' });
-        }
+/**
+ * Adds smooth scrolling functionality when clicking on a category.
+ */
+function enableAutoScroll() {
+    document.querySelectorAll('.category-item a').forEach(link => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const targetId = event.target.getAttribute('href').substring(1); // Remove the '#' from href
+            const targetSection = document.getElementById(targetId);
+            
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
     });
-});
+}
 
+/**
+ * Initializes the category navigation and related functionalities.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     if (window.zonesData) {
-        generateCategoryNav(window.zonesData);
-    }
-    handleResponsiveDesign();
-
-    // Initialize search functionality if available
-    if (window.initializeSearch) {
-        window.initializeSearch();
+        generateCategoryNav(window.zonesData); // Generate navigation dynamically
+        handleResponsiveDesign(); // Handle responsiveness
+        enableAutoScroll(); // Enable smooth scrolling
     }
 });
