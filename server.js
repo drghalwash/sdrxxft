@@ -2,6 +2,11 @@ import  express from 'express';
 import { engine } from 'express-handlebars';
 import Handlebars from 'handlebars';
 
+// Register a custom helper to check if a category has questions
+Handlebars.registerHelper("hasQuestions", function (categories) {
+  return categories.some(category => category.questions && category.questions.length > 0);
+});
+
 import dotenv from 'dotenv';
 dotenv.config();
 import methodOverride from 'method-override';
