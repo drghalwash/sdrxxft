@@ -361,7 +361,7 @@ font-family: Verdana, sans-serif;
     display: inline-block;
 }
 
-.special-text {
+.specialtext {
     color: #007bff !important; /* Force blue color */
     font-weight: bold;
     position: relative;
@@ -564,32 +564,35 @@ font-family: Verdana, sans-serif;
 <!-- Q&A Section -->
 <section class="bsb-faq-3 py-3 py-md-5 py-xl-8">
   <div class="container">
-      {{#each zones}}
-      <h3 id="{{this.technical_id}}">{{this.name}}</h3> <!-- Zone name -->
-      {{#each this.categories}}
-      <h4 id="{{this.technical_id}}">{{this.display_name}}</h4> <!-- Category name -->
-      <div class="custom-accordion" id="accordion_{{this.technical_id}}">
-          {{#each this.questions}}
-          <div class="accordion-item">
-              <h2 class="mb-0">
-                  <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{this.id}}">
+    {{#each zones}}
+      <!-- Check if the zone has categories with questions -->
+      {{#if (hasQuestions this.categories)}}
+        <h3 id="{{this.technical_id}}">{{this.name}}</h3> <!-- Zone name -->
+        {{#each this.categories}}
+          <!-- Check if the category has questions -->
+          {{#if this.questions.length}}
+            <h4 id="{{this.technical_id}}">{{this.display_name}}</h4> <!-- Category name -->
+            <div class="custom-accordion" id="accordion_{{this.technical_id}}">
+              {{#each this.questions}}
+                <div class="accordion-item">
+                  <h2 class="mb-0">
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{this.id}}">
                       {{this.question}}
-                  </button>
-              </h2>
-              <div id="collapse{{this.id}}" class="collapse show">
-                  <div class="accordion-body">{{this.answer}}</div>
-              </div>
-          </div>
-          {{else}}
-          <p>No questions available in this category.</p>
-          {{/each}}
-      </div>
-      {{else}}
-      <p>No categories available in this zone.</p>
-      {{/each}}
-      {{/each}}
+                    </button>
+                  </h2>
+                  <div id="collapse{{this.id}}" class="collapse">
+                    <div class="accordion-body">{{{this.answer}}}</div> <!-- Render HTML safely -->
+                  </div>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        {{/each}}
+      {{/if}}
+    {{/each}}
   </div>
 </section>
+
 		
    
 <!-- Back to Top and Bottom Button -->
