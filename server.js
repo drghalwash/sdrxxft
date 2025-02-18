@@ -114,23 +114,27 @@ app.use((err, req, res, next) => {
 });
 
 
-mongooconectionurl = 'mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled'
+// Set the MongoDB connection URL with a fallback value
+const MONGO_CONNECTION_URL = process.env.MONGO_CONNECTION_URL || 'mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled';
+
 
 async function connectToDatabase() {
-try {
-await mongoose.connect(process.env.mongooconectionurl, {
-useNewUrlParser: true,
-useUnifiedTopology: true,
-connectTimeoutMS: 60000, // 60 seconds
-socketTimeoutMS: 120000, // 120 seconds
-bufferCommands: true, // Allow Mongoose to buffer commands until connection is established
-});
+  try {
+    await mongoose.connect(MONGO_CONNECTION_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      connectTimeoutMS: 60000, // 60 seconds
+      socketTimeoutMS: 120000, // 120 seconds
+      bufferCommands: true, // Allow Mongoose to buffer commands until connection is established
+    });
 
-console.log('Connected to MongoDB');
-} catch (error) {
-console.error('Error connecting to MongoDB:', error);
-app.use((req, res) => {
-res.status(500).render('Dashboard/404', { error });
-});
-}
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+
+    // Render a custom error page for database connection failure
+    app.use((req, res) => {
+      res.status(500).render('Dashboard/404', { error });
+    });
+  }
 }
