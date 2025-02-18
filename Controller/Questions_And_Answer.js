@@ -28,13 +28,13 @@ const getZonesWithDetails = async () => {
     console.log("Questions fetched:", questions);
 
     // Organize data hierarchically
-    const organizedZones = zones.map((zone) => ({
+    const organizedZones = zones.map(zone => ({
       ...zone,
       categories: categories
-        .filter((category) => category.zone_id === zone.id)
-        .map((category) => ({
+        .filter(category => category.zone_id === zone.id)
+        .map(category => ({
           ...category,
-          questions: questions.filter((question) => question.category_technical_id === category.technical_id),
+          questions: questions.filter(question => question.category_technical_id === category.technical_id),
         })),
     }));
 
