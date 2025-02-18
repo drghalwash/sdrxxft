@@ -27,7 +27,6 @@ import Read_More_route from "./Routes/Read_More_route.js"
 import Photo_Gallary_route from "./Routes/Photo_Gallary_route.js"
 import Out_of_town_route from "./Routes/Out_of_town_route.js"
 
-import mongoose from 'mongoose';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
@@ -113,62 +112,3 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { error: err }); // Render error page instead of plain text
 });
 
-
-// Set the MongoDB connection URL with a fallback value
-const MONGO_CONNECTION_URL =
-  process.env.MONGO_CONNECTION_URL ||
-  'mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled';
-
-// Function to connect to MongoDB
-async function connectToDatabase() {
-  try {
-    // Validate the MongoDB URL format before attempting to connect
-    if (!MONGO_CONNECTION_URL.startsWith('mongodb://') && !MONGO_CONNECTION_URL.startsWith('mongodb+srv://')) {
-      throw new Error('Invalid MongoDB connection URL format. Must start with "mongodb://" or "mongodb+srv://".');
-    }
-
-    // Attempt to connect to MongoDB
-    await mongoose.connect(MONGO_CONNECTION_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      connectTimeoutMS: 60000, // 60 seconds timeout for initial connection
-      socketTimeoutMS: 120000, // 120 seconds timeout for socket operations
-      bufferCommands: true,    // Allow buffering of commands until connection is established
-    });
-
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-
-    // Handle specific error cases
-    if (error.name === 'MongoParseError') {
-      console.error('MongoDB connection string is malformed. Please check the format.');
-    } else if (error.name === 'MongoNetworkError') {
-      console.error('Network error while trying to connect to MongoDB. Ensure the database server is reachable.');
-    } else if (error.message.includes('Invalid MongoDB connection URL format')) {
-      console.error(error.message);
-    } else {
-      console.error('An unknown error occurred while connecting to MongoDB.');
-    }
-
-    // Render a custom error page for database connection failure
-    app.use((req, res) => {
-      res.status(500).render('Dashboard/404', { error });
-    });
-  }
-}
-
-// Connect to MongoDB and start the server
-connectToDatabase().then(() => {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server started on http://localhost:${PORT}`);
-  });
-}).catch((error) => {
-  console.error('Failed to start the application:', error);
-
-  // Render a fallback error page if the app fails to start
-  app.use((req, res) => {
-    res.status(500).render('Dashboard/404', { error });
-  });
-});
