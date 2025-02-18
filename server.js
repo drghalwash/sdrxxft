@@ -114,7 +114,7 @@ app.use((err, req, res, next) => {
 });
 
 
-mongooconectionurl="mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled"
+mongooconectionurl=mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled
 
 async function connectToDatabase() {
 try {
