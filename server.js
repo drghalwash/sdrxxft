@@ -113,3 +113,33 @@ app.use((err, req, res, next) => {
 });
 
 
+async function connectToDatabase() {
+    try {
+        await mongoose.connect("mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled", {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            connectTimeoutMS: 60000, // 60 seconds
+            socketTimeoutMS: 120000, // 120 seconds
+            bufferCommands: true,   // Allow Mongoose to buffer commands until connection is established
+        });
+
+        console.log('Connected to MongoDB');
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error);
+        app.use((req, res) => {
+            res.status(500).render('Dashboard/404', { error });
+        });
+    }
+}
+
+// Connect to MongoDB, then start the server
+connectToDatabase().then(() => {
+    app.listen(process.env.port, () => {
+        console.log('Started the application on http://localhost:5000' );
+    });
+}).catch(error => {
+    console.error('Failed to start the application:', error);
+    app.use((req, res) => {
+        res.status(500).render('Dashboard/404', { error });
+    });
+});
