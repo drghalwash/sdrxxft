@@ -99,7 +99,8 @@ app.use('/Out_of_town',Out_of_town_route);
 
 
 
-
+const PORT = 5000; // Hardcode the port to 5000
+app.listen(PORT, () => { console.log(`Server is running on http://localhost:${PORT}`); });
 
 // Error handlers
 app.use('/Qapartials/*', (req, res, next) => {
@@ -130,7 +131,7 @@ async function connectToDatabase() {
     }
 }
 
-const PORT = 5000; // Hardcode the port to 5000
+
 
 connectToDatabase().then(() => {
     app.listen(PORT, () => {
