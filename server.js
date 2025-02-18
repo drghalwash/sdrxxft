@@ -116,8 +116,6 @@ app.use((err, req, res, next) => {
 async function connectToDatabase() {
     try {
         await mongoose.connect("mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled", {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
             connectTimeoutMS: 60000, // 60 seconds
             socketTimeoutMS: 120000, // 120 seconds
             bufferCommands: true,   // Allow Mongoose to buffer commands until connection is established
