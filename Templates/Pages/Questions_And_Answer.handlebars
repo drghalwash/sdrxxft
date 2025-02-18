@@ -239,6 +239,42 @@ font-family: Verdana, sans-serif;
 </style>
 
 		<style>
+			
+
+			.modal {
+    display: none; /* Hidden by default popup cat*/
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Adjust as needed */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 
   .qa-container {
     margin-bottom: 30px;
@@ -668,6 +704,64 @@ text-shadow: 0 1px 1px rgba(0,0,0,0.1);
 </section>
 
 		
+
+
+
+<!-- Modal HTML Structure -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Related Categories</h2>
+        <div id="modalCategories"></div>
+    </div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+    // Handle clicks on category names in the Q&A area
+    document.querySelectorAll('.custom-accordion h4').forEach(categoryHeader => {
+        categoryHeader.addEventListener('click', () => {
+            const categoryId = categoryHeader.id; // Get the clicked category's ID
+
+            // Find related categories from zonesData
+            const relatedCategories = [];
+            window.zonesData.forEach(zone => {
+                zone.categories.forEach(category => {
+                    if (category.technical_id !== categoryId) {
+                        relatedCategories.push(category.display_name);
+                    }
+                });
+            });
+
+            // Populate the modal with related categories
+            const modalCategories = document.getElementById('modalCategories');
+            modalCategories.innerHTML = ''; // Clear previous content
+            relatedCategories.forEach(categoryName => {
+                const item = document.createElement('div');
+                item.textContent = categoryName;
+                modalCategories.appendChild(item);
+            });
+
+            // Show the modal
+            document.getElementById('categoryModal').style.display = 'block';
+        });
+    });
+
+    // Close modal functionality
+    document.querySelector('.close').addEventListener('click', () => {
+        document.getElementById('categoryModal').style.display = 'none';
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('categoryModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
+</script>
+
    
 <!-- Back to Top and Bottom Button -->
 <div class="scroll-buttons">
