@@ -115,7 +115,9 @@ app.use((err, req, res, next) => {
 import mongoose from 'mongoose';
 
 // Set the MongoDB connection URL with a fallback value
-const MONGO_CONNECTION_URL = 'mongodb+srv://mobarikkarim2002:gEFfqqGCclBO8Z2q@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled';
+const username = encodeURIComponent('mobarikkarim2002');
+const password = encodeURIComponent('gEFfqqGCclBO8Z2q');
+const MONGO_CONNECTION_URL = `mongodb+srv://${username}:${password}@doctor-khaled.5psi6.mongodb.net/Doctor-Khaled?retryWrites=true&w=majority&appName=Doctor-Khaled`;
 
 // Function to connect to MongoDB
 async function connectToDatabase() {
