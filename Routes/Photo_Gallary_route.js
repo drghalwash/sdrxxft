@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { index,Public_images,Private_images } from '../Controller/Photo_Gallary.js';
+import { index,Public_images,Private_images } from '../Controller/gallery.js';
 const router = new Router();
 router.get('/:id' ,index);
 router.get('/Public_images/:id' ,Public_images);
