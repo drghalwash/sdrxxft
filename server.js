@@ -24,7 +24,7 @@ import Policies_route from "./Routes/Policies_route.js"
 import Questions_And_Answer_route from "./Routes/Questions_And_Answer_route.js"
 import Blog_route from "./Routes/Blog_route.js"
 import Read_More_route from "./Routes/Read_More_route.js"
-import Photo_Gallary_route from "./Routes/Photo_Gallary_route.js"
+import gallery_route from "./Routes/gallery_route.js"
 import Out_of_town_route from "./Routes/Out_of_town_route.js"
 
 import mongoose from 'mongoose';
