@@ -27,7 +27,7 @@ import Read_More_route from "./Routes/Read_More_route.js"
 import gallery_route from "./Routes/gallery_route.js"
 import Out_of_town_route from "./Routes/Out_of_town_route.js"
 
-import mongoose from 'mongoose';
+
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
@@ -111,33 +111,3 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { error: err }); // Render error page instead of plain text
 });
 
-async function connectToDatabase() {
-    try {
-        await mongoose.connect(process.env.mongooconectionurl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            connectTimeoutMS: 60000, // 60 seconds
-            socketTimeoutMS: 120000, // 120 seconds
-            bufferCommands: true,   // Allow Mongoose to buffer commands until connection is established
-        });
-
-        console.log('Connected to MongoDB');
-    } catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-        app.use((req, res) => {
-            res.status(500).render('Dashboard/404', { error });
-        });
-    }
-}
-
-// Connect to MongoDB, then start the server
-connectToDatabase().then(() => {
-    app.listen(process.env.port, () => {
-        console.log('Started the application on http://localhost:' + process.env.port);
-    });
-}).catch(error => {
-    console.error('Failed to start the application:', error);
-    app.use((req, res) => {
-        res.status(500).render('Dashboard/404', { error });
-    });
-});
