@@ -115,7 +115,7 @@ export const index = async (req, res) => {
 
     if (!allGalleries.data) throw new Error('Failed to fetch all galleries.');
 
-    res.render('Pages/Gallery', {
+    res.render('Pages/gallery', {
       gallery,
       allGalleries: allGalleries.data,
       galleryImages: images,
