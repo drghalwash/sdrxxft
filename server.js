@@ -111,3 +111,18 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { error: err }); // Render error page instead of plain text
 });
 
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://drwismqxtzpptshsqphb.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyd2lzbXF4dHpwcHRzaHNxcGhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk3MTExNTIsImV4cCI6MjA1NTI4NzE1Mn0.V8C0Fk9u9PS_rc3Kc-X_n-KzStr--m14fKYw9b1BJSI';
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Middleware to inject Supabase into requests (optional)
+export const supabaseMiddleware = (req, res, next) => {
+  req.supabase = supabase;
+  next();
+};
+
+// Example: Log Supabase initialization status
+console.log('[Supabase] Client initialized successfully');
