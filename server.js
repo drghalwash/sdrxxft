@@ -104,6 +104,9 @@ app.use('/Read_More', Read_More_route);
 app.use('/gallery', gallery_route);
 app.use('/Out_of_town', Out_of_town_route);
 
+const PORT = 5000; // Hardcode the port to 5000
+app.listen(PORT, () => { console.log(`Server is running on http://localhost:${PORT}`); });
+
 // Error handlers
 app.use((req, res) => {
   console.error('Partial not found:', req.url); // Add logging
