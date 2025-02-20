@@ -10,20 +10,20 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  */
 const getZonesWithDetails = async () => {
   try {
-    console.log('Fetching zones...');
+    console.log('[Zones] Fetching zones...');
     const { data: zones, error: zonesError } = await supabase.from('zones').select('*');
-    if (zonesError) throw new Error(`Error fetching zones: ${zonesError.message}`);
-    console.log('Zones fetched:', zones);
+    if (zonesError) throw new Error(`[Zones] Error fetching zones: ${zonesError.message}`);
+    console.log('[Zones] Zones fetched:', zones);
 
-    console.log('Fetching categories...');
+    console.log('[Categories] Fetching categories...');
     const { data: categories, error: categoriesError } = await supabase.from('categories').select('*');
-    if (categoriesError) throw new Error(`Error fetching categories: ${categoriesError.message}`);
-    console.log('Categories fetched:', categories);
+    if (categoriesError) throw new Error(`[Categories] Error fetching categories: ${categoriesError.message}`);
+    console.log('[Categories] Categories fetched:', categories);
 
-    console.log('Fetching questions...');
+    console.log('[Questions] Fetching questions...');
     const { data: questions, error: questionsError } = await supabase.from('questions').select('*');
-    if (questionsError) throw new Error(`Error fetching questions: ${questionsError.message}`);
-    console.log('Questions fetched:', questions);
+    if (questionsError) throw new Error(`[Questions] Error fetching questions: ${questionsError.message}`);
+    console.log('[Questions] Questions fetched:', questions);
 
     // Organize data hierarchically
     const organizedZones = zones.map((zone) => ({
@@ -38,10 +38,10 @@ const getZonesWithDetails = async () => {
         })),
     }));
 
-    console.log('Organized Zones:', JSON.stringify(organizedZones, null, 2));
+    console.log('[Zones] Organized Zones:', JSON.stringify(organizedZones, null, 2));
     return organizedZones;
   } catch (error) {
-    console.error(error);
+    console.error('[Zones] Error organizing zones:', error.message);
     throw error;
   }
 };
@@ -49,15 +49,15 @@ const getZonesWithDetails = async () => {
 /**
  * Fetch all galleries from Supabase.
  */
-const getPhotoGalleries = async () => {
+const getGalleries = async () => {
   try {
-    console.log('Fetching photo galleries from Supabase...');
-    const { data: galleries, error } = await supabase.from('Photo_Gallary').select('*');
-    if (error) throw new Error(`Error fetching photo galleries: ${error.message}`);
-    console.log('Photo galleries fetched:', galleries);
+    console.log('[Gallery] Fetching galleries from Supabase...');
+    const { data: galleries, error } = await supabase.from('gallery').select('*'); // CHANGED: Photo_Gallary to gallery
+    if (error) throw new Error(`[Gallery] Error fetching galleries: ${error.message}`);
+    console.log('[Gallery] Galleries fetched:', galleries);
     return galleries;
   } catch (error) {
-    console.error(error);
+    console.error('[Gallery] Error fetching galleries:', error.message);
     throw error;
   }
 };
@@ -67,21 +67,23 @@ const getPhotoGalleries = async () => {
  */
 export const index = async (req, res) => {
   try {
-    // Fetch photo galleries and hierarchical zone data
-    const [Photo_Gallary, organizedZones] = await Promise.all([
-      getPhotoGalleries(),
+    console.log('[Controller] Q&A Index initiated...');
+
+    // Fetch galleries and hierarchical zone data concurrently
+    const [galleries, organizedZones] = await Promise.all([
+      getGalleries(), // CHANGED: Photo_Gallary to gallery
       getZonesWithDetails(),
     ]);
 
     // Render the Handlebars template with fetched data
     res.render('Pages/Questions_And_Answer', {
-      Photo_Gallary, // Supabase photo gallery data
-      zones: organizedZones, // Zones with nested categories and questions
+      galleries, // CHANGED: Photo_Gallary to galleries
+      zones: organizedZones,
     });
 
-    console.log('Data successfully sent to the template.');
+    console.log('[Controller] Data successfully sent to the template.');
   } catch (error) {
-    console.error('Error in Qacontroller:', error.message);
+    console.error('[Controller] Error in Q&A controller:', error.message);
     res.status(500).render('Pages/404', { error });
   }
 };
