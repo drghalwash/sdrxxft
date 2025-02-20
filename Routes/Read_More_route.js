@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { index,blog_back } from '../Controller/Read_More.js';
+import { index as readMoreIndex, blog_back as readMoreBack } from '../Controller/Read_More.js';
+
 const router = new Router();
-router.get('/:id' ,index);
-router.get('/blog_back/:id' ,blog_back);
+router.get('/:id', readMoreIndex); // Handles Read More pages by slug
+router.get('/blog_back/:id', readMoreBack); // Handles back navigation by category
 
 export default router;
