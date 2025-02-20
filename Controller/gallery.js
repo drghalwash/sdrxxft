@@ -141,7 +141,7 @@ export const publicImages = async (req, res) => {
     const { data: allGalleries, error: galleryError } = await supabase.from('gallery').select('*');
     if (galleryError) throw new Error(`All galleries fetch error: ${galleryError.message}`);
 
-    res.render('Pages/Gallery', {
+    res.render('Pages/gallery', {
       imageSet,
       allGalleries,
       firstImage: imageSet.images?.[0],
@@ -173,7 +173,7 @@ export const privateImages = async (req, res) => {
     const { data: allGalleries, error: galleryError } = await supabase.from('gallery').select('*');
     if (galleryError) throw new Error(`All galleries fetch error: ${galleryError.message}`);
 
-    res.render('Pages/Gallery', {
+    res.render('Pages/gallery', {
       imageSet,
       allGalleries,
       firstImage: imageSet.images?.[0],
