@@ -94,7 +94,7 @@ app.use('/Policies',Policies_route);
 app.use('/Questions_And_Answer',Questions_And_Answer_route);
 app.use('/Blog',Blog_route);
 app.use('/Read_More',Read_More_route);
-app.use('/Photo_Gallary',Photo_Gallary_route);
+app.use('/gallery',gallery_route);
 app.use('/Out_of_town',Out_of_town_route);
 
 
