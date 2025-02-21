@@ -7,118 +7,219 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * Fetch gallery metadata by slug.
+ * Utility function to fetch gallery metadata by slug.
+ *
+ * @param {string} slug - The slug of the gallery.
+ * @returns {Promise<object|null>} - A promise that resolves with the gallery metadata or null if not found.
  */
-export const fetchGalleryDataBySlug = async (slug) => {
-  try {
-    console.log(`[Gallery] Fetching metadata for gallery by slug: ${slug}`);
-    const { data, error } = await supabase
-      .from('gallery')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+const fetchGalleryDataBySlug = async (slug) => {
+    try {
+        console.log(`[Gallery] Fetching metadata for gallery with slug: ${slug}`);
+        const {
+            data: gallery,
+            error
+        } = await supabase
+            .from('gallery')
+            .select('*')
+            .eq('slug', slug)
+            .single();
 
-    if (error) {
-      console.error(`[Gallery] Error fetching gallery metadata by slug: ${error.message}`);
-      throw error;
+        if (error) {
+            console.error(`[Gallery] Error fetching gallery metadata by slug: ${error.message}`);
+            throw error;
+        }
+
+        return gallery;
+    } catch (error) {
+        console.error('[Gallery] Error in fetchGalleryDataBySlug:', error.message);
+        throw error;
     }
-    return data;
-  } catch (error) {
-    console.error('[Gallery] Error in fetchGalleryDataBySlug:', error.message);
-    throw error;
-  }
 };
 
 /**
- * Fetch gallery images by gallery ID.
+ * Utility function to fetch gallery images by gallery slug, including gallery details.
+ *
+ * @param {string} gallerySlug - The slug of the gallery.
+ * @returns {Promise<Array<object>>} - A promise that resolves with an array of gallery images.
  */
-export const fetchGalleryImagesBySlug = async (gallerySlug) => {
-  try {
-    console.log(`[Gallery] Fetching gallery images for gallery slug: ${gallerySlug}`);
-    const { data, error } = await supabase
-      .from('galleryimage')
-      .select('*')
-      .eq('gallery.slug', gallerySlug);
+const fetchGalleryImagesByGallerySlug = async (gallerySlug) => {
+    try {
+        console.log(`[Gallery] Fetching gallery images for gallery slug: ${gallerySlug}`);
 
-    if (error) {
-      console.error(`[Gallery] Error fetching gallery images by slug: ${error.message}`);
-      throw error;
+        const {
+            data: galleryImages,
+            error
+        } = await supabase
+            .from('galleryimage')
+            .select(`
+                *,
+                gallery (
+                  name,
+                  slug
+                )
+            `)
+            .eq('gallery.slug', gallerySlug);
+
+        if (error) {
+            console.error(`[Gallery] Error fetching gallery images by slug: ${error.message}`);
+            throw error;
+        }
+
+        if (!galleryImages || galleryImages.length === 0) {
+            console.warn(`[Gallery] No images found for gallery slug: ${gallerySlug}`);
+            return [];
+        }
+
+        return galleryImages.map(img => ({
+            ...img,
+            gallery: {
+                name: img.gallery.name,
+                slug: img.gallery.slug
+            }
+        }));
+    } catch (error) {
+        console.error('[Gallery] Error in fetchGalleryImagesByGallerySlug:', error.message);
+        throw error;
     }
-    return data;
-  } catch (error) {
-    console.error('[Gallery] Error in fetchGalleryImagesBySlug:', error.message);
-    throw error;
-  }
 };
 
-
 /**
- * Controller: Index Page - Fetch gallery and render.
+ * Controller function to render the main gallery page.
+ * Fetches gallery metadata and images based on the provided slug.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
  */
 export const index = async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log(`[Request] Gallery index initiated for ID: ${id}`);
+    try {
+        const {
+            slug
+        } = req.params;
+        console.log(`[Request] Gallery index initiated for slug: ${slug}`);
 
-    const [gallery, images, galleries] = await Promise.all([
-      fetchGalleryDataBySlug(id),
-      fetchGalleryImagesByGalleryId(id),
-      supabase.from('gallery').select('*'),
-    ]);
+        // Fetch gallery metadata and images using the provided slug
+        const [gallery, galleryImages] = await Promise.all([
+            fetchGalleryDataBySlug(slug),
+            fetchGalleryImagesByGallerySlug(slug),
+        ]);
 
-    if (!gallery) {
-      console.warn(`[Gallery] No gallery found with slug: ${id}`);
-      return res.status(404).render('Pages/404', { error: 'Gallery not found' });
+        if (!gallery) {
+            console.warn(`[Gallery] No gallery found with slug: ${slug}`);
+            return res.status(404).render('Pages/404', {
+                error: 'Gallery not found'
+            });
+        }
+
+        // Render the gallery page with fetched data
+        res.render('Pages/gallery', {
+            gallery,
+            galleryImages,
+        });
+
+        console.log(`[Success] Rendered gallery index page for slug: ${slug}`);
+    } catch (error) {
+        console.error('[Error] Index controller:', error.message);
+        res.status(500).render('Pages/404', {
+            error: error.message
+        });
     }
-
-    res.render('Pages/gallery', {
-      gallery,
-      galleries: allGalleries.data,
-      galleryImages: images,
-    });
-
-    console.log(`[Success] Rendered gallery index page for ID: ${id}`);
-  } catch (error) {
-    console.error('[Error] Index controller:', error.message);
-    res.status(500).render('Pages/404', { error });
-  }
 };
 
 /**
- * Controller: Public Images Page - By ID.
+ * Controller function to display public images.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
  */
-// Fetch Public Images by Gallery Slug
-export const fetchPublicImages = async (gallerySlug) => {
-  try {
-    console.log(`[Gallery] Fetching public images for gallery slug: ${gallerySlug}`);
-    const { data, error } = await supabase
-      .from('galleryimage')
-      .select('*')
-      .eq('status', 'Public')
-      .eq('gallery.slug', gallerySlug);
+export const publicImages = async (req, res) => {
+    try {
+        const {
+            slug
+        } = req.params;
+        console.log(`[Request] Public images requested for gallery slug: ${slug}`);
 
-    if (error) throw new Error(`Error fetching public images: ${error.message}`);
-    return data;
-  } catch (error) {
-    console.error('[Gallery] Error in fetchPublicImages:', error.message);
-    throw error;
-  }
+        // Fetch public images for the gallery
+        const publicImages = await fetchGalleryImagesByGallerySlug(slug);
+
+        // If no public images found
+        if (!publicImages || publicImages.length === 0) {
+            console.warn(`[Gallery] No public images found for gallery slug: ${slug}`);
+            return res.status(404).render('Pages/404', {
+                error: 'No public images found for this gallery'
+            });
+        }
+
+        // Render the gallery with public images
+        res.render('Pages/gallery', {
+            galleryImages: publicImages,
+        });
+
+        console.log(`[Success] Rendered public images for gallery slug: ${slug}`);
+    } catch (error) {
+        console.error('[Error] Public Images controller:', error.message);
+        res.status(500).render('Pages/404', {
+            error: error.message
+        });
+    }
 };
 
-// Fetch Private Images by Gallery Slug
-export const fetchPrivateImages = async (gallerySlug) => {
-  try {
-    console.log(`[Gallery] Fetching private images for gallery slug: ${gallerySlug}`);
-    const { data, error } = await supabase
-      .from('galleryimage')
-      .select('*')
-      .eq('status', 'Private')
-      .eq('gallery.slug', gallerySlug);
+/**
+ * Controller function to display private images after validating a password.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+export const privateImages = async (req, res) => {
+    try {
+        const {
+            id,
+            password
+        } = req.body;
+        console.log(`[Request] Private images requested for image ID: ${id}`);
 
-    if (error) throw new Error(`Error fetching private images: ${error.message}`);
-    return data;
-  } catch (error) {
-    console.error('[Gallery] Error in fetchPrivateImages:', error.message);
-    throw error;
-  }
+        // Here, you would include your logic to validate the password
+        // For simplicity, I will use a placeholder
+        if (password !== 'validPassword') {
+            console.warn('[Auth] Invalid password attempt.');
+            return res.status(403).render('Pages/404', {
+                error: 'Invalid password'
+            });
+        }
+
+        // Fetch gallery image with the given ID
+        const {
+            data: galleryImage,
+            error
+        } = await supabase
+            .from('galleryimage')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error(`[Supabase] Error fetching galleryimage: ${error.message}`);
+            return res.status(500).render('Pages/404', {
+                error: 'Error fetching image from database'
+            });
+        }
+
+        if (!galleryImage) {
+            console.warn(`[Gallery] No gallery image found with slug: ${id}`);
+            return res.status(404).render('Pages/404', {
+                error: 'Image not found'
+            });
+        }
+
+        // Render the gallery page with the private image
+        res.render('Pages/gallery', {
+            galleryImage
+        });
+
+        console.log(`[Success] Rendered private image page for ID: ${id}`);
+    } catch (error) {
+        console.error('[Error] Private Images controller:', error.message);
+        res.status(500).render('Pages/404', {
+            error: error.message
+        });
+    }
 };
