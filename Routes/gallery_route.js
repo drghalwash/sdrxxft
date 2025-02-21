@@ -8,10 +8,10 @@ import { index, publicImages, privateImages } from '../Controller/gallery.js';
 const router = new Router();
 
 // Route: Fetch gallery by slug
-router.get('/:id', index);
+router.get('/:slug', index);
 
 // Route: Fetch public images by ID
-router.get('/public_images/:id', publicImages);
+router.get('/public_images/:slug', publicImages);
 
 // Route: Fetch private images
 router.post('/private_images', privateImages);
