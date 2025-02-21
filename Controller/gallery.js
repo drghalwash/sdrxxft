@@ -8,7 +8,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
  * Fetch all galleries for the navbar.
- * @returns {Promise<Array<object>>} - Array of all galleries.
  */
 const fetchAllGalleries = async () => {
   try {
@@ -24,14 +23,12 @@ const fetchAllGalleries = async () => {
 
 /**
  * Fetch gallery metadata by slug.
- * @param {string} slug - The slug of the gallery.
- * @returns {Promise<object|null>} - The gallery metadata or null if not found.
  */
 const fetchGalleryBySlug = async (slug) => {
   try {
-    const { data, error } = await supabase.from('gallery').select('*').eq('slug', slug).single();
+    const { data: gallery, error } = await supabase.from('gallery').select('*').eq('slug', slug).single();
     if (error) throw new Error(`Error fetching gallery with slug "${slug}": ${error.message}`);
-    return data;
+    return gallery;
   } catch (error) {
     console.error('[Gallery] Error in fetchGalleryBySlug:', error.message);
     return null; // Return null if gallery is not found
@@ -40,14 +37,12 @@ const fetchGalleryBySlug = async (slug) => {
 
 /**
  * Fetch all images for a gallery by its slug.
- * @param {string} gallerySlug - The slug of the gallery.
- * @returns {Promise<Array<object>>} - Array of images for the gallery.
  */
 const fetchGalleryImagesBySlug = async (gallerySlug) => {
   try {
-    const { data, error } = await supabase.from('galleryimage').select('*').eq('gallery.slug', gallerySlug);
+    const { data: images, error } = await supabase.from('galleryimage').select('*').eq('gallery.slug', gallerySlug);
     if (error) throw new Error(`Error fetching images for gallery "${gallerySlug}": ${error.message}`);
-    return data || []; // Return an empty array if no images are found
+    return images || []; // Return an empty array if no images are found
   } catch (error) {
     console.error('[Gallery] Error in fetchGalleryImagesBySlug:', error.message);
     return []; // Return an empty array on error
@@ -56,8 +51,6 @@ const fetchGalleryImagesBySlug = async (gallerySlug) => {
 
 /**
  * Validate password against the passwords table.
- * @param {string} password - The password to validate.
- * @returns {Promise<boolean>} - True if the password is valid, false otherwise.
  */
 const validatePassword = async (password) => {
   try {
@@ -137,26 +130,6 @@ export const index = async (req, res) => {
     res.render('Pages/gallery', { gallery, galleries, rowsHtml });
   } catch (error) {
     console.error('[Error] Index controller:', error.message);
-    res.status(500).render('Pages/404', { error });
-  }
-};
-
-/**
- * Controller: Render a public image page.
- */
-export const publicImage = async (req, res) => {
-  try {
-    const { gallery_slug, image_slug } = req.params;
-
-    const image = await fetchGalleryImagesBySlug(gallery_slug);
-
-    if (!image || image.status !== 'Public') {
-      return res.status(404).render('Pages/404', { error: 'Public image not found' });
-    }
-
-    res.render('Pages/public_image', { image });
-  } catch (error) {
-    console.error('[Error] Public Image controller:', error.message);
     res.status(500).render('Pages/404', { error });
   }
 };
