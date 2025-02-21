@@ -12,7 +12,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export const fetchGalleryDataBySlug = async (slug) => {
   try {
     console.log(`[Gallery] Fetching metadata for gallery by slug: ${slug}`);
-    const { data, error } = await supabase.from('gallery').select('*').eq('slug', slug).single();
+    const { data, error } = await supabase
+      .from('gallery')
+      .select('*')
+      .eq('slug', slug)
+      .single();
 
     if (error) {
       console.error(`[Gallery] Error fetching gallery metadata by slug: ${error.message}`);
@@ -28,21 +32,25 @@ export const fetchGalleryDataBySlug = async (slug) => {
 /**
  * Fetch gallery images by gallery ID.
  */
-export const fetchGalleryImagesByGalleryId = async (galleryId) => {
+export const fetchGalleryImagesBySlug = async (gallerySlug) => {
   try {
-    console.log(`[Gallery] Fetching gallery images for gallery ID: ${galleryId}`);
-    const { data, error } = await supabase.from('galleryimage').select('*').eq('gallery_id', galleryId);
+    console.log(`[Gallery] Fetching gallery images for gallery slug: ${gallerySlug}`);
+    const { data, error } = await supabase
+      .from('galleryimage')
+      .select('*')
+      .eq('gallery.slug', gallerySlug);
 
     if (error) {
-      console.error(`[Gallery] Error fetching gallery images: ${error.message}`);
+      console.error(`[Gallery] Error fetching gallery images by slug: ${error.message}`);
       throw error;
     }
     return data;
   } catch (error) {
-    console.error('[Gallery] Error in fetchGalleryImagesByGalleryId:', error.message);
+    console.error('[Gallery] Error in fetchGalleryImagesBySlug:', error.message);
     throw error;
   }
 };
+
 
 /**
  * Controller: Index Page - Fetch gallery and render.
