@@ -70,29 +70,30 @@ export const index = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    // Fetch all required data in parallel
+    console.log(`[Controller] Fetching gallery with slug: ${slug}`);
+
+    // Fetch all required data
     const [gallery, images, galleries] = await Promise.all([
       fetchGalleryBySlug(slug),
       fetchGalleryImagesBySlug(slug),
       fetchAllGalleries(),
     ]);
 
-    if (!gallery) return res.status(404).render('Pages/404', { error: 'Gallery not found' });
+    if (!gallery) {
+      console.warn(`[Controller] Gallery not found for slug: ${slug}`);
+      return res.status(404).render('Pages/404', { error: 'Gallery not found' });
+    }
 
     const publicImages = images.filter((img) => img.status === 'Public');
     const privateImages = images.filter((img) => img.status === 'Private');
 
-    // Dynamically generate rows of 4/5 items alternately
+    // Generate rows of images dynamically
     let rowsHtml = '';
     let currentRow = [];
-    let rowType = 'first-row'; // Start with a row of five items
-
+    let rowType = 'first-row';
     [...publicImages, ...privateImages].forEach((image, index) => {
       currentRow.push(image);
-
-      // Alternate between rows of five and four items
       const maxItemsInRow = rowType === 'first-row' ? 5 : 4;
-
       if (currentRow.length === maxItemsInRow || index === [...publicImages, ...privateImages].length - 1) {
         rowsHtml += `<div class="custom-row ${rowType}">`;
         currentRow.forEach((img) => {
@@ -109,15 +110,15 @@ export const index = async (req, res) => {
                   <p>${img.name} (Private)</p>
                 </a>
               `}
-            </div>
-          `;
+            </div>`;
         });
-        rowsHtml += `</div>`;
+        rowsHtml += '</div>';
         currentRow = [];
-        rowType = rowType === 'first-row' ? 'second-row' : 'first-row'; // Alternate row type
+        rowType = rowType === 'first-row' ? 'second-row' : 'first-row';
       }
     });
 
+    // Render the page
     res.render('Pages/gallery', { gallery, galleries, rowsHtml });
   } catch (error) {
     console.error('[Error] Index controller:', error.message);
