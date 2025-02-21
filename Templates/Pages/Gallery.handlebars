@@ -123,70 +123,90 @@
 </div>
 
 
-<div class="photo-gallery">
-    <div>
-<h1>We invite you to click on each link below to view Before & <br>After Photos with Aesthetics Procedure Description</h1>
+<div>
+  <h1>
+    We invite you to click on each link below to view Before &
+    <br />After Photos with Aesthetics Procedure Description
+  </h1>
 </div>
 <div class="custom-container">
-    {{{rowsHtml}}}
-</div></div>... <!-- Modal -->
-<div class="modal2 fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content rounded-0">
-        <div class="modal-body p-4 px-5">
-
-
-          <div class="main-content text-center">
-
-              <a href="#" class="close-btn" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true"><span class="icon-close2"></span></span>
-                </a>
-
-              <div class="warp-icon mb-4">
-                <span class="icon-lock2"></span>
-              </div>
-              <form action="/gallery/Private_images" method="post"><!-- ONLY CHANGE: /gallery/Private_images -->
-                <label for="">This link is password protected</label>
-                <p class="mb-4">You Can <svg style="color: rgb(68, 155, 68) ;"  xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
-                    <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-                  </svg><a src="index.html" style="color: rgb(68, 155, 68);"><b> Contact</b></a> Directly With Dr. Khaled To Allow You Enter This Section</p>
-                <div class="form-group mb-4">
-					<input type="hidden" name="id" id="hiddenImageId" >
-                  <input type="password" name="password" class="form-control text-center" placeholder="Enter password" required>
-                </div>
-
-                <div class="d-flex">
-                  <div class="mx-auto">
-                                <button type="submit" class="btn btn-primary">Enter</button>
-                  </div>
-                </div>
-              </form>
-
+  {{#with gallery}}
+  <h2>Gallery: {{name}}</h2>
+  <p>{{description}}</p>
+  {{/with}}
+  {{#each galleryImages}}
+  <div class="gallery-item">
+    {{#if (eq status 'Public')}}
+    <a href="/galleries/public_images/{{id}}">
+      <img src="/images/gallery/{{icon}}" alt="{{name}}" />
+      <p>{{name}} (Public)</p>
+    </a>
+    {{else}}
+    <a href="#" onclick="openModal('{{id}}')">
+      <img src="/images/gallery/{{icon}}" alt="{{name}}" />
+      <p>{{name}} (Private)</p>
+    </a>
+    {{/if}}
+  </div>
+  {{/each}}
+</div>
+<!-- Modal -->
+<div class="modal2 fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content rounded-0">
+      <div class="modal-body p-4 px-5">
+        <div class="main-content text-center">
+          <a href="#" class="close-btn" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"><span class="icon-close2"></span></span>
+          </a>
+          <div class="warp-icon mb-4">
+            <span class="icon-lock2"></span>
           </div>
-
+          <form action="/gallery/Private_images" method="post">
+            <!-- ONLY CHANGE: /gallery/Private_images -->
+            <label for="">This link is password protected</label>
+            <p class="mb-4">You Can
+              <svg style="color: rgb(68, 155, 68) ;" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                <path
+                  d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232" />
+              </svg><a src="index.html" style="color: rgb(68, 155, 68);"><b> Contact</b></a> Directly With Dr. Khaled To Allow
+              You Enter This Section
+            </p>
+            <div class="form-group mb-4">
+              <input type="hidden" name="id" id="hiddenImageId">
+              <input type="password" name="password" class="form-control text-center" placeholder="Enter password"
+                required>
+            </div>
+            <div class="d-flex">
+              <div class="mx-auto">
+                <button type="submit" class="btn btn-primary">Enter</button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
-	<script>
-    function openModal(imageId) {
-        // Log the image ID for debugging
-        console.log('Opening modal for image ID:', imageId);
-
-        // Find the modal
-        const modal = document.getElementById('exampleModalCenter');
-
-        // Store the image ID in a hidden input or process it as needed
-        const hiddenInput = document.getElementById('hiddenImageId');
-        if (hiddenInput) {
-            hiddenInput.value = imageId;
-        }
-
-        // Show the modal programmatically
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
+</div>
+<script>
+  function openModal(imageId) {
+    // Log the image ID for debugging
+    console.log('Opening modal for image ID:', imageId);
+    // Find the modal
+    const modal = document.getElementById('exampleModalCenter');
+    // Store the image ID in a hidden input or process it as needed
+    const hiddenInput = document.getElementById('hiddenImageId');
+    if (hiddenInput) {
+      hiddenInput.value = imageId;
     }
-</script>... <div class="moving-background2">
+    // Show the modal programmatically
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+  }
+</script>
+... <div class="moving-background2">
 	<div class="overlay"></div>
 	<div class="content-of-moving-background">
     <h1>Hear from Our Patients</h1>
