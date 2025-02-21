@@ -7,10 +7,9 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * Utility function to fetch gallery metadata by slug.
- *
+ * Fetch gallery metadata by slug.
  * @param {string} slug - The slug of the gallery.
- * @returns {Promise<object|null>} - A promise that resolves with the gallery metadata or null if not found.
+ * @returns {Promise<object|null>} - The gallery metadata or null if not found.
  */
 const fetchGalleryDataBySlug = async (slug) => {
     try {
@@ -37,10 +36,9 @@ const fetchGalleryDataBySlug = async (slug) => {
 };
 
 /**
- * Utility function to fetch gallery images by gallery slug, including gallery details.
- *
+ * Fetch gallery images by gallery slug.
  * @param {string} gallerySlug - The slug of the gallery.
- * @returns {Promise<Array<object>>} - A promise that resolves with an array of gallery images.
+ * @returns {Promise<Array<object>>} - Array of gallery images.
  */
 const fetchGalleryImagesByGallerySlug = async (gallerySlug) => {
     try {
@@ -84,9 +82,37 @@ const fetchGalleryImagesByGallerySlug = async (gallerySlug) => {
 };
 
 /**
+ * Validate if the provided password exists in the passwords table.
+ * @param {string} password - The password to validate.
+ * @returns {Promise<boolean>} - True if the password is valid, false otherwise.
+ */
+const validatePassword = async (password) => {
+    try {
+        console.log('[Auth] Validating password...');
+        const {
+            data: passwords,
+            error
+        } = await supabase
+            .from('"Passwords"') //Use public schema and add quot
+            .select('password_hash') //To match correct column in db
+
+        if (error) {
+            console.error(`[Auth] Error fetching passwords: ${error.message}`);
+            throw error;
+        }
+        //Now check if there exist a match password_hash === password , if so, return true;
+        const isValid = passwords.some(p => p.password_hash === password);
+
+        return isValid
+    } catch (error) {
+        console.error('[Auth] Error validating password:', error.message);
+        return false;
+    }
+};
+
+/**
  * Controller function to render the main gallery page.
  * Fetches gallery metadata and images based on the provided slug.
- *
  * @param {object} req - Express request object.
  * @param {object} res - Express response object.
  */
@@ -110,10 +136,15 @@ export const index = async (req, res) => {
             });
         }
 
+        // Separate images into public and private
+        const publicImages = galleryImages.filter(img => img.status === 'Public');
+        const privateImages = galleryImages.filter(img => img.status === 'Private');
+
         // Render the gallery page with fetched data
         res.render('Pages/gallery', {
             gallery,
-            galleryImages,
+            publicImages,
+            privateImages,
         });
 
         console.log(`[Success] Rendered gallery index page for slug: ${slug}`);
@@ -126,46 +157,7 @@ export const index = async (req, res) => {
 };
 
 /**
- * Controller function to display public images.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- */
-export const publicImages = async (req, res) => {
-    try {
-        const {
-            slug
-        } = req.params;
-        console.log(`[Request] Public images requested for gallery slug: ${slug}`);
-
-        // Fetch public images for the gallery
-        const publicImages = await fetchGalleryImagesByGallerySlug(slug);
-
-        // If no public images found
-        if (!publicImages || publicImages.length === 0) {
-            console.warn(`[Gallery] No public images found for gallery slug: ${slug}`);
-            return res.status(404).render('Pages/404', {
-                error: 'No public images found for this gallery'
-            });
-        }
-
-        // Render the gallery with public images
-        res.render('Pages/gallery', {
-            galleryImages: publicImages,
-        });
-
-        console.log(`[Success] Rendered public images for gallery slug: ${slug}`);
-    } catch (error) {
-        console.error('[Error] Public Images controller:', error.message);
-        res.status(500).render('Pages/404', {
-            error: error.message
-        });
-    }
-};
-
-/**
- * Controller function to display private images after validating a password.
- *
+ * Controller function to handle private images access.
  * @param {object} req - Express request object.
  * @param {object} res - Express response object.
  */
@@ -175,24 +167,24 @@ export const privateImages = async (req, res) => {
             id,
             password
         } = req.body;
-        console.log(`[Request] Private images requested for image ID: ${id}`);
+        console.log(`[Request] Private images access attempt for ID: ${id}`);
 
-        // Here, you would include your logic to validate the password
-        // For simplicity, I will use a placeholder
-        if (password !== 'validPassword') {
+        // Validate if the provided password exists in the passwords table
+        const isValid = await validatePassword(password);
+
+        if (!isValid) {
             console.warn('[Auth] Invalid password attempt.');
             return res.status(403).render('Pages/404', {
                 error: 'Invalid password'
             });
         }
 
-        // Fetch gallery image with the given ID
         const {
             data: galleryImage,
             error
         } = await supabase
             .from('galleryimage')
-            .select('*')
+            .select(`*, gallery (name, slug)`)
             .eq('id', id)
             .single();
 
@@ -210,12 +202,12 @@ export const privateImages = async (req, res) => {
             });
         }
 
-        // Render the gallery page with the private image
-        res.render('Pages/gallery', {
-            galleryImage
+        console.log(`[Success] Rendered private image page for ID: ${id}`);
+        res.render('Pages/private_gallery', {
+            galleryImage,
+            /*, you can pass others parameters also*/
         });
 
-        console.log(`[Success] Rendered private image page for ID: ${id}`);
     } catch (error) {
         console.error('[Error] Private Images controller:', error.message);
         res.status(500).render('Pages/404', {
