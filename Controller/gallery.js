@@ -11,207 +11,153 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  * @param {string} slug - The slug of the gallery.
  * @returns {Promise<object|null>} - The gallery metadata or null if not found.
  */
-const fetchGalleryDataBySlug = async (slug) => {
-    try {
-        console.log(`[Gallery] Fetching metadata for gallery with slug: ${slug}`);
-        const {
-            data: gallery,
-            error
-        } = await supabase
-            .from('gallery')
-            .select('*')
-            .eq('slug', slug)
-            .single();
+const fetchGalleryBySlug = async (slug) => {
+  try {
+    const { data, error } = await supabase
+      .from('gallery')
+      .select('*')
+      .eq('slug', slug)
+      .single();
 
-        if (error) {
-            console.error(`[Gallery] Error fetching gallery metadata by slug: ${error.message}`);
-            throw error;
-        }
-
-        return gallery;
-    } catch (error) {
-        console.error('[Gallery] Error in fetchGalleryDataBySlug:', error.message);
-        throw error;
-    }
+    if (error) throw new Error(`Error fetching gallery with slug "${slug}": ${error.message}`);
+    return data;
+  } catch (error) {
+    console.error('[Gallery] Error in fetchGalleryBySlug:', error.message);
+    throw error;
+  }
 };
 
 /**
- * Fetch gallery images by gallery slug.
+ * Fetch all images for a gallery by its slug.
  * @param {string} gallerySlug - The slug of the gallery.
- * @returns {Promise<Array<object>>} - Array of gallery images.
+ * @returns {Promise<Array<object>>} - Array of images for the gallery.
  */
-const fetchGalleryImagesByGallerySlug = async (gallerySlug) => {
-    try {
-        console.log(`[Gallery] Fetching gallery images for gallery slug: ${gallerySlug}`);
+const fetchGalleryImagesBySlug = async (gallerySlug) => {
+  try {
+    const { data, error } = await supabase
+      .from('galleryimage')
+      .select('*')
+      .eq('gallery.slug', gallerySlug);
 
-        const {
-            data: galleryImages,
-            error
-        } = await supabase
-            .from('galleryimage')
-            .select(`
-                *,
-                gallery (
-                  name,
-                  slug
-                )
-            `)
-            .eq('gallery.slug', gallerySlug);
-
-        if (error) {
-            console.error(`[Gallery] Error fetching gallery images by slug: ${error.message}`);
-            throw error;
-        }
-
-        if (!galleryImages || galleryImages.length === 0) {
-            console.warn(`[Gallery] No images found for gallery slug: ${gallerySlug}`);
-            return [];
-        }
-
-        return galleryImages.map(img => ({
-            ...img,
-            gallery: {
-                name: img.gallery.name,
-                slug: img.gallery.slug
-            }
-        }));
-    } catch (error) {
-        console.error('[Gallery] Error in fetchGalleryImagesByGallerySlug:', error.message);
-        throw error;
-    }
+    if (error) throw new Error(`Error fetching images for gallery "${gallerySlug}": ${error.message}`);
+    return data;
+  } catch (error) {
+    console.error('[Gallery] Error in fetchGalleryImagesBySlug:', error.message);
+    throw error;
+  }
 };
 
 /**
- * Validate if the provided password exists in the passwords table.
+ * Fetch a specific image by its slug within a gallery.
+ * @param {string} gallerySlug - The slug of the gallery.
+ * @param {string} imageSlug - The slug of the image.
+ * @returns {Promise<object|null>} - The image metadata or null if not found.
+ */
+const fetchImageBySlugs = async (gallerySlug, imageSlug) => {
+  try {
+    const { data, error } = await supabase
+      .from('galleryimage')
+      .select('*')
+      .eq('gallery.slug', gallerySlug)
+      .eq('slug', imageSlug)
+      .single();
+
+    if (error) throw new Error(`Error fetching image "${imageSlug}" in gallery "${gallerySlug}": ${error.message}`);
+    return data;
+  } catch (error) {
+    console.error('[Gallery] Error in fetchImageBySlugs:', error.message);
+    throw error;
+  }
+};
+
+/**
+ * Validate password against the passwords table.
  * @param {string} password - The password to validate.
  * @returns {Promise<boolean>} - True if the password is valid, false otherwise.
  */
 const validatePassword = async (password) => {
-    try {
-        console.log('[Auth] Validating password...');
-        const {
-            data: passwords,
-            error
-        } = await supabase
-            .from('"Passwords"') //Use public schema and add quot
-            .select('password_hash') //To match correct column in db
+  try {
+    const { data, error } = await supabase
+      .from('Passwords')
+      .select('password_hash');
 
-        if (error) {
-            console.error(`[Auth] Error fetching passwords: ${error.message}`);
-            throw error;
-        }
-        //Now check if there exist a match password_hash === password , if so, return true;
-        const isValid = passwords.some(p => p.password_hash === password);
+    if (error) throw new Error(`Error fetching passwords: ${error.message}`);
 
-        return isValid
-    } catch (error) {
-        console.error('[Auth] Error validating password:', error.message);
-        return false;
-    }
+    return data.some((record) => record.password_hash === password); // Replace with hash comparison if needed.
+  } catch (error) {
+    console.error('[Auth] Error validating password:', error.message);
+    throw error;
+  }
 };
 
 /**
  * Controller function to render the main gallery page.
- * Fetches gallery metadata and images based on the provided slug.
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
+ * Displays all public and private images for a specific gallery.
  */
 export const index = async (req, res) => {
-    try {
-        const {
-            slug
-        } = req.params;
-        console.log(`[Request] Gallery index initiated for slug: ${slug}`);
+  try {
+    const { slug } = req.params;
 
-        // Fetch gallery metadata and images using the provided slug
-        const [gallery, galleryImages] = await Promise.all([
-            fetchGalleryDataBySlug(slug),
-            fetchGalleryImagesByGallerySlug(slug),
-        ]);
+    const [gallery, images] = await Promise.all([
+      fetchGalleryBySlug(slug),
+      fetchGalleryImagesBySlug(slug),
+    ]);
 
-        if (!gallery) {
-            console.warn(`[Gallery] No gallery found with slug: ${slug}`);
-            return res.status(404).render('Pages/404', {
-                error: 'Gallery not found'
-            });
-        }
+    if (!gallery) return res.status(404).render('Pages/404', { error: 'Gallery not found' });
 
-        // Separate images into public and private
-        const publicImages = galleryImages.filter(img => img.status === 'Public');
-        const privateImages = galleryImages.filter(img => img.status === 'Private');
+    const publicImages = images.filter((img) => img.status === 'Public');
+    const privateImages = images.filter((img) => img.status === 'Private');
 
-        // Render the gallery page with fetched data
-        res.render('Pages/gallery', {
-            gallery,
-            publicImages,
-            privateImages,
-        });
-
-        console.log(`[Success] Rendered gallery index page for slug: ${slug}`);
-    } catch (error) {
-        console.error('[Error] Index controller:', error.message);
-        res.status(500).render('Pages/404', {
-            error: error.message
-        });
-    }
+    res.render('Pages/gallery', { gallery, publicImages, privateImages });
+  } catch (error) {
+    console.error('[Error] Index controller:', error.message);
+    res.status(500).render('Pages/404', { error });
+  }
 };
 
 /**
- * Controller function to handle private images access.
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
+ * Controller function to render a public image page.
  */
-export const privateImages = async (req, res) => {
-    try {
-        const {
-            id,
-            password
-        } = req.body;
-        console.log(`[Request] Private images access attempt for ID: ${id}`);
+export const publicImage = async (req, res) => {
+  try {
+    const { gallery_slug, image_slug } = req.params;
 
-        // Validate if the provided password exists in the passwords table
-        const isValid = await validatePassword(password);
+    const image = await fetchImageBySlugs(gallery_slug, image_slug);
 
-        if (!isValid) {
-            console.warn('[Auth] Invalid password attempt.');
-            return res.status(403).render('Pages/404', {
-                error: 'Invalid password'
-            });
-        }
-
-        const {
-            data: galleryImage,
-            error
-        } = await supabase
-            .from('galleryimage')
-            .select(`*, gallery (name, slug)`)
-            .eq('id', id)
-            .single();
-
-        if (error) {
-            console.error(`[Supabase] Error fetching galleryimage: ${error.message}`);
-            return res.status(500).render('Pages/404', {
-                error: 'Error fetching image from database'
-            });
-        }
-
-        if (!galleryImage) {
-            console.warn(`[Gallery] No gallery image found with slug: ${id}`);
-            return res.status(404).render('Pages/404', {
-                error: 'Image not found'
-            });
-        }
-
-        console.log(`[Success] Rendered private image page for ID: ${id}`);
-        res.render('Pages/private_gallery', {
-            galleryImage,
-            /*, you can pass others parameters also*/
-        });
-
-    } catch (error) {
-        console.error('[Error] Private Images controller:', error.message);
-        res.status(500).render('Pages/404', {
-            error: error.message
-        });
+    if (!image || image.status !== 'Public') {
+      return res.status(404).render('Pages/404', { error: 'Public image not found' });
     }
+
+    res.render('Pages/public_image', { image });
+  } catch (error) {
+    console.error('[Error] Public Image controller:', error.message);
+    res.status(500).render('Pages/404', { error });
+  }
+};
+
+/**
+ * Controller function to handle private image access with password validation.
+ */
+export const privateImage = async (req, res) => {
+  try {
+    const { gallery_slug, image_slug } = req.params;
+    const { password } = req.body;
+
+    const image = await fetchImageBySlugs(gallery_slug, image_slug);
+
+    if (!image || image.status !== 'Private') {
+      return res.status(404).render('Pages/404', { error: 'Private image not found' });
+    }
+
+    const isValidPassword = await validatePassword(password);
+
+    if (!isValidPassword) {
+      return res.status(403).render('Pages/403', { error: 'Invalid password' });
+    }
+
+    res.render('Pages/private_image', { image });
+  } catch (error) {
+    console.error('[Error] Private Image controller:', error.message);
+    res.status(500).render('Pages/404', { error });
+  }
 };
