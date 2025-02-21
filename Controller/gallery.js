@@ -52,7 +52,7 @@ export const index = async (req, res) => {
     const { id } = req.params;
     console.log(`[Request] Gallery index initiated for ID: ${id}`);
 
-    const [gallery, images, allGalleries] = await Promise.all([
+    const [gallery, images, galleries] = await Promise.all([
       fetchGalleryDataBySlug(id),
       fetchGalleryImagesByGalleryId(id),
       supabase.from('gallery').select('*'),
@@ -65,7 +65,7 @@ export const index = async (req, res) => {
 
     res.render('Pages/gallery', {
       gallery,
-      allGalleries: allGalleries.data,
+      galleries: allGalleries.data,
       galleryImages: images,
     });
 
