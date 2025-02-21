@@ -7,16 +7,12 @@ const supabaseKey = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
- * Fetch all galleries for navbar.
- * @returns {Promise<Array<object>>} - Array of all galleries.
+ * Fetch all galleries for the navbar.
  */
 const fetchAllGalleries = async () => {
   try {
     console.log('[Gallery] Fetching all galleries...');
-    const { data: galleries, error } = await supabase
-      .from('gallery')
-      .select('*');
-
+    const { data: galleries, error } = await supabase.from('gallery').select('*');
     if (error) throw new Error(`Error fetching galleries: ${error.message}`);
     return galleries;
   } catch (error) {
@@ -27,17 +23,10 @@ const fetchAllGalleries = async () => {
 
 /**
  * Fetch gallery metadata by slug.
- * @param {string} slug - The slug of the gallery.
- * @returns {Promise<object|null>} - The gallery metadata or null if not found.
  */
 const fetchGalleryBySlug = async (slug) => {
   try {
-    const { data, error } = await supabase
-      .from('gallery')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
+    const { data, error } = await supabase.from('gallery').select('*').eq('slug', slug).single();
     if (error) throw new Error(`Error fetching gallery with slug "${slug}": ${error.message}`);
     return data;
   } catch (error) {
@@ -48,16 +37,10 @@ const fetchGalleryBySlug = async (slug) => {
 
 /**
  * Fetch all images for a gallery by its slug.
- * @param {string} gallerySlug - The slug of the gallery.
- * @returns {Promise<Array<object>>} - Array of images for the gallery.
  */
 const fetchGalleryImagesBySlug = async (gallerySlug) => {
   try {
-    const { data, error } = await supabase
-      .from('galleryimage')
-      .select('*')
-      .eq('gallery.slug', gallerySlug);
-
+    const { data, error } = await supabase.from('galleryimage').select('*').eq('gallery.slug', gallerySlug);
     if (error) throw new Error(`Error fetching images for gallery "${gallerySlug}": ${error.message}`);
     return data;
   } catch (error) {
@@ -68,17 +51,11 @@ const fetchGalleryImagesBySlug = async (gallerySlug) => {
 
 /**
  * Validate password against the passwords table.
- * @param {string} password - The password to validate.
- * @returns {Promise<boolean>} - True if the password is valid, false otherwise.
  */
 const validatePassword = async (password) => {
   try {
-    const { data, error } = await supabase
-      .from('Passwords')
-      .select('password_hash');
-
+    const { data, error } = await supabase.from('Passwords').select('password_hash');
     if (error) throw new Error(`Error fetching passwords: ${error.message}`);
-
     return data.some((record) => record.password_hash === password); // Replace with hash comparison if needed.
   } catch (error) {
     console.error('[Auth] Error validating password:', error.message);
@@ -87,8 +64,7 @@ const validatePassword = async (password) => {
 };
 
 /**
- * Controller function to render the main gallery page.
- * Displays all public and private images for a specific gallery with rows of 4/5 items alternately.
+ * Controller: Render the main gallery page.
  */
 export const index = async (req, res) => {
   try {
@@ -106,20 +82,18 @@ export const index = async (req, res) => {
     const publicImages = images.filter((img) => img.status === 'Public');
     const privateImages = images.filter((img) => img.status === 'Private');
 
-    // Combine public and private images while maintaining order
-    const combinedImages = [...publicImages, ...privateImages];
-
     // Dynamically generate rows of 4/5 items alternately
     let rowsHtml = '';
     let currentRow = [];
-    let rowType = 'first-row'; // Start with a row of 5 items
-    combinedImages.forEach((image, index) => {
+    let rowType = 'first-row'; // Start with a row of five items
+
+    [...publicImages, ...privateImages].forEach((image, index) => {
       currentRow.push(image);
 
-      // Determine row size: alternate between 5 and 4 items per row
+      // Alternate between rows of five and four items
       const maxItemsInRow = rowType === 'first-row' ? 5 : 4;
 
-      if (currentRow.length === maxItemsInRow || index === combinedImages.length - 1) {
+      if (currentRow.length === maxItemsInRow || index === [...publicImages, ...privateImages].length - 1) {
         rowsHtml += `<div class="custom-row ${rowType}">`;
         currentRow.forEach((img) => {
           rowsHtml += `
@@ -144,12 +118,7 @@ export const index = async (req, res) => {
       }
     });
 
-    // Render the gallery page with fetched data and dynamic rows
-    res.render('Pages/gallery', { 
-      gallery, 
-      galleries, 
-      rowsHtml 
-    });
+    res.render('Pages/gallery', { gallery, galleries, rowsHtml });
   } catch (error) {
     console.error('[Error] Index controller:', error.message);
     res.status(500).render('Pages/404', { error });
@@ -157,14 +126,34 @@ export const index = async (req, res) => {
 };
 
 /**
- * Controller function to handle private image access with password validation.
+ * Controller: Render a public image page.
+ */
+export const publicImage = async (req, res) => {
+  try {
+    const { gallery_slug, image_slug } = req.params;
+
+    const image = await fetchGalleryImagesBySlug(gallery_slug);
+
+    if (!image || image.status !== 'Public') {
+      return res.status(404).render('Pages/404', { error: 'Public image not found' });
+    }
+
+    res.render('Pages/public_image', { image });
+  } catch (error) {
+    console.error('[Error] Public Image controller:', error.message);
+    res.status(500).render('Pages/404', { error });
+  }
+};
+
+/**
+ * Controller: Handle private image access with password validation.
  */
 export const privateImage = async (req, res) => {
   try {
     const { gallery_slug, image_slug } = req.params;
     const { password } = req.body;
 
-    const image = await fetchImageBySlugs(gallery_slug, image_slug);
+    const image = await fetchGalleryImagesBySlug(gallery_slug);
 
     if (!image || image.status !== 'Private') {
       return res.status(404).render('Pages/404', { error: 'Private image not found' });
