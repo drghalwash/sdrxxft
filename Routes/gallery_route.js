@@ -1,20 +1,16 @@
-// Import Router from Express
+// gallery_route.js
 import { Router } from 'express';
+import { index, publicImage, privateImage } from '../Controller/gallery.js';
 
-// Import the controller functions
-import { index, publicImages, privateImages } from '../Controller/gallery.js';
-
-// Create a new router instance
 const router = new Router();
 
-// Route: Fetch gallery by slug
+// Route: Fetch gallery by slug (e.g., .com/galleries/Face)
 router.get('/:slug', index);
 
-// Route: Fetch public images by ID
-router.get('/public_images/:slug', publicImages);
+// Route: Fetch public image by slug (e.g., .com/galleries/Face/rhinoplasty)
+router.get('/:gallery_slug/:image_slug', publicImage);
 
-// Route: Fetch private images
-router.post('/private_images', privateImages);
+// Route: Access private image with password (e.g., .com/galleries/Face/botox)
+router.post('/:gallery_slug/:image_slug', privateImage);
 
-// Export the router for use in the application
 export default router;
