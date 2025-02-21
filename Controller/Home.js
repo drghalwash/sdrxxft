@@ -70,14 +70,14 @@ export const index = async (req, res) => {
     console.log('[Request] Homepage requested');
 
     // Fetch all required data in parallel
-    const [Home, Offers, Photo_Gallary] = await Promise.all([
+    const [Home, Offers, galleries] = await Promise.all([
       fetchHomeData(),
       fetchOffersData(),
       fetchGalleryData(),
     ]);
 
     // Render the homepage with fetched data
-    res.render('Pages/index', { Home, Offers, Photo_Gallary });
+    res.render('Pages/index', { Home, Offers, galleries });
 
     console.log('[Success] Homepage rendered successfully');
   } catch (error) {
