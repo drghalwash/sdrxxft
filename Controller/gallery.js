@@ -87,42 +87,38 @@ export const index = async (req, res) => {
 /**
  * Controller: Public Images Page - By ID.
  */
-export const publicImages = async (req, res) => {
+// Fetch Public Images by Gallery Slug
+export const fetchPublicImages = async (gallerySlug) => {
   try {
-    const { id } = req.params;
+    console.log(`[Gallery] Fetching public images for gallery slug: ${gallerySlug}`);
+    const { data, error } = await supabase
+      .from('galleryimage')
+      .select('*')
+      .eq('status', 'Public')
+      .eq('gallery.slug', gallerySlug);
 
-    console.log(`[Request] Public images access for ID: ${id}`);
-
-    const { data: imageSet, error } = await supabase.from('galleryimage').select('*').eq('id', id).single();
-
-    if (error || !imageSet) {
-      console.warn(`[Gallery] No image set found with ID: ${id}`);
-      return res.status(404).render('Pages/404', { error: 'Image not found' });
-    }
-
-    res.render('Pages/gallery', { imageSet });
-
-    console.log(`[Success] Rendered public image page for ID: ${id}`);
+    if (error) throw new Error(`Error fetching public images: ${error.message}`);
+    return data;
   } catch (error) {
-    console.error('[Error] Public Images controller:', error.message);
-    res.status(500).render('Pages/404', { error });
+    console.error('[Gallery] Error in fetchPublicImages:', error.message);
+    throw error;
   }
 };
 
-/**
- * Controller: Private Images Page - Requires Password.
- */
-export const privateImages = async (req, res) => {
+// Fetch Private Images by Gallery Slug
+export const fetchPrivateImages = async (gallerySlug) => {
   try {
-    const { id, password } = req.body;
+    console.log(`[Gallery] Fetching private images for gallery slug: ${gallerySlug}`);
+    const { data, error } = await supabase
+      .from('galleryimage')
+      .select('*')
+      .eq('status', 'Private')
+      .eq('gallery.slug', gallerySlug);
 
-    console.log(`[Request] Private images access attempt for ID: ${id}`);
-
-    // Validate password logic here...
-
-    res.render('Pages/gallery', {});
+    if (error) throw new Error(`Error fetching private images: ${error.message}`);
+    return data;
   } catch (error) {
-    console.error('[Error] Private Images controller:', error.message);
-    res.status(500).render('Pages/404', { error });
+    console.error('[Gallery] Error in fetchPrivateImages:', error.message);
+    throw error;
   }
 };
