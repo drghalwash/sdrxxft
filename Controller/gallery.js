@@ -8,21 +8,24 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 /**
  * Fetch all galleries for the navbar.
+ * @returns {Promise<Array<object>>} - Array of all galleries.
  */
 const fetchAllGalleries = async () => {
   try {
     console.log('[Gallery] Fetching all galleries...');
     const { data: galleries, error } = await supabase.from('gallery').select('*');
     if (error) throw new Error(`Error fetching galleries: ${error.message}`);
-    return galleries;
+    return galleries || []; // Return an empty array if no galleries are found
   } catch (error) {
     console.error('[Error] Fetching all galleries:', error.message);
-    throw error;
+    return []; // Return an empty array on error
   }
 };
 
 /**
  * Fetch gallery metadata by slug.
+ * @param {string} slug - The slug of the gallery.
+ * @returns {Promise<object|null>} - The gallery metadata or null if not found.
  */
 const fetchGalleryBySlug = async (slug) => {
   try {
@@ -31,32 +34,36 @@ const fetchGalleryBySlug = async (slug) => {
     return data;
   } catch (error) {
     console.error('[Gallery] Error in fetchGalleryBySlug:', error.message);
-    throw error;
+    return null; // Return null if gallery is not found
   }
 };
 
 /**
  * Fetch all images for a gallery by its slug.
+ * @param {string} gallerySlug - The slug of the gallery.
+ * @returns {Promise<Array<object>>} - Array of images for the gallery.
  */
 const fetchGalleryImagesBySlug = async (gallerySlug) => {
   try {
     const { data, error } = await supabase.from('galleryimage').select('*').eq('gallery.slug', gallerySlug);
     if (error) throw new Error(`Error fetching images for gallery "${gallerySlug}": ${error.message}`);
-    return data;
+    return data || []; // Return an empty array if no images are found
   } catch (error) {
     console.error('[Gallery] Error in fetchGalleryImagesBySlug:', error.message);
-    throw error;
+    return []; // Return an empty array on error
   }
 };
 
 /**
  * Validate password against the passwords table.
+ * @param {string} password - The password to validate.
+ * @returns {Promise<boolean>} - True if the password is valid, false otherwise.
  */
 const validatePassword = async (password) => {
   try {
     const { data, error } = await supabase.from('Passwords').select('password_hash');
     if (error) throw new Error(`Error fetching passwords: ${error.message}`);
-    return data.some((record) => record.password_hash === password); // Replace with hash comparison if needed.
+    return data.some((record) => record.password_hash === password); // Replace with hash comparison if needed
   } catch (error) {
     console.error('[Auth] Error validating password:', error.message);
     throw error;
@@ -70,30 +77,38 @@ export const index = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    console.log(`[Controller] Fetching gallery with slug: ${slug}`);
-
-    // Fetch all required data
-    const [gallery, images, galleries] = await Promise.all([
+    // Fetch all required data in parallel
+    const [gallery, rawImages, galleries] = await Promise.all([
       fetchGalleryBySlug(slug),
       fetchGalleryImagesBySlug(slug),
       fetchAllGalleries(),
     ]);
 
-    if (!gallery) {
-      console.warn(`[Controller] Gallery not found for slug: ${slug}`);
-      return res.status(404).render('Pages/404', { error: 'Gallery not found' });
-    }
+    if (!gallery) return res.status(404).render('Pages/404', { error: 'Gallery not found' });
 
-    const publicImages = images.filter((img) => img.status === 'Public');
-    const privateImages = images.filter((img) => img.status === 'Private');
+    // Sanitize images to handle missing/incorrect data
+    const sanitizedImages = rawImages.map((image) => ({
+      id: image.id || 'unknown-id',
+      slug: image.slug || 'unknown-slug',
+      name: image.name || 'Untitled',
+      icon: image.icon || 'default-icon.png', // Use default icon if missing
+      status: image.status || 'Public',
+    }));
 
-    // Generate rows of images dynamically
+    const publicImages = sanitizedImages.filter((img) => img.status === 'Public');
+    const privateImages = sanitizedImages.filter((img) => img.status === 'Private');
+
+    // Dynamically generate rows of 4/5 items alternately
     let rowsHtml = '';
     let currentRow = [];
-    let rowType = 'first-row';
+    let rowType = 'first-row'; // Start with a row of five items
+
     [...publicImages, ...privateImages].forEach((image, index) => {
       currentRow.push(image);
+
+      // Alternate between rows of five and four items
       const maxItemsInRow = rowType === 'first-row' ? 5 : 4;
+
       if (currentRow.length === maxItemsInRow || index === [...publicImages, ...privateImages].length - 1) {
         rowsHtml += `<div class="custom-row ${rowType}">`;
         currentRow.forEach((img) => {
@@ -110,15 +125,15 @@ export const index = async (req, res) => {
                   <p>${img.name} (Private)</p>
                 </a>
               `}
-            </div>`;
+            </div>
+          `;
         });
-        rowsHtml += '</div>';
+        rowsHtml += `</div>`;
         currentRow = [];
-        rowType = rowType === 'first-row' ? 'second-row' : 'first-row';
+        rowType = rowType === 'first-row' ? 'second-row' : 'first-row'; // Alternate row type
       }
     });
 
-    // Render the page
     res.render('Pages/gallery', { gallery, galleries, rowsHtml });
   } catch (error) {
     console.error('[Error] Index controller:', error.message);
