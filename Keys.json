@@ -1,13 +1,7 @@
 {
   "github": {
     "username": "drghalwash",
-    "personal_access_token": "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"
+    "personal_access_token": "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",
   },
-  "openrouter": {
-    "api_key": "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"
-  },
-  "application": {
-    "name": "bolt.diy",
-    "homepage_url": "https://t0ipis3d.rpcl.host/"
-  }
+  "OpenRouter_API_KEY": "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"
 }
